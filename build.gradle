@@ -1,0 +1,153 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        // The following is only necessary if you want to use SNAPSHOT releases.
+        // maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+    }
+    dependencies {
+        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.2'
+    }
+}
+
+plugins {
+    id 'org.ajoberstar.grgit' version '2.2.1'
+}
+apply plugin: 'org.junit.platform.gradle.plugin'
+apply plugin: 'maven'
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'jacoco'
+
+group 'cpw.mods'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+jacoco {
+    toolVersion = "0.7.9"
+}
+
+sourceSets {
+    mlservice
+    testJars
+}
+
+task mlserviceJar(type: Jar) {
+    classifier = 'service'
+    from sourceSets.main.output
+    from sourceSets.mlservice.output
+    manifest {
+        attributes(["Specification-Title": "eventbus",
+                    "Specification-Vendor": "Forge",
+                    "Specification-Version": "1", // Currently version 1 of the eventbus specification
+                    "Implementation-Title": project.name,
+                    "Implementation-Version": "${version}+${System.getenv("BUILD_NUMBER")?:0}+${grgit.head().getAbbreviatedId(8)}",
+                    "Implementation-Vendor" :"Forge",
+                    "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                    "Git-Commit": grgit.head().getAbbreviatedId(8),
+                    "Git-Branch": grgit.branch.getCurrent().getName() ],
+                "cpw/mods/eventbus/service/")
+    }
+}
+
+task testsJar(type: Jar) {
+    classifier = 'testsjar'
+    from sourceSets.testJars.output
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+    from sourceSets.mlservice.allSource
+}
+
+artifacts {
+    archives jar
+    archives sourcesJar
+    archives testsJar
+    archives mlserviceJar
+}
+
+build.dependsOn mlserviceJar
+
+repositories {
+    mavenCentral()
+    maven {
+        name = "forge"
+        url = "http://files.minecraftforge.net/maven"
+    }
+}
+
+dependencies {
+    testCompile "org.junit.jupiter:junit-jupiter-api:5.0.2"
+    testCompile(group: 'org.powermock', name: 'powermock-core', version: '1.7.3')
+    testCompile 'cpw.mods:modlauncher:0.1-SNAPSHOT'
+    testCompileOnly sourceSets.mlservice.output
+    testRuntime "org.junit.jupiter:junit-jupiter-engine:5.0.2"
+    testRuntime group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.10.0'
+    testRuntime sourceSets.testJars.runtimeClasspath
+    testRuntime sourceSets.mlservice.output
+    compile 'org.ow2.asm:asm:6.0'
+    compile 'org.ow2.asm:asm-commons:6.0'
+    compile 'org.ow2.asm:asm-tree:6.0'
+    compile 'net.sf.jopt-simple:jopt-simple:5.0.4'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.10.0'
+    compile 'cpw.mods:modlauncher:0.1-SNAPSHOT:api'
+    mlserviceCompile 'cpw.mods:modlauncher:0.1-SNAPSHOT:api'
+    mlserviceCompileOnly sourceSets.main.output
+}
+uploadArchives {
+    repositories.mavenDeployer {
+        if (project.hasProperty('forgeMavenPassword'))
+        {
+            repository(url: "http://files.minecraftforge.net/maven/manage/upload") {
+                authentication(userName: project.getProperty('forgeMavenUser'), password: project.getProperty('forgeMavenPassword'))
+            }
+        } else {
+            repository(url: 'file://localhost/' + project.file('repo').getAbsolutePath())
+        }
+        pom {
+            groupId = project.group
+            artifactId = project.archivesBaseName
+            project {
+                name project.archivesBaseName
+                packaging 'jar'
+                description 'Event Bus library'
+                url 'https://github.com/cpw/eventbus'
+
+                scm {
+                    url 'https://github.com/cpw/eventbus'
+                    connection 'scm:git:git://github.com/cpw/eventbus.git'
+                    developerConnection 'scm:git:git@github.com:cpw/eventbus.git'
+                }
+
+                issueManagement {
+                    system 'github'
+                    url 'https://github.com/cpw/eventbus/issues'
+                }
+
+                licenses {
+                    license {
+                        name 'LGPLv2.1'
+                        url 'https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt'
+                        distribution 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'cpw'
+                        name 'cpw'
+                        roles { role 'developer' }
+                    }
+                    developer {
+                        id 'LexManos'
+                        name 'LexManos'
+                        roles { role 'developer' }
+                    }
+                }
+            }
+        }
+    }
+}
