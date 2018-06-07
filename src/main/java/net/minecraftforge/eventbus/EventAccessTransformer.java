@@ -26,7 +26,9 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.lang.reflect.Modifier;
+import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 
 import static net.minecraftforge.eventbus.Logging.EVENTBUS;
 import static net.minecraftforge.eventbus.Names.SUBSCRIBE_EVENT;
@@ -36,7 +38,9 @@ public class EventAccessTransformer
     public ClassNode transform(final ClassNode classNode, final Type classType)
     {
         classNode.methods.stream().
-                filter(m->m.visibleAnnotations.stream().anyMatch(a->Objects.equals(a.desc, SUBSCRIBE_EVENT))).
+                filter(m-> Optional.ofNullable(m.visibleAnnotations).
+                        orElse(Collections.emptyList()).
+                        stream().anyMatch(a->Objects.equals(a.desc, SUBSCRIBE_EVENT))).
                 peek(m->{if (Modifier.isPrivate(m.access)) illegalPrivateAccess(m, classNode);}).
                 filter(m->!Modifier.isPrivate(m.access)).
                 peek($ -> classNode.access = changeAccess(classNode.access)).

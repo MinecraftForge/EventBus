@@ -84,6 +84,7 @@ dependencies {
     testCompile(group: 'org.powermock', name: 'powermock-core', version: '1.7.3')
     testCompile 'cpw.mods:modlauncher:0.1-SNAPSHOT'
     testCompileOnly sourceSets.mlservice.output
+    testJarsCompile sourceSets.main.output
     testRuntime "org.junit.jupiter:junit-jupiter-engine:5.0.2"
     testRuntime group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.10.0'
     testRuntime sourceSets.testJars.runtimeClasspath

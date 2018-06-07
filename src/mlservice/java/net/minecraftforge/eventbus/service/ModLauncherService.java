@@ -24,7 +24,7 @@ public class ModLauncherService implements ILaunchPluginService {
     }
 
     @Override
-    public Void getExtension() {
+    public <T> T getExtension() {
         return null;
     }
 
