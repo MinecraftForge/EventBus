@@ -46,7 +46,7 @@ task mlserviceJar(type: Jar) {
                     "Implementation-Vendor" :"Forge",
                     "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
                     "Git-Commit": grgit.head().getAbbreviatedId(8),
-                    "Git-Branch": grgit.branch.getCurrent().getName() ],
+                    "Git-Branch": grgit.branch.current().getName() ],
                 "cpw/mods/eventbus/service/")
     }
 }
