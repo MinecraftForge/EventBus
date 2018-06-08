@@ -163,7 +163,12 @@ public class ASMEventHandler implements IEventListener
     {
         private ASMClassLoader()
         {
-            super(ASMClassLoader.class.getClassLoader());
+            super(null);
+        }
+
+        @Override
+        protected Class<?> loadClass(final String name, final boolean resolve) throws ClassNotFoundException {
+            return Class.forName(name, resolve, Thread.currentThread().getContextClassLoader());
         }
 
         Class<?> define(String name, byte[] data)

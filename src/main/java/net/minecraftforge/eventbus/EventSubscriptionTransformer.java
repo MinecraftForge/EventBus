@@ -189,11 +189,4 @@ public class EventSubscriptionTransformer
         classNode.methods.add(method);
         return true;
     }
-
-    public boolean handlesType(final Type classType) {
-        final String name = classType.getClassName();
-        return !(name.equals("net.minecraftforge.eventbus.api.Event") ||
-                name.startsWith("net.minecraft.") ||
-                name.indexOf('.') == -1);
-    }
 }

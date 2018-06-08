@@ -1,20 +1,8 @@
-buildscript {
-    repositories {
-        mavenCentral()
-        // The following is only necessary if you want to use SNAPSHOT releases.
-        // maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
-    }
-    dependencies {
-        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.2'
-    }
-}
-
 plugins {
     id 'org.ajoberstar.grgit' version '2.2.1'
 }
-apply plugin: 'org.junit.platform.gradle.plugin'
 apply plugin: 'maven'
-apply plugin: 'java'
+apply plugin: 'java-library'
 apply plugin: 'eclipse'
 apply plugin: 'jacoco'
 
@@ -28,6 +16,10 @@ jacoco {
     toolVersion = "0.7.9"
 }
 
+test {
+    useJUnitPlatform()
+    forkEvery 1
+}
 sourceSets {
     mlservice
     testJars
@@ -80,23 +72,23 @@ repositories {
 }
 
 dependencies {
-    testCompile "org.junit.jupiter:junit-jupiter-api:5.0.2"
-    testCompile(group: 'org.powermock', name: 'powermock-core', version: '1.7.3')
-    testCompile 'cpw.mods:modlauncher:0.1-SNAPSHOT'
-    testCompileOnly sourceSets.mlservice.output
-    testJarsCompile sourceSets.main.output
-    testRuntime "org.junit.jupiter:junit-jupiter-engine:5.0.2"
-    testRuntime group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.10.0'
-    testRuntime sourceSets.testJars.runtimeClasspath
-    testRuntime sourceSets.mlservice.output
-    compile 'org.ow2.asm:asm:6.0'
-    compile 'org.ow2.asm:asm-commons:6.0'
-    compile 'org.ow2.asm:asm-tree:6.0'
-    compile 'net.sf.jopt-simple:jopt-simple:5.0.4'
-    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.10.0'
-    compile 'cpw.mods:modlauncher:0.1-SNAPSHOT:api'
-    mlserviceCompile 'cpw.mods:modlauncher:0.1-SNAPSHOT:api'
-    mlserviceCompileOnly sourceSets.main.output
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.2.0")
+    testImplementation("org.powermock:powermock-core:1.7.3")
+    testImplementation("cpw.mods:modlauncher:0.1-SNAPSHOT")
+    testImplementation(sourceSets.mlservice.output)
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.2.0")
+    testImplementation("org.apache.logging.log4j:log4j-core:2.10.0")
+    testImplementation(sourceSets.testJars.runtimeClasspath)
+    testImplementation(sourceSets.mlservice.output)
+    testJarsImplementation(sourceSets.main.output)
+    implementation("org.ow2.asm:asm:6.0")
+    implementation("org.ow2.asm:asm-commons:6.0")
+    implementation("org.ow2.asm:asm-tree:6.0")
+    implementation("net.sf.jopt-simple:jopt-simple:5.0.4")
+    implementation("org.apache.logging.log4j:log4j-api:2.10.0")
+    implementation("cpw.mods:modlauncher:0.1-SNAPSHOT:api")
+    mlserviceImplementation("cpw.mods:modlauncher:0.1-SNAPSHOT:api")
+    mlserviceImplementation(sourceSets.main.output)
 }
 uploadArchives {
     repositories.mavenDeployer {
@@ -111,6 +103,7 @@ uploadArchives {
         pom {
             groupId = project.group
             artifactId = project.archivesBaseName
+            //noinspection GroovyAssignabilityCheck
             project {
                 name project.archivesBaseName
                 packaging 'jar'
