@@ -6,14 +6,14 @@ apply plugin: 'java-library'
 apply plugin: 'eclipse'
 apply plugin: 'jacoco'
 
-group 'cpw.mods'
+group 'net.minecraftforge'
 version '1.0-SNAPSHOT'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 jacoco {
-    toolVersion = "0.7.9"
+    toolVersion = "0.8.1"
 }
 
 test {
@@ -39,7 +39,7 @@ task mlserviceJar(type: Jar) {
                     "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
                     "Git-Commit": grgit.head().getAbbreviatedId(8),
                     "Git-Branch": grgit.branch.current().getName() ],
-                "cpw/mods/eventbus/service/")
+                "net/minecraftforge/eventbus/service/")
     }
 }
 
@@ -77,15 +77,14 @@ dependencies {
     testImplementation("cpw.mods:modlauncher:0.1-SNAPSHOT")
     testImplementation(sourceSets.mlservice.output)
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.2.0")
-    testImplementation("org.apache.logging.log4j:log4j-core:2.10.0")
+    testImplementation("org.apache.logging.log4j:log4j-core:2.11.0")
     testImplementation(sourceSets.testJars.runtimeClasspath)
     testImplementation(sourceSets.mlservice.output)
     testJarsImplementation(sourceSets.main.output)
-    implementation("org.ow2.asm:asm:6.0")
-    implementation("org.ow2.asm:asm-commons:6.0")
-    implementation("org.ow2.asm:asm-tree:6.0")
-    implementation("net.sf.jopt-simple:jopt-simple:5.0.4")
-    implementation("org.apache.logging.log4j:log4j-api:2.10.0")
+    implementation("org.ow2.asm:asm:6.2")
+    implementation("org.ow2.asm:asm-commons:6.2")
+    implementation("org.ow2.asm:asm-tree:6.2")
+    implementation("org.apache.logging.log4j:log4j-api:2.11.0")
     implementation("cpw.mods:modlauncher:0.1-SNAPSHOT:api")
     mlserviceImplementation("cpw.mods:modlauncher:0.1-SNAPSHOT:api")
     mlserviceImplementation(sourceSets.main.output)

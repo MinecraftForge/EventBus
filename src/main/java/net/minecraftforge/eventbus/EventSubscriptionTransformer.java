@@ -128,7 +128,7 @@ public class EventSubscriptionTransformer
                 return true;
         }
 
-        Type tSuper = Type.getType(classNode.superName);
+        Type tSuper = Type.getObjectType(classNode.superName);
 
         //Add private static ListenerList LISTENER_LIST
         classNode.fields.add(new FieldNode(ACC_PRIVATE | ACC_STATIC, "LISTENER_LIST", listDesc, null, null));
