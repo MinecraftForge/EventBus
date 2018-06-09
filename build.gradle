@@ -5,6 +5,7 @@ apply plugin: 'maven'
 apply plugin: 'java-library'
 apply plugin: 'eclipse'
 apply plugin: 'jacoco'
+apply plugin: 'maven-publish'
 
 group 'net.minecraftforge'
 version '1.0-SNAPSHOT'
@@ -20,26 +21,38 @@ test {
     useJUnitPlatform()
     forkEvery 1
 }
+
 sourceSets {
     mlservice
     testJars
+}
+
+
+ext.sharedManifest = manifest {
+    attributes(["Specification-Title": "eventbus",
+                "Specification-Vendor": "Forge",
+                "Specification-Version": "1", // Currently version 1 of the eventbus specification
+                "Implementation-Title": project.name,
+                "Implementation-Version": "${version}+${System.getenv("BUILD_NUMBER")?:0}+${grgit.head().getAbbreviatedId(8)}",
+                "Implementation-Vendor" :"Forge",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                "Git-Commit": grgit.head().getAbbreviatedId(8),
+                "Git-Branch": grgit.branch.current().getName() ],
+            "net/minecraftforge/eventbus/service/")
 }
 
 task mlserviceJar(type: Jar) {
     classifier = 'service'
     from sourceSets.main.output
     from sourceSets.mlservice.output
-    manifest {
-        attributes(["Specification-Title": "eventbus",
-                    "Specification-Vendor": "Forge",
-                    "Specification-Version": "1", // Currently version 1 of the eventbus specification
-                    "Implementation-Title": project.name,
-                    "Implementation-Version": "${version}+${System.getenv("BUILD_NUMBER")?:0}+${grgit.head().getAbbreviatedId(8)}",
-                    "Implementation-Vendor" :"Forge",
-                    "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-                    "Git-Commit": grgit.head().getAbbreviatedId(8),
-                    "Git-Branch": grgit.branch.current().getName() ],
-                "net/minecraftforge/eventbus/service/")
+    manifest = project.manifest {
+        from sharedManifest
+    }
+}
+
+jar {
+    manifest = project.manifest {
+        from sharedManifest
     }
 }
 
@@ -73,7 +86,7 @@ repositories {
 
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.2.0")
-    testImplementation("org.powermock:powermock-core:1.7.3")
+    testImplementation("org.powermock:powermock-core:1.7.4")
     testImplementation("cpw.mods:modlauncher:0.1-SNAPSHOT")
     testImplementation(sourceSets.mlservice.output)
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.2.0")
@@ -89,58 +102,51 @@ dependencies {
     mlserviceImplementation("cpw.mods:modlauncher:0.1-SNAPSHOT:api")
     mlserviceImplementation(sourceSets.main.output)
 }
-uploadArchives {
-    repositories.mavenDeployer {
-        if (project.hasProperty('forgeMavenPassword'))
-        {
-            repository(url: "http://files.minecraftforge.net/maven/manage/upload") {
-                authentication(userName: project.getProperty('forgeMavenUser'), password: project.getProperty('forgeMavenPassword'))
-            }
-        } else {
-            repository(url: 'file://localhost/' + project.file('repo').getAbsolutePath())
-        }
-        pom {
-            groupId = project.group
-            artifactId = project.archivesBaseName
-            //noinspection GroovyAssignabilityCheck
-            project {
-                name project.archivesBaseName
-                packaging 'jar'
-                description 'Event Bus library'
-                url 'https://github.com/cpw/eventbus'
 
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            pom {
+                name = 'Event Bus'
+                description = 'High performance Event Bus library'
+                url = 'https://github.com/cpw/eventbus'
                 scm {
-                    url 'https://github.com/cpw/eventbus'
-                    connection 'scm:git:git://github.com/cpw/eventbus.git'
-                    developerConnection 'scm:git:git@github.com:cpw/eventbus.git'
+                    url = 'https://github.com/cpw/eventbus'
+                    connection = 'scm:git:git://github.com/cpw/eventbus.git'
+                    developerConnection = 'scm:git:git@github.com:cpw/eventbus.git'
                 }
-
                 issueManagement {
-                    system 'github'
-                    url 'https://github.com/cpw/eventbus/issues'
+                    system = 'github'
+                    url = 'https://github.com/cpw/eventbus/issues'
                 }
 
                 licenses {
                     license {
-                        name 'LGPLv2.1'
-                        url 'https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt'
-                        distribution 'repo'
+                        name = 'LGPLv2.1'
+                        url = 'https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt'
                     }
                 }
 
                 developers {
                     developer {
-                        id 'cpw'
-                        name 'cpw'
-                        roles { role 'developer' }
+                        id = 'cpw'
+                        name = 'cpw'
                     }
                     developer {
-                        id 'LexManos'
-                        name 'LexManos'
-                        roles { role 'developer' }
+                        id = 'LexManos'
+                        name = 'LexManos'
                     }
                 }
             }
+        }
+    }
+    repositories {
+        maven {
+            credentials {
+                username project.properties.forgeMavenUser?:'fake'
+                password project.properties.forgeMavenPassword?:'news'
+            }
+            url "http://files.minecraftforge.net/maven/manage/upload"
         }
     }
 }
