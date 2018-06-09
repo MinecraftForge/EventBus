@@ -2,7 +2,7 @@ pipeline {
   agent {
     docker {
         image 'gradle:latest'
-        args '-v ${HOME}/gradledockerbuilds:/home/gradle/project'
+        args '-v gradlecache:/home/gradle/.gradle'
     }
   }
   stages {
