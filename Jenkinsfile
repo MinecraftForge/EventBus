@@ -14,10 +14,11 @@ pipeline {
     }
     stage('publish') {
       environment {
-        FORGE_MAVEN = 'credentials(\'forge-maven-forge-user\')'
+        FORGE_MAVEN = credentials('forge-maven-forge-user')
       }
       steps {
         sh './gradlew publish -PforgeMavenUser=${FORGE_MAVEN_USR} -PforgeMavenPassword=${FORGE_MAVEN_PSW}'
+        sh 'curl --user ${FORGE_MAVEN} http://files.minecraftforge.net/maven/manage/promote/latest/net.minecraftforge.eventbus/${BUILD_NUMBER}'
       }
     }
   }
