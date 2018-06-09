@@ -9,15 +9,15 @@ pipeline {
     stage('buildandtest') {
       steps {
         sh './gradlew cleanTest test'
+        junit 'build/test-results/test/*.xml'
       }
     }
     stage('publish') {
       environment {
-        FORGE_MAVEN_USER = 'credentials(\'forge-maven-user\')'
-        FORGE_MAVEN_PASSWORD = 'credentials(\'forge-maven-password\')'
+        FORGE_MAVEN = 'credentials(\'forge-maven-forge-user\')'
       }
       steps {
-        sh './gradlew publish -PforgeMavenUser=${FORGEMAVENUSER} -PforgeMavenPassword=${FORGEMAVENPASSWORD}'
+        sh './gradlew publish -PforgeMavenUser=${FORGE_MAVEN_USR} -PforgeMavenPassword=${FORGE_MAVEN_PSW}'
       }
     }
   }
