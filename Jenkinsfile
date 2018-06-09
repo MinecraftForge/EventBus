@@ -10,6 +10,7 @@ pipeline {
       steps {
         sh './gradlew cleanTest test'
         junit 'build/test-results/test/*.xml'
+        jacoco
       }
     }
     stage('publish') {
@@ -18,7 +19,7 @@ pipeline {
       }
       steps {
         sh './gradlew publish -PforgeMavenUser=${FORGE_MAVEN_USR} -PforgeMavenPassword=${FORGE_MAVEN_PSW}'
-        sh 'curl --user ${FORGE_MAVEN} http://files.minecraftforge.net/maven/manage/promote/latest/net.minecraftforge.eventbus/${BUILD_NUMBER}'
+        httpRequest authentication: 'forge-maven-forge-user', url: 'http://files.minecraftforge.net/maven/manage/promote/latest/net.minecraftforge.eventbus/${BUILD_NUMBER}'
       }
     }
   }
