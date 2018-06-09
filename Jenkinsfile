@@ -10,7 +10,7 @@ pipeline {
       steps {
         sh './gradlew cleanTest test'
         junit 'build/test-results/test/*.xml'
-        jacoco
+        jacoco sourcePattern: '**/src/*/java'
       }
     }
     stage('publish') {
