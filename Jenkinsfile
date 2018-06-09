@@ -1,5 +1,10 @@
 pipeline {
-  agent any
+  agent {
+    docker {
+        image 'gradle:latest'
+        args '-v ${HOME}/gradledockerbuilds:/home/gradle/project'
+    }
+  }
   stages {
     stage('fetch') {
       steps {
