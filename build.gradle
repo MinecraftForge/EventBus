@@ -67,12 +67,6 @@ task sourcesJar(type: Jar) {
     from sourceSets.mlservice.allSource
 }
 
-artifacts {
-    archives jar
-    archives sourcesJar
-    archives testsJar
-    archives mlserviceJar
-}
 
 build.dependsOn mlserviceJar
 
@@ -103,9 +97,19 @@ dependencies {
     mlserviceImplementation(sourceSets.main.output)
 }
 
+artifacts {
+    archives jar
+    archives sourcesJar
+    archives testsJar
+    archives mlserviceJar
+}
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact mlserviceJar
             pom {
                 name = 'Event Bus'
                 description = 'High performance Event Bus library'
