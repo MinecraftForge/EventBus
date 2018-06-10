@@ -5,6 +5,10 @@ pipeline {
         args '-v gradlecache:/home/gradle/.gradle'
     }
   }
+  environment {
+      GRADLE_OPTS='--no-daemon --info'
+  }
+
   stages {
     stage('fetch') {
       steps {
@@ -13,7 +17,7 @@ pipeline {
     }
     stage('buildandtest') {
       steps {
-        sh './gradlew --no-daemon --refresh-dependencies build test'
+        sh './gradlew --refresh-dependencies --continue build test'
       }
     }
     stage('publish') {
