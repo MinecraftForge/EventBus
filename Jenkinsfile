@@ -1,8 +1,8 @@
 pipeline {
   agent {
     docker {
-        image 'gradle:latest'
-        args '-v gradlecache:/home/gradle/.gradle'
+        image 'gradlewrapper:latest'
+        args '-v gradlecache:/gradlecache'
     }
   }
   environment {
