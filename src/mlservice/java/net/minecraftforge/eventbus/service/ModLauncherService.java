@@ -29,7 +29,8 @@ public class ModLauncherService implements ILaunchPluginService {
     }
 
     @Override
-    public boolean handlesClass(final Type classType) {
-        return EventBusEngine.INSTANCE.handlesClass(classType);
+    public boolean handlesClass(final Type classType, final boolean isEmpty) {
+        // we never handle empty classes
+        return !isEmpty && EventBusEngine.INSTANCE.handlesClass(classType);
     }
 }
