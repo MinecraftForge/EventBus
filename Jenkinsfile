@@ -6,7 +6,7 @@ pipeline {
     }
   }
   environment {
-      GRADLE_OPTS='--no-daemon --info'
+      GRADLE_ARGS = '-Dorg.gradle.daemon.idletimeout=5000'
   }
 
   stages {
@@ -17,7 +17,7 @@ pipeline {
     }
     stage('buildandtest') {
       steps {
-        sh './gradlew --refresh-dependencies --continue build test'
+        sh './gradlew ${GRADLE_ARGS} --refresh-dependencies --continue build test'
       }
     }
     stage('publish') {
@@ -25,7 +25,7 @@ pipeline {
         FORGE_MAVEN = credentials('forge-maven-forge-user')
       }
       steps {
-        sh './gradlew publish -PforgeMavenUser=${FORGE_MAVEN_USR} -PforgeMavenPassword=${FORGE_MAVEN_PSW}'
+        sh './gradlew ${GRADLE_ARGS} publish -PforgeMavenUser=${FORGE_MAVEN_USR} -PforgeMavenPassword=${FORGE_MAVEN_PSW}'
         sh 'curl --user ${FORGE_MAVEN} http://files.minecraftforge.net/maven/manage/promote/latest/net.minecraftforge.eventbus/${BUILD_NUMBER}'
       }
     }
