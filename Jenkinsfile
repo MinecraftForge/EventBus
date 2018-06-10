@@ -13,7 +13,7 @@ pipeline {
     }
     stage('buildandtest') {
       steps {
-        sh './gradlew build cleanTest test'
+        sh './gradlew build test'
       }
     }
     stage('publish') {
