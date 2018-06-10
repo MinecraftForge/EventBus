@@ -21,6 +21,7 @@ package net.minecraftforge.eventbus;
 
 import net.minecraftforge.eventbus.api.*;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Constructor;
@@ -32,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static net.minecraftforge.eventbus.Logging.EVENTBUS;
 
 public class EventBus implements IEventExceptionHandler, IEventBus {
+    private static final Logger LOGGER = LogManager.getLogger("EVENTBUS");
     private static int maxID = 0;
 
     private ConcurrentHashMap<Object, ArrayList<IEventListener>> listeners = new ConcurrentHashMap<Object, ArrayList<IEventListener>>();
@@ -179,7 +181,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     @Override
     public void handleException(IEventBus bus, Event event, IEventListener[] listeners, int index, Throwable throwable)
     {
-        LogManager.getLogger("EVENTBUS").error(EVENTBUS, ()->new EventBusErrorMessage(event, index, listeners, throwable));
+        LOGGER.error(EVENTBUS, ()->new EventBusErrorMessage(event, index, listeners, throwable));
     }
 
 }

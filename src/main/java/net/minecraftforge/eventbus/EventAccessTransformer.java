@@ -20,6 +20,7 @@
 package net.minecraftforge.eventbus;
 
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
@@ -35,6 +36,9 @@ import static net.minecraftforge.eventbus.Names.SUBSCRIBE_EVENT;
 
 public class EventAccessTransformer
 {
+
+    private static final Logger LOGGER = LogManager.getLogger("EVENTBUS");
+
     public ClassNode transform(final ClassNode classNode, final Type classType)
     {
         classNode.methods.stream().
@@ -49,8 +53,7 @@ public class EventAccessTransformer
     }
 
     private void illegalPrivateAccess(final MethodNode mn, final ClassNode cn) {
-        LogManager.getLogger("EVENTBUS").
-                error(EVENTBUS, "Illegal private member annotated as @SubscribeEvent : {}.{}", cn.name, mn.name);
+        LOGGER.error(EVENTBUS, "Illegal private member annotated as @SubscribeEvent : {}.{}", cn.name, mn.name);
         throw new RuntimeException("Illegal private member with @SubscribeEvent annotation");
     }
 

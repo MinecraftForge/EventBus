@@ -4,8 +4,6 @@ import org.apache.logging.log4j.LogManager;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 
-import static net.minecraftforge.eventbus.Logging.EVENTBUS;
-
 public enum EventBusEngine {
     INSTANCE;
 
@@ -13,7 +11,7 @@ public enum EventBusEngine {
     private final EventAccessTransformer accessTransformer;
 
     EventBusEngine() {
-        LogManager.getLogger("EVENTBUS").debug(EVENTBUS, "Loading EventBus transformer");
+        LogManager.getLogger("EVENTBUS").debug(Logging.EVENTBUS, "Loading EventBus transformer");
         this.subscriptionTransformer = new EventSubscriptionTransformer();
         this.accessTransformer = new EventAccessTransformer();
     }

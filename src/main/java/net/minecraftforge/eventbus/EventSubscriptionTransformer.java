@@ -21,6 +21,7 @@ package net.minecraftforge.eventbus;
 
 import net.minecraftforge.eventbus.api.Event;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
@@ -35,6 +36,9 @@ import static org.objectweb.asm.Type.*;
 
 public class EventSubscriptionTransformer
 {
+
+    private static final Logger LOGGER = LogManager.getLogger("EVENTBUS");
+
     public Optional<ClassNode> transform(final ClassNode classNode, final Type classType)
     {
         try
@@ -47,7 +51,7 @@ public class EventSubscriptionTransformer
         }
         catch (Exception e)
         {
-            LogManager.getLogger("EVENTBUS").error(EVENTBUS, "An error occurred building event handler", e);
+            LOGGER.error(EVENTBUS, "An error occurred building event handler", e);
         }
         return Optional.of(classNode);
     }
