@@ -13,7 +13,7 @@ pipeline {
     }
     stage('buildandtest') {
       steps {
-        sh './gradlew build test'
+        sh './gradlew --no-daemon --refresh-dependencies build test'
       }
     }
     stage('publish') {
