@@ -47,6 +47,7 @@ public class EventAccessTransformer
                         stream().anyMatch(a->Objects.equals(a.desc, SUBSCRIBE_EVENT))).
                 peek(m->{if (Modifier.isPrivate(m.access)) illegalPrivateAccess(m, classNode);}).
                 filter(m->!Modifier.isPrivate(m.access)).
+                peek(mn->LOGGER.debug(EVENTBUS, "Transforming @SubscribeEvent method to public {}.{}", classNode.name, mn.name)).
                 peek($ -> classNode.access = changeAccess(classNode.access)).
                 forEach(this::toPublic);
         return classNode;

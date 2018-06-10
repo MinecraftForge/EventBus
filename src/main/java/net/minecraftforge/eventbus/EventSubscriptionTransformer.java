@@ -66,6 +66,7 @@ public class EventSubscriptionTransformer
             return false;
         }
 
+        LOGGER.debug(EVENTBUS, "Event transform begin: {}", classNode.name);
         //Class<?> listenerListClazz = Class.forName("net.minecraftforge.fml.common.eventhandler.ListenerList", false, getClass().getClassLoader());
         Type tList = Type.getType(LISTENER_LIST);
 
@@ -126,10 +127,13 @@ public class EventSubscriptionTransformer
 
         if (hasSetup)
         {
-            if (!hasGetListenerList)
+            if (!hasGetListenerList) {
+                LOGGER.error(EVENTBUS, "Event class {} defines a custom setup() method and is missing getListenerList", classNode.name);
                 throw new RuntimeException("Event class defines setup() but does not define getListenerList! " + classNode.name);
-            else
+            } else {
+                LOGGER.debug(EVENTBUS, "Transforming event complete - already done: {}", classNode.name);
                 return true;
+            }
         }
 
         Type tSuper = Type.getObjectType(classNode.superName);
@@ -191,6 +195,7 @@ public class EventSubscriptionTransformer
         method.instructions.add(new FieldInsnNode(GETSTATIC, classNode.name, "LISTENER_LIST", listDesc));
         method.instructions.add(new InsnNode(ARETURN));
         classNode.methods.add(method);
+        LOGGER.debug(EVENTBUS, "Event transform complete: {}", classNode.name);
         return true;
     }
 }
