@@ -16,7 +16,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
-package net.minecraftforge.eventbus;
+package net.minecraftforge.eventbus.api;
 
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.IGenericEvent;
