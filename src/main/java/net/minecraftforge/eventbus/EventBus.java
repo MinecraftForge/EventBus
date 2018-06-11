@@ -159,13 +159,13 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     @Override
-    public <T extends GenericEvent<F>, F> void addGenericListener(final Class<F> filter, final Consumer<T> consumer) {
-        addGenericListener(filter, EventPriority.NORMAL, consumer);
+    public <T extends GenericEvent<F>, F> void addGenericListener(final Class<F> genericClassFilter, final Consumer<T> consumer) {
+        addGenericListener(genericClassFilter, EventPriority.NORMAL, consumer);
     }
 
     @Override
-    public <T extends GenericEvent<F>, F> void addGenericListener(final Class<F> filter, final EventPriority priority, final Consumer<T> consumer) {
-        addGenericListener(filter, priority, false, consumer);
+    public <T extends GenericEvent<F>, F> void addGenericListener(final Class<F> genericClassFilter, final EventPriority priority, final Consumer<T> consumer) {
+        addGenericListener(genericClassFilter, priority, false, consumer);
     }
 
     @Override
@@ -185,6 +185,10 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     @SuppressWarnings("unchecked")
     private <T extends Event> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Consumer<T> consumer) {
         final Class<T> eventClass = (Class<T>) TypeResolver.resolveRawArgument(Consumer.class, consumer.getClass());
+        if (Objects.equals(eventClass, Event.class))
+            LOGGER.warn("Attempting to add a Lambda listener with computed generic type of Event. " +
+                    "Are you sure this is what you meant? NOTE : there are complex lambda forms where " +
+                    "the generic type information is erased and cannot be recovered at runtime.");
         addListener(priority, filter, eventClass, consumer);
     }
 
