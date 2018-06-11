@@ -18,9 +18,6 @@
  */
 package net.minecraftforge.eventbus.api;
 
-import net.minecraftforge.eventbus.api.Event;
-import net.minecraftforge.eventbus.api.IGenericEvent;
-
 import java.lang.reflect.Type;
 
 public class GenericEvent<T> extends Event implements IGenericEvent<T>

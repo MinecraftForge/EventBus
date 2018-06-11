@@ -93,6 +93,7 @@ dependencies {
     implementation("org.ow2.asm:asm-tree:6.2")
     implementation("org.apache.logging.log4j:log4j-api:2.11.0")
     implementation("cpw.mods:modlauncher:0.1-SNAPSHOT:api")
+    implementation("net.jodah:typetools:0.5.0")
     mlserviceImplementation("cpw.mods:modlauncher:0.1-SNAPSHOT:api")
     mlserviceImplementation(sourceSets.main.output)
 }

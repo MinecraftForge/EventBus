@@ -24,6 +24,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
@@ -44,8 +45,7 @@ public class ASMEventHandler implements IEventListener
     private String readable;
     private java.lang.reflect.Type filter = null;
 
-    public ASMEventHandler(Object target, Method method, boolean isGeneric) throws Exception
-    {
+    public ASMEventHandler(Object target, Method method, boolean isGeneric) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         if (Modifier.isStatic(method.getModifiers()))
             handler = (IEventListener)createWrapper(method).newInstance();
         else

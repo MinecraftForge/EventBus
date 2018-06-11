@@ -19,16 +19,21 @@
 
 package net.minecraftforge.eventbus;
 
+import net.jodah.typetools.TypeResolver;
 import net.minecraftforge.eventbus.api.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static net.minecraftforge.eventbus.Logging.EVENTBUS;
 
@@ -125,24 +130,72 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
         register(eventType, target, real);
     }
 
+    private <T extends Event> Predicate<T> passCancelled(final boolean ignored) {
+        return e->ignored || e.isCancelable() && !e.isCanceled();
+    }
+
+    private <T extends GenericEvent<F>, F> Predicate<T> passGenericFilter(Class<F> type) {
+        return e->e.getGenericType() == type;
+    }
+
+    @Override
+    public <T extends Event> void addListener(final Consumer<T> consumer) {
+        addListener(consumer, EventPriority.NORMAL);
+    }
+
+    @Override
+    public <T extends Event> void addListener(final Consumer<T> consumer, final EventPriority priority) {
+        addListener(consumer, priority, false);
+    }
+
+    @Override
+    public <T extends Event> void addListener(final Consumer<T> consumer, final EventPriority priority, final boolean receiveCancelled) {
+        addListener(consumer, priority, passCancelled(receiveCancelled));
+    }
+
+    @Override
+    public <T extends GenericEvent<F>, F> void addGenericListener(final Consumer<T> consumer, final Class<F> filter) {
+        addGenericListener(consumer, filter, EventPriority.NORMAL);
+    }
+
+    @Override
+    public <T extends GenericEvent<F>, F> void addGenericListener(final Consumer<T> consumer, final Class<F> filter, final EventPriority priority) {
+        addListener(consumer, priority, passGenericFilter(filter).and(passCancelled(false)));
+    }
+
+    @Override
+    public <T extends GenericEvent<F>, F> void addGenericListener(final Consumer<T> consumer, final Class<F> filter, final EventPriority priority, final boolean receiveCancelled) {
+        addListener(consumer, priority, passGenericFilter(filter).and(passCancelled(receiveCancelled)));
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T extends Event> void addListener(final Consumer<T> consumer, final EventPriority priority, final Predicate<? super T> filter) {
+        final Class<T> eventClass = (Class<T>) TypeResolver.resolveRawArgument(Consumer.class, consumer.getClass());
+        addToListeners(consumer, eventClass, e->Stream.of(e).map(eventClass::cast).filter(filter).forEach(consumer), priority);
+    }
+
     private void register(Class<?> eventType, Object target, Method method)
     {
-        try
-        {
+        try {
+            final ASMEventHandler asm = new ASMEventHandler(target, method, IGenericEvent.class.isAssignableFrom(eventType));
+
+            addToListeners(target, eventType, asm, asm.getPriority());
+        } catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
+            LogManager.getLogger("EVENTBUS").error("Error registering event handler: {} {}", eventType, method, e);
+        }
+    }
+
+    private void addToListeners(final Object target, final Class<?> eventType, final IEventListener listener, final EventPriority priority) {
+        try {
             Constructor<?> ctr = eventType.getConstructor();
             ctr.setAccessible(true);
             Event event = (Event)ctr.newInstance();
-            final ASMEventHandler asm = new ASMEventHandler(target, method, IGenericEvent.class.isAssignableFrom(eventType));
-
-            IEventListener listener = asm;
-            event.getListenerList().register(busID, asm.getPriority(), listener);
+            event.getListenerList().register(busID, priority, listener);
 
             ArrayList<IEventListener> others = listeners.computeIfAbsent(target, k -> new ArrayList<>());
             others.add(listener);
-        }
-        catch (Exception e)
-        {
-            LogManager.getLogger("EVENTBUS").error("Error registering event handler: {} {}", eventType, method, e);
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            LogManager.getLogger("EVENTBUS").error("Error registering event handler: {} {}", eventType, target, e);
         }
     }
 
