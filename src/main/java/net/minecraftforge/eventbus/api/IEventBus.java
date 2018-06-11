@@ -9,8 +9,19 @@ public interface IEventBus {
 
     void register(Object target);
 
-    @SuppressWarnings("unchecked")
-    <T extends Event> void addListener(Consumer<T> consumer, EventPriority priority);
+    <T extends Event> void addListener(EventPriority priority, Consumer<T> consumer);
+
+    <T extends Event> void addListener(EventPriority priority, boolean receiveCancelled, Consumer<T> consumer);
+
+    <T extends Event> void addListener(EventPriority priority, boolean receiveCancelled, Class<T> eventType, Consumer<T> consumer);
+
+    <T extends GenericEvent<F>, F> void addGenericListener(Class<F> filter, Consumer<T> consumer);
+
+    <T extends GenericEvent<F>, F> void addGenericListener(Class<F> filter, EventPriority priority, Consumer<T> consumer);
+
+    <T extends GenericEvent<F>, F> void addGenericListener(Class<F> genericClassFilter, EventPriority priority, boolean receiveCancelled, Consumer<T> consumer);
+
+    <T extends GenericEvent<F>, F> void addGenericListener(Class<F> genericClassFilter, EventPriority priority, boolean receiveCancelled, Class<T> eventType, Consumer<T> consumer);
 
     void unregister(Object object);
 

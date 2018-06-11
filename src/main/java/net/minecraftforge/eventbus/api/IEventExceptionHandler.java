@@ -23,14 +23,6 @@ import java.util.function.Consumer;
 
 public interface IEventExceptionHandler
 {
-    <T extends Event> void addListener(Consumer<T> consumer, EventPriority priority, boolean receiveCancelled);
-
-    <T extends GenericEvent<F>, F> void addGenericListener(Consumer<T> consumer, Class<F> filter);
-
-    <T extends GenericEvent<F>, F> void addGenericListener(Consumer<T> consumer, Class<F> filter, EventPriority priority);
-
-    <T extends GenericEvent<F>, F> void addGenericListener(Consumer<T> consumer, Class<F> filter, EventPriority priority, boolean receiveCancelled);
-
     /**
      * Fired when a EventListener throws an exception for the specified event on the event bus.
      * After this function returns, the original Throwable will be propagated upwards.

@@ -140,38 +140,52 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
     @Override
     public <T extends Event> void addListener(final Consumer<T> consumer) {
-        addListener(consumer, EventPriority.NORMAL);
+        addListener(EventPriority.NORMAL, consumer);
     }
 
     @Override
-    public <T extends Event> void addListener(final Consumer<T> consumer, final EventPriority priority) {
-        addListener(consumer, priority, false);
+    public <T extends Event> void addListener(final EventPriority priority, final Consumer<T> consumer) {
+        addListener(priority, false, consumer);
     }
 
     @Override
-    public <T extends Event> void addListener(final Consumer<T> consumer, final EventPriority priority, final boolean receiveCancelled) {
-        addListener(consumer, priority, passCancelled(receiveCancelled));
+    public <T extends Event> void addListener(final EventPriority priority, final boolean receiveCancelled, final Consumer<T> consumer) {
+        addListener(priority, passCancelled(receiveCancelled), consumer);
     }
 
     @Override
-    public <T extends GenericEvent<F>, F> void addGenericListener(final Consumer<T> consumer, final Class<F> filter) {
-        addGenericListener(consumer, filter, EventPriority.NORMAL);
+    public <T extends Event> void addListener(final EventPriority priority, final boolean receiveCancelled, final Class<T> eventType, final Consumer<T> consumer) {
+        addListener(priority, passCancelled(receiveCancelled), eventType, consumer);
     }
 
     @Override
-    public <T extends GenericEvent<F>, F> void addGenericListener(final Consumer<T> consumer, final Class<F> filter, final EventPriority priority) {
-        addListener(consumer, priority, false);
+    public <T extends GenericEvent<F>, F> void addGenericListener(final Class<F> filter, final Consumer<T> consumer) {
+        addGenericListener(filter, EventPriority.NORMAL, consumer);
     }
 
     @Override
-    public <T extends GenericEvent<F>, F> void addGenericListener(final Consumer<T> consumer, final Class<F> filter, final EventPriority priority, final boolean receiveCancelled) {
-        addListener(consumer, priority, passGenericFilter(filter).and(passCancelled(receiveCancelled)));
+    public <T extends GenericEvent<F>, F> void addGenericListener(final Class<F> filter, final EventPriority priority, final Consumer<T> consumer) {
+        addGenericListener(filter, priority, false, consumer);
+    }
+
+    @Override
+    public <T extends GenericEvent<F>, F> void addGenericListener(final Class<F> genericClassFilter, final EventPriority priority, final boolean receiveCancelled, final Consumer<T> consumer) {
+        addListener(priority, passGenericFilter(genericClassFilter).and(passCancelled(receiveCancelled)), consumer);
+    }
+
+    @Override
+    public <T extends GenericEvent<F>, F> void addGenericListener(final Class<F> genericClassFilter, final EventPriority priority, final boolean receiveCancelled, final Class<T> eventType, final Consumer<T> consumer) {
+        addListener(priority, passGenericFilter(genericClassFilter).and(passCancelled(receiveCancelled)), eventType, consumer);
+    }
+
+    private <T extends Event> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer) {
+        addToListeners(consumer, eventClass, e->Stream.of(e).map(eventClass::cast).filter(filter).forEach(consumer), priority);
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Event> void addListener(final Consumer<T> consumer, final EventPriority priority, final Predicate<? super T> filter) {
+    private <T extends Event> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Consumer<T> consumer) {
         final Class<T> eventClass = (Class<T>) TypeResolver.resolveRawArgument(Consumer.class, consumer.getClass());
-        addToListeners(consumer, eventClass, e->Stream.of(e).map(eventClass::cast).filter(filter).forEach(consumer), priority);
+        addListener(priority, filter, eventClass, consumer);
     }
 
     private void register(Class<?> eventType, Object target, Method method)
