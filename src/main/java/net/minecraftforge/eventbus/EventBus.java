@@ -131,7 +131,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     private <T extends Event> Predicate<T> passCancelled(final boolean ignored) {
-        return e->ignored || e.isCancelable() && !e.isCanceled();
+        return e-> !e.isCancelable() || ignored || !e.isCanceled();
     }
 
     private <T extends GenericEvent<F>, F> Predicate<T> passGenericFilter(Class<F> type) {
