@@ -60,7 +60,9 @@ public class EventSubscriptionTransformer
     {
         // Yes, this recursively loads classes until we get this base class. THIS IS NOT A ISSUE. Coremods should handle re-entry just fine.
         // If they do not this a COREMOD issue NOT a Forge/LaunchWrapper issue.
-        Class<?> parent = this.getClass().getClassLoader().loadClass(classNode.superName.replace('/', '.'));
+        // well, we should at least use the context classloader - this is forcing all the game classes in through
+        // the system classloader otherwise...
+        Class<?> parent = Thread.currentThread().getContextClassLoader().loadClass(classNode.superName.replace('/', '.'));
         if (!Event.class.isAssignableFrom(parent))
         {
             return false;
