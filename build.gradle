@@ -88,7 +88,7 @@ repositories {
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.2.0")
     testImplementation("org.powermock:powermock-core:1.7.4")
-    testImplementation("cpw.mods:modlauncher:0.1-SNAPSHOT")
+    testImplementation("cpw.mods:modlauncher:0.1+")
     testImplementation(sourceSets.mlservice.output)
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.2.0")
     testImplementation("org.apache.logging.log4j:log4j-core:2.11.0")
@@ -99,9 +99,9 @@ dependencies {
     implementation("org.ow2.asm:asm-commons:6.2")
     implementation("org.ow2.asm:asm-tree:6.2")
     implementation("org.apache.logging.log4j:log4j-api:2.11.0")
-    implementation("cpw.mods:modlauncher:0.1-SNAPSHOT:api")
+    implementation("cpw.mods:modlauncher:0.1+:api")
     implementation("net.jodah:typetools:0.5.0")
-    mlserviceImplementation("cpw.mods:modlauncher:0.1-SNAPSHOT:api")
+    mlserviceImplementation("cpw.mods:modlauncher:0.1+:api")
     mlserviceImplementation(sourceSets.main.output)
 }
 
