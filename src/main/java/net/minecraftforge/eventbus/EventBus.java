@@ -54,6 +54,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     public EventBus(@Nonnull final IEventExceptionHandler handler)
     {
         Objects.requireNonNull(handler, "EventBus exception handler can not be null");
+        ListenerList.resize(busID + 1);
         exceptionHandler = handler;
     }
 
