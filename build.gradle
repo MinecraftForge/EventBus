@@ -121,15 +121,15 @@ publishing {
             pom {
                 name = 'Event Bus'
                 description = 'High performance Event Bus library'
-                url = 'https://github.com/cpw/eventbus'
+                url = 'https://github.com/MinecraftForge/eventbus'
                 scm {
-                    url = 'https://github.com/cpw/eventbus'
-                    connection = 'scm:git:git://github.com/cpw/eventbus.git'
-                    developerConnection = 'scm:git:git@github.com:cpw/eventbus.git'
+                    url = 'https://github.com/MinecraftForge/eventbus'
+                    connection = 'scm:git:git://github.com/MinecraftForge/eventbus.git'
+                    developerConnection = 'scm:git:git@github.com:MinecraftForge/eventbus.git'
                 }
                 issueManagement {
                     system = 'github'
-                    url = 'https://github.com/cpw/eventbus/issues'
+                    url = 'https://github.com/MinecraftForge/eventbus/issues'
                 }
 
                 licenses {

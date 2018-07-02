@@ -14,7 +14,7 @@ pipeline {
     stages {
         stage('fetch') {
             steps {
-                git(url: 'https://github.com/cpw/eventbus.git', changelog: true)
+                git(url: 'https://github.com/MinecraftForge/eventbus.git', changelog: true)
             }
         }
         stage('buildandtest') {
@@ -32,6 +32,11 @@ pipeline {
             }
         }
         stage('publish') {
+            when {
+                not {
+                    changeRequest()
+                }
+            }
             environment {
                 FORGE_MAVEN = credentials('forge-maven-forge-user')
             }
