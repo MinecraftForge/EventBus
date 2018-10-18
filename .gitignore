@@ -1,6 +1,20 @@
 # Created by .ignore support plugin (hsz.mobi)
 /.idea/
-.gradle/
 /logs/
-/out/
-/build/
+
+# gradle
+.gradle
+build
+repo
+
+# eclipse
+.settings
+.metadata
+.classpath
+.project
+bin
+
+# intellij
+out
+*.idea
+*.iml

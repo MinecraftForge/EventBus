@@ -34,7 +34,7 @@ import static net.minecraftforge.eventbus.Names.LISTENER_LIST;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
-public class EventSubscriptionTransformer
+public class EventSubclassTransformer
 {
 
     private static final Logger LOGGER = LogManager.getLogger("EVENTBUS");

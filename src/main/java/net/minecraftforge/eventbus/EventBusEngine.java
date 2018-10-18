@@ -7,17 +7,17 @@ import org.objectweb.asm.tree.ClassNode;
 public enum EventBusEngine {
     INSTANCE;
 
-    private final EventSubscriptionTransformer subscriptionTransformer;
+    private final EventSubclassTransformer eventTransformer;
     private final EventAccessTransformer accessTransformer;
 
     EventBusEngine() {
         LogManager.getLogger("EVENTBUS").debug(Logging.EVENTBUS, "Loading EventBus transformer");
-        this.subscriptionTransformer = new EventSubscriptionTransformer();
+        this.eventTransformer = new EventSubclassTransformer();
         this.accessTransformer = new EventAccessTransformer();
     }
 
     public ClassNode processClass(final ClassNode classNode, final Type classType) {
-        subscriptionTransformer.transform(classNode, classType);
+        eventTransformer.transform(classNode, classType);
         accessTransformer.transform(classNode,classType);
         return classNode;
     }
