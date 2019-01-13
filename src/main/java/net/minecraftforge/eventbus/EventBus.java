@@ -135,7 +135,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
         return e-> !e.isCancelable() || ignored || !e.isCanceled();
     }
 
-    private <T extends GenericEvent<F>, F> Predicate<T> passGenericFilter(Class<F> type) {
+    private <T extends GenericEvent<? extends F>, F> Predicate<T> passGenericFilter(Class<F> type) {
         return e->e.getGenericType() == type;
     }
 
@@ -160,22 +160,22 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     @Override
-    public <T extends GenericEvent<F>, F> void addGenericListener(final Class<F> genericClassFilter, final Consumer<T> consumer) {
+    public <T extends GenericEvent<? extends F>, F> void addGenericListener(final Class<F> genericClassFilter, final Consumer<T> consumer) {
         addGenericListener(genericClassFilter, EventPriority.NORMAL, consumer);
     }
 
     @Override
-    public <T extends GenericEvent<F>, F> void addGenericListener(final Class<F> genericClassFilter, final EventPriority priority, final Consumer<T> consumer) {
+    public <T extends GenericEvent<? extends F>, F> void addGenericListener(final Class<F> genericClassFilter, final EventPriority priority, final Consumer<T> consumer) {
         addGenericListener(genericClassFilter, priority, false, consumer);
     }
 
     @Override
-    public <T extends GenericEvent<F>, F> void addGenericListener(final Class<F> genericClassFilter, final EventPriority priority, final boolean receiveCancelled, final Consumer<T> consumer) {
+    public <T extends GenericEvent<? extends F>, F> void addGenericListener(final Class<F> genericClassFilter, final EventPriority priority, final boolean receiveCancelled, final Consumer<T> consumer) {
         addListener(priority, passGenericFilter(genericClassFilter).and(passCancelled(receiveCancelled)), consumer);
     }
 
     @Override
-    public <T extends GenericEvent<F>, F> void addGenericListener(final Class<F> genericClassFilter, final EventPriority priority, final boolean receiveCancelled, final Class<T> eventType, final Consumer<T> consumer) {
+    public <T extends GenericEvent<? extends F>, F> void addGenericListener(final Class<F> genericClassFilter, final EventPriority priority, final boolean receiveCancelled, final Class<T> eventType, final Consumer<T> consumer) {
         addListener(priority, passGenericFilter(genericClassFilter).and(passCancelled(receiveCancelled)), eventType, consumer);
     }
 
