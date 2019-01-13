@@ -58,6 +58,10 @@ public class ASMEventHandler implements IEventListener
             if (type instanceof ParameterizedType)
             {
                 filter = ((ParameterizedType)type).getActualTypeArguments()[0];
+                if (filter instanceof ParameterizedType) // Unlikely that nested generics will ever be relevant for event filtering, so discard them
+                {
+                	filter = ((ParameterizedType)filter).getRawType();
+                }
             }
         }
     }
