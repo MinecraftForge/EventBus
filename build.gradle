@@ -15,7 +15,7 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 jacoco {
-    toolVersion = '0.8.1'
+    toolVersion = '0.8.2'
 }
 
 reckon {
@@ -62,7 +62,7 @@ ext.sharedManifest = manifest {
 }
 
 task mlserviceJar(type: Jar) {
-    classifier = 'service'
+    archiveClassifier = 'service'
     from sourceSets.main.output
     from sourceSets.mlservice.output
     manifest = project.manifest {
@@ -77,12 +77,12 @@ jar {
 }
 
 task testsJar(type: Jar) {
-    classifier = 'testsjar'
+    archiveClassifier = 'testsjar'
     from sourceSets.testJars.output
 }
 
 task sourcesJar(type: Jar) {
-    classifier = 'sources'
+    archiveClassifier = 'sources'
     from sourceSets.main.allSource
     from sourceSets.mlservice.allSource
 }

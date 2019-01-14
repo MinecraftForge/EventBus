@@ -27,7 +27,7 @@ import org.objectweb.asm.tree.*;
 
 import java.util.Optional;
 
-import static net.minecraftforge.eventbus.Logging.EVENTBUS;
+import static net.minecraftforge.eventbus.LogMarkers.EVENTBUS;
 import static net.minecraftforge.eventbus.Names.CANCELLABLE;
 import static net.minecraftforge.eventbus.Names.HAS_RESULT;
 import static net.minecraftforge.eventbus.Names.LISTENER_LIST;
@@ -37,7 +37,7 @@ import static org.objectweb.asm.Type.*;
 public class EventSubclassTransformer
 {
 
-    private static final Logger LOGGER = LogManager.getLogger("EVENTBUS");
+    private static final Logger LOGGER = LogManager.getLogger();
 
     public Optional<ClassNode> transform(final ClassNode classNode, final Type classType)
     {

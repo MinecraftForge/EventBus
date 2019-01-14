@@ -11,7 +11,7 @@ public enum EventBusEngine {
     private final EventAccessTransformer accessTransformer;
 
     EventBusEngine() {
-        LogManager.getLogger("EVENTBUS").debug(Logging.EVENTBUS, "Loading EventBus transformer");
+        LogManager.getLogger().debug(LogMarkers.EVENTBUS, "Loading EventBus transformer");
         this.eventTransformer = new EventSubclassTransformer();
         this.accessTransformer = new EventAccessTransformer();
     }

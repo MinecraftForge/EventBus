@@ -31,13 +31,13 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 
-import static net.minecraftforge.eventbus.Logging.EVENTBUS;
+import static net.minecraftforge.eventbus.LogMarkers.EVENTBUS;
 import static net.minecraftforge.eventbus.Names.SUBSCRIBE_EVENT;
 
 public class EventAccessTransformer
 {
 
-    private static final Logger LOGGER = LogManager.getLogger("EVENTBUS");
+    private static final Logger LOGGER = LogManager.getLogger();
 
     public ClassNode transform(final ClassNode classNode, final Type classType)
     {

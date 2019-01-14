@@ -35,10 +35,10 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static net.minecraftforge.eventbus.Logging.EVENTBUS;
+import static net.minecraftforge.eventbus.LogMarkers.EVENTBUS;
 
 public class EventBus implements IEventExceptionHandler, IEventBus {
-    private static final Logger LOGGER = LogManager.getLogger("EVENTBUS");
+    private static final Logger LOGGER = LogManager.getLogger();
     private static int maxID = 0;
 
     private ConcurrentHashMap<Object, ArrayList<IEventListener>> listeners = new ConcurrentHashMap<Object, ArrayList<IEventListener>>();
@@ -179,18 +179,18 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
         addListener(priority, passGenericFilter(genericClassFilter).and(passCancelled(receiveCancelled)), eventType, consumer);
     }
 
-    private <T extends Event> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer) {
-        addToListeners(consumer, eventClass, e->Stream.of(e).map(eventClass::cast).filter(filter).forEach(consumer), priority);
-    }
-
     @SuppressWarnings("unchecked")
     private <T extends Event> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Consumer<T> consumer) {
         final Class<T> eventClass = (Class<T>) TypeResolver.resolveRawArgument(Consumer.class, consumer.getClass());
         if (Objects.equals(eventClass, Event.class))
-            LOGGER.warn("Attempting to add a Lambda listener with computed generic type of Event. " +
+            LOGGER.warn(EVENTBUS,"Attempting to add a Lambda listener with computed generic type of Event. " +
                     "Are you sure this is what you meant? NOTE : there are complex lambda forms where " +
                     "the generic type information is erased and cannot be recovered at runtime.");
         addListener(priority, filter, eventClass, consumer);
+    }
+
+    private <T extends Event> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer) {
+        addToListeners(consumer, eventClass, e->Stream.of(e).map(eventClass::cast).filter(filter).forEach(consumer), priority);
     }
 
     private void register(Class<?> eventType, Object target, Method method)
@@ -200,12 +200,17 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
             addToListeners(target, eventType, asm, asm.getPriority());
         } catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
-            LogManager.getLogger("EVENTBUS").error("Error registering event handler: {} {}", eventType, method, e);
+            LOGGER.error(EVENTBUS,"Error registering event handler: {} {}", eventType, method, e);
         }
     }
 
     private void addToListeners(final Object target, final Class<?> eventType, final IEventListener listener, final EventPriority priority) {
         try {
+            if (Modifier.isAbstract(eventType.getModifiers())) {
+                // Currently throw an exception: see issue #6
+                LOGGER.fatal(EVENTBUS,"Unable to register listener on abstract class {}", eventType.getName());
+                throw new RuntimeException("Unable to register an event listener on abstract event class "+ eventType.getName());
+            }
             Constructor<?> ctr = eventType.getConstructor();
             ctr.setAccessible(true);
             Event event = (Event)ctr.newInstance();
@@ -214,7 +219,8 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
             ArrayList<IEventListener> others = listeners.computeIfAbsent(target, k -> new ArrayList<>());
             others.add(listener);
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            LogManager.getLogger("EVENTBUS").error("Error registering event handler: {} {}", eventType, target, e);
+            LOGGER.error(EVENTBUS, "Error registering event handler: {} {}", eventType.getName(), target, e);
+            throw new RuntimeException("Error registering event handler on "+eventType.getName(), e);
         }
     }
 
