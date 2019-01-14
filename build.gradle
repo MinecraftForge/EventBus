@@ -40,6 +40,7 @@ dependencyUpdates.resolutionStrategy {
 
 test {
     useJUnitPlatform()
+    forkEvery 1
 }
 
 sourceSets {
