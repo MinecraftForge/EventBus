@@ -253,7 +253,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
             exceptionHandler.handleException(this, event, listeners, index, throwable);
             throw throwable;
         }
-        return (event.isCancelable() ? event.isCanceled() : false);
+        return event.isCancelable() && event.isCanceled();
     }
 
     @Override
