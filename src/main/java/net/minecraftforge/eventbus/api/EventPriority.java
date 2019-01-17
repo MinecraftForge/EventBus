@@ -19,9 +19,17 @@
 
 package net.minecraftforge.eventbus.api;
 
+/**
+ * Different priorities for {@link Event} listeners.
+ *
+ * {@link #NORMAL} is the default level for a listener registered without a priority.
+ *
+ * @see SubscribeEvent#priority()
+ */
 public enum EventPriority implements IEventListener
 {
-    /*Priority of event listeners, listeners will be sorted with respect to this priority level.
+    /**
+     * Priority of event listeners, listeners will be sorted with respect to this priority level.
      *
      * Note:
      *   Due to using a ArrayList in the ListenerList,
