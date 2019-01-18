@@ -31,6 +31,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -39,10 +40,10 @@ import static net.minecraftforge.eventbus.LogMarkers.EVENTBUS;
 
 public class EventBus implements IEventExceptionHandler, IEventBus {
     private static final Logger LOGGER = LogManager.getLogger();
-    private static int maxID = 0;
+    private static AtomicInteger maxID = new AtomicInteger(0);
 
     private ConcurrentHashMap<Object, ArrayList<IEventListener>> listeners = new ConcurrentHashMap<Object, ArrayList<IEventListener>>();
-    private final int busID = maxID++;
+    private final int busID = maxID.getAndIncrement();
     private final IEventExceptionHandler exceptionHandler;
 
     public EventBus()
@@ -207,7 +208,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     private void addToListeners(final Object target, final Class<?> eventType, final IEventListener listener, final EventPriority priority) {
         try {
             if (Modifier.isAbstract(eventType.getModifiers())) {
-                // Currently throw an exception: see issue #6
+                // Currently throw an exception: see issue #5
                 LOGGER.fatal(EVENTBUS,"Unable to register listener on abstract class {}", eventType.getName());
                 throw new RuntimeException("Unable to register an event listener on abstract event class "+ eventType.getName());
             }
