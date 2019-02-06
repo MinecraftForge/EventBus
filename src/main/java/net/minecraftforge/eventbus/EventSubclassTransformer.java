@@ -45,10 +45,6 @@ public class EventSubclassTransformer
         {
             if (!buildEvents(classNode)) return Optional.empty();
         }
-        catch (ClassNotFoundException ex)
-        {
-            // Discard silently- it's just noise
-        }
         catch (Exception e)
         {
             LOGGER.error(EVENTBUS, "An error occurred building event handler", e);
@@ -62,7 +58,17 @@ public class EventSubclassTransformer
         // If they do not this a COREMOD issue NOT a Forge/LaunchWrapper issue.
         // well, we should at least use the context classloader - this is forcing all the game classes in through
         // the system classloader otherwise...
-        Class<?> parent = Thread.currentThread().getContextClassLoader().loadClass(classNode.superName.replace('/', '.'));
+        Class<?> parent = null;
+        try
+        {
+            parent = Thread.currentThread().getContextClassLoader().loadClass(classNode.superName.replace('/', '.'));
+        }
+        catch (ClassNotFoundException e)
+        {
+            LOGGER.error(EVENTBUS, "Could not find parent {} for class {} in classloader {} on thread {}", classNode.superName, classNode.name, Thread.currentThread().getContextClassLoader(), Thread.currentThread());
+            throw e;
+        }
+
         if (!Event.class.isAssignableFrom(parent))
         {
             return false;

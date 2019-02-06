@@ -18,7 +18,7 @@ public enum EventBusEngine {
 
     public ClassNode processClass(final ClassNode classNode, final Type classType) {
         eventTransformer.transform(classNode, classType);
-        accessTransformer.transform(classNode,classType);
+        accessTransformer.transform(classNode, classType);
         return classNode;
     }
 
