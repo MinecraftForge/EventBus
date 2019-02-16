@@ -7,7 +7,9 @@ import net.minecraftforge.eventbus.EventBus;
  */
 public final class BusBuilder {
     private IEventExceptionHandler exceptionHandler;
-    private boolean trackPhases;
+
+    // true by default
+    private boolean trackPhases = true;
 
     public static BusBuilder builder() {
         return new BusBuilder();
