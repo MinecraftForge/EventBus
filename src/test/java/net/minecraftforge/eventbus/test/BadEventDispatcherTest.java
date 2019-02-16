@@ -40,8 +40,9 @@ public class BadEventDispatcherTest {
                     addTargetPackageFilter(s->!(
                             s.startsWith("net.minecraftforge.eventbus.") &&
                             !s.startsWith("net.minecraftforge.eventbus.test")));
-            final Class<?> aClass = Class.forName("net.minecraftforge.eventbus.api.IEventBus", true, contextClassLoader);
-            eventBus = WhiteboxImpl.invokeMethod(aClass, "create");
+            final Class<?> aClass = Class.forName("net.minecraftforge.eventbus.api.BusBuilder", true, contextClassLoader);
+            Object busBuilder = WhiteboxImpl.invokeMethod(aClass, "builder");
+            eventBus = WhiteboxImpl.invokeMethod(busBuilder, "build");
             transformedClass = Class.forName("net.minecraftforge.eventbus.testjar.EventBusTestClass", true, contextClassLoader);
             WhiteboxImpl.invokeMethod(eventBus, "register", transformedClass.newInstance());
             Object evt = Class.forName("net.minecraftforge.eventbus.testjar.DummyEvent$BadEvent", true, contextClassLoader).newInstance();

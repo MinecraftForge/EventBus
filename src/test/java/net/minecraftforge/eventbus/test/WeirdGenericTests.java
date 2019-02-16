@@ -3,6 +3,7 @@ package net.minecraftforge.eventbus.test;
 import java.lang.reflect.Type;
 import java.util.List;
 
+import net.minecraftforge.eventbus.api.BusBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +17,7 @@ public class WeirdGenericTests {
 	
 	@Test
 	public void testGenericListener() {
-		IEventBus bus = new EventBus();
+		IEventBus bus = BusBuilder.builder().build();
 		bus.addGenericListener(List.class, this::handleGenericEvent);
 		bus.post(new GenericEvent<List<String>>() {
 			public Type getGenericType() {

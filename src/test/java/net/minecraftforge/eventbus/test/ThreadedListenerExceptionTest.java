@@ -2,9 +2,7 @@ package net.minecraftforge.eventbus.test;
 
 import net.minecraftforge.eventbus.EventBus;
 import net.minecraftforge.eventbus.ListenerList;
-import net.minecraftforge.eventbus.api.Event;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.IEventListener;
+import net.minecraftforge.eventbus.api.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeAll;
@@ -30,7 +28,7 @@ public class ThreadedListenerExceptionTest {
 
     private static boolean failed;
 
-    private static final EventBus testEventBus = new EventBus((bus, event, listeners, index, throwable) -> {
+    private static final IEventBus testEventBus = BusBuilder.builder().setExceptionHandler((bus, event, listeners, index, throwable) -> {
         failed = true;
 /*
 
@@ -60,7 +58,7 @@ public class ThreadedListenerExceptionTest {
             LogManager.getLogger().error("cache={}", Arrays.asList(cache));
         } catch (NoSuchMethodException | NoSuchFieldException | IllegalAccessException | InvocationTargetException ignored) { }
 */
-    });
+    }).build();
     private static ExecutorService executorService;
 
 //    @Test

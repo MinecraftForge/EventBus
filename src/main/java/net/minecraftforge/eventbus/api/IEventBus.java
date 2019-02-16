@@ -13,25 +13,6 @@ import java.util.function.Consumer;
  */
 public interface IEventBus {
     /**
-     * Factory method to create a new {@link IEventBus} instance.
-     *
-     * @return A new event bus instance
-     */
-    static IEventBus create() {
-        return new EventBus();
-    }
-
-    /**
-     * Factory method to create a new {@link IEventBus} instance, with the supplier {@link IEventExceptionHandler}
-     *
-     * @param handler A custom exception handler
-     * @return A new event bus instance
-     */
-    static IEventBus create(IEventExceptionHandler handler) {
-        return new EventBus(handler);
-    }
-
-    /**
      * Register an instance object or a Class, and add listeners for all {@link SubscribeEvent} annotated methods
      * found there.
      *

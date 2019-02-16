@@ -1,6 +1,7 @@
 package net.minecraftforge.eventbus.test;
 
 import net.minecraftforge.eventbus.ListenerList;
+import net.minecraftforge.eventbus.api.BusBuilder;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -14,7 +15,7 @@ public class EventLambdaTest {
     boolean hit;
     @Test
     public void eventLambda() {
-        final IEventBus iEventBus = IEventBus.create();
+        final IEventBus iEventBus = BusBuilder.builder().build();
         iEventBus.addListener((Event e)-> hit = true);
         iEventBus.post(new Event());
         assertTrue(hit, "Hit event");
@@ -25,7 +26,7 @@ public class EventLambdaTest {
     }
     @Test
     void eventSubLambda() {
-        final IEventBus iEventBus = IEventBus.create();
+        final IEventBus iEventBus = BusBuilder.builder().build();
         iEventBus.addListener(this::consumeSubEvent);
         iEventBus.post(new SubEvent());
         assertTrue(hit, "Hit subevent");
@@ -37,7 +38,7 @@ public class EventLambdaTest {
     @Test
     void eventGenericThing() {
         // pathological test because you can't derive the lambda types in all cases...
-        IEventBus bus = IEventBus.create();
+        IEventBus bus = BusBuilder.builder().build();
         registerSomeGodDamnWrapper(bus, CancellableEvent.class, this::subEventFunction);
         final CancellableEvent event = new CancellableEvent();
         bus.post(event);

@@ -41,22 +41,29 @@ import static net.minecraftforge.eventbus.LogMarkers.EVENTBUS;
 public class EventBus implements IEventExceptionHandler, IEventBus {
     private static final Logger LOGGER = LogManager.getLogger();
     private static AtomicInteger maxID = new AtomicInteger(0);
+    private final boolean trackPhases;
 
     private ConcurrentHashMap<Object, ArrayList<IEventListener>> listeners = new ConcurrentHashMap<Object, ArrayList<IEventListener>>();
     private final int busID = maxID.getAndIncrement();
     private final IEventExceptionHandler exceptionHandler;
 
-    public EventBus()
+    private EventBus()
     {
         ListenerList.resize(busID + 1);
         exceptionHandler = this;
+        this.trackPhases = true;
     }
 
-    public EventBus(@Nonnull final IEventExceptionHandler handler)
+    private EventBus(final IEventExceptionHandler handler, boolean trackPhase)
     {
-        Objects.requireNonNull(handler, "EventBus exception handler can not be null");
         ListenerList.resize(busID + 1);
-        exceptionHandler = handler;
+        if (handler == null) exceptionHandler = this;
+        else exceptionHandler = handler;
+        this.trackPhases = trackPhase;
+    }
+
+    public EventBus(final BusBuilder busBuilder) {
+        this(busBuilder.getExceptionHandler(), busBuilder.getTrackPhases());
     }
 
     private void registerClass(final Class<?> clazz) {
@@ -246,6 +253,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
         {
             for (; index < listeners.length; index++)
             {
+                if (Objects.equals(listeners[index].getClass(), EventPriority.class) && !trackPhases) continue;
                 listeners[index].invoke(event);
             }
         }
