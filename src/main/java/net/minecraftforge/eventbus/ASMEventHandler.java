@@ -29,12 +29,13 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.objectweb.asm.Opcodes.*;
 
 public class ASMEventHandler implements IEventListener
 {
-    private static int IDs = 0;
+    private static final AtomicInteger IDs = new AtomicInteger();
     private static final String HANDLER_DESC = Type.getInternalName(IEventListener.class);
     private static final String HANDLER_FUNC_DESC = Type.getMethodDescriptor(IEventListener.class.getDeclaredMethods()[0]);
     private static final ASMClassLoader LOADER = new ASMClassLoader();
@@ -157,7 +158,7 @@ public class ASMEventHandler implements IEventListener
 
     private String getUniqueName(Method callback)
     {
-        return String.format("%s_%d_%s_%s_%s", getClass().getName(), IDs++,
+        return String.format("%s_%d_%s_%s_%s", getClass().getName(), IDs.getAndIncrement(),
                 callback.getDeclaringClass().getSimpleName(),
                 callback.getName(),
                 callback.getParameterTypes()[0].getSimpleName());
