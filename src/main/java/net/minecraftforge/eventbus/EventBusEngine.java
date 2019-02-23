@@ -16,10 +16,10 @@ public enum EventBusEngine {
         this.accessTransformer = new EventAccessTransformer();
     }
 
-    public ClassNode processClass(final ClassNode classNode, final Type classType) {
-        eventTransformer.transform(classNode, classType);
-        accessTransformer.transform(classNode, classType);
-        return classNode;
+    public boolean processClass(final ClassNode classNode, final Type classType) {
+        boolean evtXform = eventTransformer.transform(classNode, classType).isPresent();
+        boolean axXform = accessTransformer.transform(classNode, classType);
+        return evtXform || axXform;
     }
 
     public boolean handlesClass(final Type classType) {

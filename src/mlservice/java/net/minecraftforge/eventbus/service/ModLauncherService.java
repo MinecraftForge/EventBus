@@ -6,6 +6,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.nio.file.Path;
+import java.util.EnumSet;
 
 public class ModLauncherService implements ILaunchPluginService {
     @Override
@@ -14,23 +15,15 @@ public class ModLauncherService implements ILaunchPluginService {
     }
 
     @Override
-    public void addResource(final Path resource, final String name) {
-
-    }
-
-    @Override
-    public ClassNode processClass(final ClassNode classNode, final Type classType) {
+    public boolean processClass(final Phase phase, final ClassNode classNode, final Type classType) {
         return EventBusEngine.INSTANCE.processClass(classNode, classType);
     }
 
+    private static final EnumSet<Phase> YAY = EnumSet.of(Phase.AFTER);
+    private static final EnumSet<Phase> NAY = EnumSet.noneOf(Phase.class);
     @Override
-    public <T> T getExtension() {
-        return null;
-    }
-
-    @Override
-    public boolean handlesClass(final Type classType, final boolean isEmpty) {
+    public EnumSet<Phase> handlesClass(final Type classType, final boolean isEmpty) {
         // we never handle empty classes
-        return !isEmpty && EventBusEngine.INSTANCE.handlesClass(classType);
+        return !isEmpty && EventBusEngine.INSTANCE.handlesClass(classType) ? YAY : NAY;
     }
 }

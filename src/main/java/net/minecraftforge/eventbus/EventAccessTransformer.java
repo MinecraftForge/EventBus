@@ -30,6 +30,7 @@ import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static net.minecraftforge.eventbus.LogMarkers.EVENTBUS;
 import static net.minecraftforge.eventbus.Names.SUBSCRIBE_EVENT;
@@ -39,8 +40,9 @@ public class EventAccessTransformer
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    public ClassNode transform(final ClassNode classNode, final Type classType)
+    public boolean transform(final ClassNode classNode, final Type classType)
     {
+        AtomicBoolean changes = new AtomicBoolean();
         classNode.methods.stream().
                 filter(m-> Optional.ofNullable(m.visibleAnnotations).
                         orElse(Collections.emptyList()).
@@ -48,9 +50,9 @@ public class EventAccessTransformer
                 peek(m->{if (Modifier.isPrivate(m.access)) illegalPrivateAccess(m, classNode);}).
                 filter(m->!Modifier.isPrivate(m.access)).
                 peek(mn->LOGGER.debug(EVENTBUS, "Transforming @SubscribeEvent method to public {}.{}", classNode.name, mn.name)).
-                peek($ -> classNode.access = changeAccess(classNode.access)).
-                forEach(this::toPublic);
-        return classNode;
+                peek($ -> classNode.access = changeAccess(classNode.access, changes)).
+                forEach(mn1 -> toPublic(mn1, changes));
+        return changes.get();
     }
 
     private void illegalPrivateAccess(final MethodNode mn, final ClassNode cn) {
@@ -58,12 +60,14 @@ public class EventAccessTransformer
         throw new RuntimeException("Illegal private member with @SubscribeEvent annotation");
     }
 
-    private static int changeAccess(final int access) {
-        return access & ~(Opcodes.ACC_PRIVATE | Opcodes.ACC_PROTECTED) | Opcodes.ACC_PUBLIC;
+    private static int changeAccess(final int access, AtomicBoolean changeTracking) {
+        int ax = access & ~(Opcodes.ACC_PRIVATE | Opcodes.ACC_PROTECTED) | Opcodes.ACC_PUBLIC;
+        changeTracking.compareAndSet(false, ax != access);
+        return ax;
     }
 
-    private void toPublic(final MethodNode mn)
+    private void toPublic(final MethodNode mn, AtomicBoolean changeTracking)
     {
-        mn.access = changeAccess(mn.access);
+        mn.access = changeAccess(mn.access, changeTracking);
     }
 }
