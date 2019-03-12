@@ -2,6 +2,7 @@ plugins {
     id 'org.ajoberstar.reckon' version '0.9.0'
     id 'org.ajoberstar.grgit' version '3.0.0'
     id 'com.github.ben-manes.versions' version '0.20.0'
+    id 'me.champeau.gradle.jmh' version '0.4.8'
 }
 apply plugin: 'maven'
 apply plugin: 'java-library'
@@ -118,7 +119,29 @@ dependencies {
     api('net.jodah:typetools:0.6.0')
     mlserviceImplementation('cpw.mods:modlauncher:0.10.+:api')
     mlserviceImplementation(sourceSets.main.output)
+    jmhImplementation(sourceSets.mlservice.output)
+    jmhImplementation('cpw.mods:modlauncher:0.10.+')
+    jmhImplementation("org.powermock:powermock-core:2.0.+")
+    jmhImplementation("org.ow2.asm:asm:6.2")
+    jmhImplementation("org.ow2.asm:asm-tree:6.2")
+    jmhImplementation("org.ow2.asm:asm-commons:6.2")
+    jmh("org.ow2.asm:asm:6.2")
 }
+
+jmh {
+    jvmArgs = ['-Djmh.separateClasspathJAR=true']
+    include = [ 'net.minecraftforge.eventbus.benchmarks.EventBusBenchmark' ]
+    benchmarkMode = ['avgt' ]
+    profilers = [ 'stack' ]
+    timeOnIteration = '3s'
+    warmup = '3s'
+    warmupIterations = 3
+    iterations = 3
+    fork = 3
+    timeUnit = 'us'
+}
+
+tasks['jmh'].dependsOn(clean)
 
 artifacts {
     archives jar

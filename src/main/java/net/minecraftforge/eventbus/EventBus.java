@@ -198,7 +198,14 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     private <T extends Event> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer) {
-        addToListeners(consumer, eventClass, e->Stream.of(e).map(eventClass::cast).filter(filter).forEach(consumer), priority);
+        addToListeners(consumer, eventClass, e->
+        {
+            T cast = eventClass.cast(e);
+            if (filter.test(cast))
+            {
+                consumer.accept(cast);
+            }
+        }, priority);
     }
 
     private void register(Class<?> eventType, Object target, Method method)
@@ -253,7 +260,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
         {
             for (; index < listeners.length; index++)
             {
-                if (Objects.equals(listeners[index].getClass(), EventPriority.class) && !trackPhases) continue;
+                if (!trackPhases && Objects.equals(listeners[index].getClass(), EventPriority.class)) continue;
                 listeners[index].invoke(event);
             }
         }
