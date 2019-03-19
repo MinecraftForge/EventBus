@@ -63,7 +63,10 @@ public class ListenerList
         {
             return;
         }
-        allLists.forEach(list -> list.resizeLists(max));
+        synchronized (ListenerList.class)
+        {
+            allLists.forEach(list -> list.resizeLists(max));
+        }
         maxSize = max;
     }
 
@@ -99,7 +102,7 @@ public class ListenerList
         lists = newList;
     }
 
-    public static void clearBusID(int id)
+    public static synchronized void clearBusID(int id)
     {
         for (ListenerList list : allLists)
         {
@@ -127,7 +130,7 @@ public class ListenerList
         lists[id].unregister(listener);
     }
 
-    public static void unregisterAll(int id, IEventListener listener)
+    public static synchronized void unregisterAll(int id, IEventListener listener)
     {
         for (ListenerList list : allLists)
         {
