@@ -65,6 +65,7 @@ public class ListenerList
         }
         synchronized (ListenerList.class)
         {
+            //pozzed
             allLists.forEach(list -> list.resizeLists(max));
         }
         maxSize = max;
