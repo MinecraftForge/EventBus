@@ -140,7 +140,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     private <T extends Event> Predicate<T> passCancelled(final boolean ignored) {
-        return e-> !e.isCancelable() || ignored || !e.isCanceled();
+        return e-> ignored || !e.isCancelable() || !e.isCanceled();
     }
 
     private <T extends GenericEvent<? extends F>, F> Predicate<T> passGenericFilter(Class<F> type) {
@@ -198,14 +198,16 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     private <T extends Event> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer) {
-        addToListeners(consumer, eventClass, e->
+        addToListeners(consumer, eventClass, e-> doCastFilter(filter, eventClass, consumer, e), priority);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T extends Event> void doCastFilter(final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer, final Event e) {
+        T cast = (T)e;
+        if (filter.test(cast))
         {
-            T cast = eventClass.cast(e);
-            if (filter.test(cast))
-            {
-                consumer.accept(cast);
-            }
-        }, priority);
+            consumer.accept(cast);
+        }
     }
 
     private void register(Class<?> eventType, Object target, Method method)

@@ -133,12 +133,12 @@ jmh {
     include = [ 'net.minecraftforge.eventbus.benchmarks.EventBusBenchmark' ]
     benchmarkMode = ['avgt' ]
     profilers = [ 'stack' ]
-    timeOnIteration = '3s'
-    warmup = '3s'
+    timeOnIteration = '5s'
+    warmup = '5s'
     warmupIterations = 3
     iterations = 3
     fork = 3
-    timeUnit = 'us'
+    timeUnit = 'ns'
 }
 
 tasks['jmh'].dependsOn(clean)

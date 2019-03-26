@@ -7,19 +7,19 @@ public class SubscriberDynamic
 {
 
     @SubscribeEvent
-    public static void onCancelableEvent(CancelableEvent event)
+    public void onCancelableEvent(CancelableEvent event)
     {
 
     }
 
     @SubscribeEvent
-    public static void onResultEvent(ResultEvent event)
+    public void onResultEvent(ResultEvent event)
     {
 
     }
 
     @SubscribeEvent
-    public static void onSimpleEvent(SimpleEvent event)
+    public void onSimpleEvent(SimpleEvent event)
     {
 
     }
