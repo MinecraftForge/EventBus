@@ -24,7 +24,6 @@ import net.minecraftforge.eventbus.api.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.annotation.Nonnull;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -34,7 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 import static net.minecraftforge.eventbus.LogMarkers.EVENTBUS;
 
@@ -46,6 +44,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     private ConcurrentHashMap<Object, ArrayList<IEventListener>> listeners = new ConcurrentHashMap<Object, ArrayList<IEventListener>>();
     private final int busID = maxID.getAndIncrement();
     private final IEventExceptionHandler exceptionHandler;
+    private volatile boolean shutdown = false;
 
     private EventBus()
     {
@@ -256,6 +255,8 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     @Override
     public boolean post(Event event)
     {
+        if (shutdown) return false;
+
         IEventListener[] listeners = event.getListenerList().getListeners(busID);
         int index = 0;
         try
@@ -280,4 +281,10 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
         LOGGER.error(EVENTBUS, ()->new EventBusErrorMessage(event, index, listeners, throwable));
     }
 
+    @Override
+    public void shutdown()
+    {
+        LOGGER.warn("EventBus {} shutting down - future events will not be posted.", busID);
+        this.shutdown = true;
+    }
 }
