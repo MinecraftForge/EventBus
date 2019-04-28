@@ -3,6 +3,8 @@ package net.minecraftforge.eventbus.test;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import net.minecraftforge.eventbus.api.BusBuilder;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -13,7 +15,7 @@ public class SubscribeToSuperEventTest {
 
 	@Test
 	void eventHandlersCanSubscribeToSuperEvents() {
-		IEventBus bus = IEventBus.create();
+		IEventBus bus = BusBuilder.builder().build();
 		AtomicBoolean superEventHandled = new AtomicBoolean(false);
 		AtomicBoolean subEventHandled = new AtomicBoolean(false);
 		bus.addListener(EventPriority.NORMAL, false, SuperEvent.class, (event) -> {

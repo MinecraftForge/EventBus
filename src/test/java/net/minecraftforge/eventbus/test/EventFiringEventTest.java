@@ -3,6 +3,8 @@ package net.minecraftforge.eventbus.test;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import net.minecraftforge.eventbus.api.BusBuilder;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -13,7 +15,7 @@ public class EventFiringEventTest {
 
 	@Test
 	void eventHandlersCanFireEvents() {
-		IEventBus bus = IEventBus.create();
+		IEventBus bus = BusBuilder.builder().build();
 		AtomicBoolean handled1 = new AtomicBoolean(false);
 		AtomicBoolean handled2 = new AtomicBoolean(false);
 		bus.addListener(EventPriority.NORMAL, false, Event1.class, (event1) -> {
