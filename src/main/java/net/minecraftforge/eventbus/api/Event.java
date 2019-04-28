@@ -19,6 +19,7 @@
 
 package net.minecraftforge.eventbus.api;
 
+import net.minecraftforge.eventbus.EventSubclassTransformer;
 import net.minecraftforge.eventbus.ListenerList;
 
 import javax.annotation.Nonnull;
@@ -29,7 +30,6 @@ import java.util.Objects;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
 
 /**
  * Base Event class that all other events are derived from
@@ -49,7 +49,6 @@ public class Event
 
     private boolean isCanceled = false;
     private Result result = Result.DEFAULT;
-    private static ListenerList listeners = new ListenerList();
     private EventPriority phase = null;
 
     public Event()
@@ -143,11 +142,20 @@ public class Event
      * Returns a ListenerList object that contains all listeners
      * that are registered to this event.
      *
+     * Note: for better efficiency, this gets overridden automatically
+     * using a Transformer, there is no need to override it yourself.
+     * @see EventSubclassTransformer
+     *
      * @return Listener List
      */
     public ListenerList getListenerList()
     {
-        return listeners;
+        return EventListenerHelper.getListenerListInternal(this.getClass(), true);
+    }
+
+    protected ListenerList getParentListenerList()
+    {
+        return EventListenerHelper.getListenerListInternal(this.getClass().getSuperclass(), false);
     }
 
     @Nullable

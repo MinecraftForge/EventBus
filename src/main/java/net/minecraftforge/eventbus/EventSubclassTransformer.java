@@ -144,6 +144,7 @@ public class EventSubclassTransformer
             }
         }
 
+        Type tThis = Type.getObjectType(classNode.name);
         Type tSuper = Type.getObjectType(classNode.superName);
 
         //Add private static ListenerList LISTENER_LIST
@@ -172,7 +173,7 @@ public class EventSubclassTransformer
          *              {
          *                      return;
          *              }
-         *              LISTENER_LIST = new ListenerList(super.getListenerList());
+         *              LISTENER_LIST = new ListenerList(this.getParentListenerList());
          *      }
          */
         MethodNode method = new MethodNode(ACC_PROTECTED, "setup", voidDesc, null, null);
@@ -187,7 +188,7 @@ public class EventSubclassTransformer
         method.instructions.add(new TypeInsnNode(NEW, tList.getInternalName()));
         method.instructions.add(new InsnNode(DUP));
         method.instructions.add(new VarInsnNode(ALOAD, 0));
-        method.instructions.add(new MethodInsnNode(INVOKESPECIAL, tSuper.getInternalName(), "getListenerList", listDescM, false));
+        method.instructions.add(new MethodInsnNode(INVOKEVIRTUAL, tThis.getInternalName(), "getParentListenerList", listDescM, false));
         method.instructions.add(new MethodInsnNode(INVOKESPECIAL, tList.getInternalName(), "<init>", getMethodDescriptor(VOID_TYPE, tList), false));
         method.instructions.add(new FieldInsnNode(PUTSTATIC, classNode.name, "LISTENER_LIST", listDesc));
         method.instructions.add(new InsnNode(RETURN));

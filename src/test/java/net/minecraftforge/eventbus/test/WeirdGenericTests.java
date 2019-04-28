@@ -7,7 +7,6 @@ import net.minecraftforge.eventbus.api.BusBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import net.minecraftforge.eventbus.EventBus;
 import net.minecraftforge.eventbus.api.GenericEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 
@@ -22,7 +21,7 @@ public class WeirdGenericTests {
 		bus.post(new GenericEvent<List<String>>() {
 			public Type getGenericType() {
 				return List.class;
-			};
+			}
 		});
 		Assertions.assertTrue(genericEventHandled);
 	}
