@@ -1,6 +1,5 @@
 package net.minecraftforge.eventbus.test;
 
-import net.minecraftforge.eventbus.ListenerList;
 import net.minecraftforge.eventbus.api.BusBuilder;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -58,40 +57,12 @@ public class EventLambdaTest {
             }
         });
     }
-    // faked asm processing for easy testing
+
     public static class SubEvent extends Event {
-        private static ListenerList LISTENER_LIST;
-        protected void setup()
-        {
-            super.setup();
-            if (LISTENER_LIST != null)
-            {
-                return;
-            }
-            LISTENER_LIST = new ListenerList(super.getListenerList());
-        }
-        @Override
-        public ListenerList getListenerList() {
-            return LISTENER_LIST;
-        }
+
     }
 
     public static class CancellableEvent extends Event {
-        private static ListenerList LISTENER_LIST;
-        protected void setup()
-        {
-            super.setup();
-            if (LISTENER_LIST != null)
-            {
-                return;
-            }
-            LISTENER_LIST = new ListenerList(super.getListenerList());
-        }
-        @Override
-        public ListenerList getListenerList() {
-            return LISTENER_LIST;
-        }
-
         @Override
         public boolean isCancelable() {
             return true;

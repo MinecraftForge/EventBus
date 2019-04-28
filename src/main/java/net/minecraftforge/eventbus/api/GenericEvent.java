@@ -20,8 +20,6 @@ package net.minecraftforge.eventbus.api;
 
 import java.lang.reflect.Type;
 
-import net.minecraftforge.eventbus.ListenerList;
-
 /**
  * Implements {@link IGenericEvent} to provide filterable events based on generic type data.
  *
@@ -41,24 +39,5 @@ public class GenericEvent<T> extends Event implements IGenericEvent<T>
     public Type getGenericType()
     {
         return type;
-    }
-
-    //Default things that are added by EventSubclassTransformer, but as we are excluded from transformers we must add ourselves.
-    private static ListenerList LISTENER_LIST;
-    public GenericEvent(){ }
-
-    @Override
-    protected void setup()
-    {
-        super.setup();
-        if (LISTENER_LIST != null)
-            return;
-        LISTENER_LIST = new ListenerList(super.getListenerList());
-    }
-
-    @Override
-    public ListenerList getListenerList()
-    {
-        return LISTENER_LIST;
     }
 }

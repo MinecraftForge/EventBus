@@ -19,12 +19,15 @@
 
 package net.minecraftforge.eventbus.api;
 
+import net.minecraftforge.eventbus.EventSubclassTransformer;
 import net.minecraftforge.eventbus.ListenerList;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import static java.lang.annotation.ElementType.TYPE;
@@ -49,7 +52,7 @@ public class Event
 
     private boolean isCanceled = false;
     private Result result = Result.DEFAULT;
-    private static ListenerList listeners = new ListenerList();
+    private static Map<Class<?>, ListenerList> listeners = new IdentityHashMap<>();
     private EventPriority phase = null;
 
     public Event()
@@ -143,11 +146,27 @@ public class Event
      * Returns a ListenerList object that contains all listeners
      * that are registered to this event.
      *
+     * Note: for better efficiency, this gets overridden automatically
+     * using a Transformer, there is no need to override it yourself.
+     * @see EventSubclassTransformer
+     *
      * @return Listener List
      */
     public ListenerList getListenerList()
     {
-        return listeners;
+        return getListenerList(this.getClass());
+    }
+
+    private static ListenerList getListenerList(Class<?> eventClass)
+    {
+        return listeners.computeIfAbsent(eventClass, (c) -> {
+            if (eventClass == Event.class)
+            {
+                return new ListenerList();
+            }
+            ListenerList parentList = getListenerList(eventClass.getSuperclass());
+            return new ListenerList(parentList);
+        });
     }
 
     @Nullable
