@@ -222,7 +222,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     private void addToListeners(final Object target, final Class<?> eventType, final IEventListener listener, final EventPriority priority) {
-        ListenerList listenerList = Event.getListenerList(eventType);
+        ListenerList listenerList = EventListenerHelper.getListenerList(eventType);
         listenerList.register(busID, priority, listener);
         List<IEventListener> others = listeners.computeIfAbsent(target, k -> new ArrayList<>());
         others.add(listener);
