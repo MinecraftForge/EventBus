@@ -170,7 +170,7 @@ public class Event
      *
      * @return Listener List
      */
-    public static ListenerList getListenerList(Class<?> eventClass)
+    static ListenerList getListenerList(Class<?> eventClass)
     {
         return getListenerListInternal(eventClass, false);
     }
