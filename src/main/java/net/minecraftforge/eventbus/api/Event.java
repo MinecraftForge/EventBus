@@ -157,7 +157,7 @@ public class Event
         return getListenerList(this.getClass());
     }
 
-    private static ListenerList getListenerList(Class<?> eventClass)
+    public static ListenerList getListenerList(Class<?> eventClass)
     {
         return listeners.computeIfAbsent(eventClass, (c) -> {
             if (eventClass == Event.class)
