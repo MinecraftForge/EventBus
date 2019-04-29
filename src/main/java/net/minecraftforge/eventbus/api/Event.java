@@ -26,13 +26,15 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
 
 /**
  * Base Event class that all other events are derived from
@@ -154,19 +156,60 @@ public class Event
      */
     public ListenerList getListenerList()
     {
-        return getListenerList(this.getClass());
+        return getListenerListInternal(this.getClass(), true);
     }
 
+    /**
+     * Returns a ListenerList object that contains all listeners
+     * that are registered to this event class.
+     *
+     * This supports abstract classes that cannot be instantiated.
+     *
+     * Note: this is much slower than the instance method {@link #getListenerList()}.
+     * For performance when emitting events, always call that method instead.
+     *
+     * @return Listener List
+     */
     public static ListenerList getListenerList(Class<?> eventClass)
     {
-        return listeners.computeIfAbsent(eventClass, (c) -> {
-            if (eventClass == Event.class)
-            {
-                return new ListenerList();
-            }
-            ListenerList parentList = getListenerList(eventClass.getSuperclass());
+        return getListenerListInternal(eventClass, false);
+    }
+
+    protected final ListenerList getParentListenerList()
+    {
+        return getListenerListInternal(this.getClass().getSuperclass(), false);
+    }
+
+    private static ListenerList getListenerListInternal(Class<?> eventClass, boolean fromInstanceCall)
+    {
+        return listeners.computeIfAbsent(eventClass, c -> computeListenerList(eventClass, fromInstanceCall));
+    }
+
+    private static ListenerList computeListenerList(Class<?> eventClass, boolean fromInstanceCall)
+    {
+        if (eventClass == Event.class)
+        {
+            return new ListenerList();
+        }
+
+        if (fromInstanceCall || Modifier.isAbstract(eventClass.getModifiers()))
+        {
+            Class<?> superclass = eventClass.getSuperclass();
+            ListenerList parentList = getListenerList(superclass);
             return new ListenerList(parentList);
-        });
+        }
+
+        try
+        {
+            Constructor<?> ctr = eventClass.getConstructor();
+            ctr.setAccessible(true);
+            Event event = (Event) ctr.newInstance();
+            return event.getListenerList();
+        }
+        catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e)
+        {
+            throw new RuntimeException("Error computing listener list for " + eventClass.getName(), e);
+        }
     }
 
     @Nullable

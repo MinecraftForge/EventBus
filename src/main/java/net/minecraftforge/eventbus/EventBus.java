@@ -222,21 +222,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     private void addToListeners(final Object target, final Class<?> eventType, final IEventListener listener, final EventPriority priority) {
-        ListenerList listenerList;
-        if (Modifier.isAbstract(eventType.getModifiers())) {
-            // fall back on the slower static map of event listener lists for abstract classes
-            listenerList = Event.getListenerList(eventType);
-        } else {
-            try {
-                Constructor<?> ctr = eventType.getConstructor();
-                ctr.setAccessible(true);
-                Event event = (Event) ctr.newInstance();
-                listenerList = event.getListenerList();
-            } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                LOGGER.error(EVENTBUS, "Error registering event handler: {} {}", eventType.getName(), target, e);
-                throw new RuntimeException("Error registering event handler on " + eventType.getName(), e);
-            }
-        }
+        ListenerList listenerList = Event.getListenerList(eventType);
         listenerList.register(busID, priority, listener);
         List<IEventListener> others = listeners.computeIfAbsent(target, k -> new ArrayList<>());
         others.add(listener);

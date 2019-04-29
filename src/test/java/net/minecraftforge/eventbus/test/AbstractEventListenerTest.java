@@ -50,7 +50,7 @@ public class AbstractEventListenerTest {
 			super.setup();
 			if (LISTENER_LIST != null)
 				return;
-			LISTENER_LIST = new ListenerList(super.getListenerList());
+			LISTENER_LIST = new ListenerList(this.getParentListenerList());
 		}
 
 		@Override
@@ -74,7 +74,7 @@ public class AbstractEventListenerTest {
 			super.setup();
 			if (LISTENER_LIST != null)
 				return;
-			LISTENER_LIST = new ListenerList(super.getListenerList());
+			LISTENER_LIST = new ListenerList(this.getParentListenerList());
 		}
 
 		@Override
