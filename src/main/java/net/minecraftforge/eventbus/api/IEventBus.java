@@ -146,4 +146,11 @@ public interface IEventBus {
      * @return true if the event was {@link Cancelable} cancelled
      */
     boolean post(Event event);
+
+    /**
+     * Shuts down this event bus.
+     *
+     * No future events will be fired on this event bus, so any call to {@link #post(Event)} will be a no op after this method has been invoked
+     */
+    void shutdown();
 }
