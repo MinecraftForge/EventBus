@@ -47,9 +47,9 @@ public class Event
         ALLOW
     }
 
-    private boolean isCanceled = false;
-    private Result result = Result.DEFAULT;
-    private EventPriority phase = null;
+    protected boolean isCanceled = false;
+    protected Result result = Result.DEFAULT;
+    protected EventPriority phase = null;
 
     public Event()
     {
