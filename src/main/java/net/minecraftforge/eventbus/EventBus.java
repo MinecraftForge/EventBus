@@ -271,7 +271,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     @Override
     public void shutdown()
     {
-        LOGGER.warn("EventBus {} shutting down - future events will not be posted.", busID);
+        LOGGER.fatal(EVENTBUS, "EventBus {} shutting down - future events will not be posted.", busID, new Exception("stacktrace"));
         this.shutdown = true;
     }
 }
