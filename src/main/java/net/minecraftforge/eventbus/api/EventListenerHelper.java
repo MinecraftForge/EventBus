@@ -47,7 +47,15 @@ public class EventListenerHelper
 
     static ListenerList getListenerListInternal(Class<?> eventClass, boolean fromInstanceCall)
     {
-        return listeners.computeIfAbsent(eventClass, c -> computeListenerList(eventClass, fromInstanceCall));
+        ListenerList list = listeners.get(eventClass);
+        if (list == null)
+        {
+            synchronized (eventClass)
+            {
+                list = listeners.computeIfAbsent(eventClass, c -> computeListenerList(eventClass, fromInstanceCall));
+            }
+        }
+        return list;
     }
 
     private static ListenerList computeListenerList(Class<?> eventClass, boolean fromInstanceCall)
