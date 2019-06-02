@@ -24,12 +24,13 @@ import net.minecraftforge.eventbus.ListenerList;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
 public class EventListenerHelper
 {
-    private static Map<Class<?>, ListenerList> listeners = new IdentityHashMap<>();
+    private static Map<Class<?>, ListenerList> listeners = Collections.synchronizedMap(new IdentityHashMap<>());
 
     /**
      * Returns a {@link ListenerList} object that contains all listeners

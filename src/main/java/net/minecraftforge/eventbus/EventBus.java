@@ -24,7 +24,6 @@ import net.minecraftforge.eventbus.api.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -41,7 +40,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     private static AtomicInteger maxID = new AtomicInteger(0);
     private final boolean trackPhases;
 
-    private ConcurrentHashMap<Object, ArrayList<IEventListener>> listeners = new ConcurrentHashMap<Object, ArrayList<IEventListener>>();
+    private ConcurrentHashMap<Object, List<IEventListener>> listeners = new ConcurrentHashMap<>();
     private final int busID = maxID.getAndIncrement();
     private final IEventExceptionHandler exceptionHandler;
     private volatile boolean shutdown = false;
@@ -223,14 +222,14 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     private void addToListeners(final Object target, final Class<?> eventType, final IEventListener listener, final EventPriority priority) {
         ListenerList listenerList = EventListenerHelper.getListenerList(eventType);
         listenerList.register(busID, priority, listener);
-        List<IEventListener> others = listeners.computeIfAbsent(target, k -> new ArrayList<>());
+        List<IEventListener> others = listeners.computeIfAbsent(target, k -> Collections.synchronizedList(new ArrayList<>()));
         others.add(listener);
     }
 
     @Override
     public void unregister(Object object)
     {
-        ArrayList<IEventListener> list = listeners.remove(object);
+        List<IEventListener> list = listeners.remove(object);
         if(list == null)
             return;
         for (IEventListener listener : list)

@@ -22,15 +22,15 @@ package net.minecraftforge.eventbus;
 import net.minecraftforge.eventbus.api.Event;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
 import java.util.Optional;
 
 import static net.minecraftforge.eventbus.LogMarkers.EVENTBUS;
-import static net.minecraftforge.eventbus.Names.CANCELLABLE;
-import static net.minecraftforge.eventbus.Names.HAS_RESULT;
-import static net.minecraftforge.eventbus.Names.LISTENER_LIST;
+import static net.minecraftforge.eventbus.Names.*;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
@@ -147,8 +147,8 @@ public class EventSubclassTransformer
         Type tThis = Type.getObjectType(classNode.name);
         Type tSuper = Type.getObjectType(classNode.superName);
 
-        //Add private static ListenerList LISTENER_LIST
-        classNode.fields.add(new FieldNode(ACC_PRIVATE | ACC_STATIC, "LISTENER_LIST", listDesc, null, null));
+        //Add private static volatile ListenerList LISTENER_LIST
+        classNode.fields.add(new FieldNode(ACC_PRIVATE | ACC_STATIC | ACC_VOLATILE, "LISTENER_LIST", listDesc, null, null));
 
         /*Add:
          *      public <init>()
@@ -165,33 +165,7 @@ public class EventSubclassTransformer
             classNode.methods.add(method);
         }
 
-        /*Add:
-         *      protected void setup()
-         *      {
-         *              super.setup();
-         *              if (LISTENER_LIST != NULL)
-         *              {
-         *                      return;
-         *              }
-         *              LISTENER_LIST = new ListenerList(this.getParentListenerList());
-         *      }
-         */
-        MethodNode method = new MethodNode(ACC_PROTECTED, "setup", voidDesc, null, null);
-        method.instructions.add(new VarInsnNode(ALOAD, 0));
-        method.instructions.add(new MethodInsnNode(INVOKESPECIAL, tSuper.getInternalName(), "setup", voidDesc, false));
-        method.instructions.add(new FieldInsnNode(GETSTATIC, classNode.name, "LISTENER_LIST", listDesc));
-        LabelNode initListener = new LabelNode();
-        method.instructions.add(new JumpInsnNode(IFNULL, initListener));
-        method.instructions.add(new InsnNode(RETURN));
-        method.instructions.add(initListener);
-        method.instructions.add(new FrameNode(F_SAME, 0, null, 0, null));
-        method.instructions.add(new TypeInsnNode(NEW, tList.getInternalName()));
-        method.instructions.add(new InsnNode(DUP));
-        method.instructions.add(new VarInsnNode(ALOAD, 0));
-        method.instructions.add(new MethodInsnNode(INVOKEVIRTUAL, tThis.getInternalName(), "getParentListenerList", listDescM, false));
-        method.instructions.add(new MethodInsnNode(INVOKESPECIAL, tList.getInternalName(), "<init>", getMethodDescriptor(VOID_TYPE, tList), false));
-        method.instructions.add(new FieldInsnNode(PUTSTATIC, classNode.name, "LISTENER_LIST", listDesc));
-        method.instructions.add(new InsnNode(RETURN));
+        MethodNode method = generateSetupMethod(tThis, tSuper, tList);
         classNode.methods.add(method);
 
         /*Add:
@@ -206,5 +180,78 @@ public class EventSubclassTransformer
         classNode.methods.add(method);
         LOGGER.debug(EVENTBUS, "Event transform complete: {}", classNode.name);
         return true;
+    }
+
+
+    /*
+        protected void setup() {
+            super.setup();
+            if (LISTENER_LIST != null) return;
+            synchronized (getClass()) {
+                if (LISTENER_LIST != null) return;
+                LISTENER_LIST = new ListenerList(this.getParentListenerList());
+            }
+        }
+     */
+    private MethodNode generateSetupMethod(Type thisType, Type superType, Type llType) {
+        Type objType = Type.getType(Object.class);
+        Type clzType = Type.getType(Class.class);
+        MethodNode methodVisitor = new MethodNode(ACC_PROTECTED, "setup", getMethodDescriptor(VOID_TYPE), null, null);
+        methodVisitor.visitCode();
+        Label label0 = new Label();
+        Label label1 = new Label();
+        Label label2 = new Label();
+        methodVisitor.visitTryCatchBlock(label0, label1, label2, null);
+        Label label3 = new Label();
+        Label label4 = new Label();
+        methodVisitor.visitTryCatchBlock(label3, label4, label2, null);
+        Label label5 = new Label();
+        methodVisitor.visitTryCatchBlock(label2, label5, label2, null);
+        methodVisitor.visitVarInsn(ALOAD, 0);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, superType.getInternalName(), "setup", getMethodDescriptor(VOID_TYPE), false);
+        methodVisitor.visitFieldInsn(GETSTATIC, thisType.getInternalName(), "LISTENER_LIST", llType.getDescriptor());
+        Label label8 = new Label();
+        methodVisitor.visitJumpInsn(IFNULL, label8);
+        methodVisitor.visitInsn(RETURN);
+        methodVisitor.visitLabel(label8);
+        methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+        methodVisitor.visitVarInsn(ALOAD, 0);
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, objType.getInternalName(), "getClass", getMethodDescriptor(clzType), false);
+        methodVisitor.visitInsn(DUP);
+        methodVisitor.visitVarInsn(ASTORE, 1);
+        methodVisitor.visitInsn(MONITORENTER);
+        methodVisitor.visitLabel(label0);
+        methodVisitor.visitFieldInsn(GETSTATIC, thisType.getInternalName(), "LISTENER_LIST", llType.getDescriptor());
+        methodVisitor.visitJumpInsn(IFNULL, label3);
+        methodVisitor.visitVarInsn(ALOAD, 1);
+        methodVisitor.visitInsn(MONITOREXIT);
+        methodVisitor.visitLabel(label1);
+        methodVisitor.visitInsn(RETURN);
+        methodVisitor.visitLabel(label3);
+        methodVisitor.visitFrame(Opcodes.F_APPEND, 1, new Object[]{objType.getInternalName()}, 0, null);
+        methodVisitor.visitTypeInsn(NEW, llType.getInternalName());
+        methodVisitor.visitInsn(DUP);
+        methodVisitor.visitVarInsn(ALOAD, 0);
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, thisType.getInternalName(), "getParentListenerList", getMethodDescriptor(llType), false);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, llType.getInternalName(), "<init>", getMethodDescriptor(VOID_TYPE, llType), false);
+        methodVisitor.visitFieldInsn(PUTSTATIC, thisType.getInternalName(), "LISTENER_LIST", llType.getDescriptor());
+        methodVisitor.visitVarInsn(ALOAD, 1);
+        methodVisitor.visitInsn(MONITOREXIT);
+        methodVisitor.visitLabel(label4);
+        Label label10 = new Label();
+        methodVisitor.visitJumpInsn(GOTO, label10);
+        methodVisitor.visitLabel(label2);
+        methodVisitor.visitFrame(Opcodes.F_SAME1, 0, null, 1, new Object[]{"java/lang/Throwable"});
+        methodVisitor.visitVarInsn(ASTORE, 2);
+        methodVisitor.visitVarInsn(ALOAD, 1);
+        methodVisitor.visitInsn(MONITOREXIT);
+        methodVisitor.visitLabel(label5);
+        methodVisitor.visitVarInsn(ALOAD, 2);
+        methodVisitor.visitInsn(ATHROW);
+        methodVisitor.visitLabel(label10);
+        methodVisitor.visitFrame(Opcodes.F_CHOP, 1, null, 0, null);
+        methodVisitor.visitInsn(RETURN);
+        methodVisitor.visitEnd();
+        return methodVisitor;
     }
 }

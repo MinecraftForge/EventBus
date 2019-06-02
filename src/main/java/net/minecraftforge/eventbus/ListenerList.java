@@ -246,7 +246,7 @@ public class ListenerList
             {
                 parent.buildCache();
             }
-            ArrayList<IEventListener> ret = new ArrayList<IEventListener>();
+            ArrayList<IEventListener> ret = new ArrayList<>();
             Arrays.stream(EventPriority.values()).forEach(value -> {
                 List<IEventListener> listeners = getListeners(value);
                 if (listeners.size() > 0) {

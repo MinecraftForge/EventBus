@@ -1,11 +1,13 @@
 package net.minecraftforge.eventbus.test;
 
+import net.minecraftforge.eventbus.ListenerList;
 import net.minecraftforge.eventbus.api.BusBuilder;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.testjar.DummyEvent;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.RepeatedTest;
+import org.powermock.reflect.Whitebox;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -24,7 +26,7 @@ public class ParallelEventTest
         COUNTER.set(0);
     }
 
-    @Test()
+    @RepeatedTest(10)
     public void testMultipleThreadsMultipleBus() {
         Set<IEventBus> busSet = new HashSet<>();
         for (int i = 0; i < BUS_COUNT; i++) {
@@ -43,7 +45,7 @@ public class ParallelEventTest
         Assertions.assertEquals(COUNTER.get(), expected);
     }
 
-    @Test
+    @RepeatedTest(100)
     public void testMultipleThreadsOneBus() {
         IEventBus bus = BusBuilder.builder().setTrackPhases(false).build();
 
@@ -59,14 +61,21 @@ public class ParallelEventTest
             toAdd.add(() -> bus.post(new DummyEvent.GoodEvent()));
         toAdd.parallelStream().forEach(Runnable::run); //post events parallel
 
-        long expected = LISTENER_COUNT * RUN_ITERATIONS;
-        Assertions.assertEquals(COUNTER.get(), expected);
+        try {
+            long expected = LISTENER_COUNT * RUN_ITERATIONS;
+            final ListenerList listenerList = Whitebox.invokeMethod(new DummyEvent.GoodEvent(), "getListenerList");
+            int busid = Whitebox.getInternalState(bus, "busID");
+            Assertions.assertAll(
+                    ()->Assertions.assertEquals(expected, COUNTER.get()),
+                    ()->Assertions.assertEquals(LISTENER_COUNT, listenerList.getListeners(busid).length - 1)
+
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void handle(DummyEvent.GoodEvent event) {
-        synchronized (COUNTER)
-        {
-            COUNTER.incrementAndGet();
-        }
+        COUNTER.incrementAndGet();
     }
 }
