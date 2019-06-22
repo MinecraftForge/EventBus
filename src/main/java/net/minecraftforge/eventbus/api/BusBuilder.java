@@ -10,6 +10,7 @@ public final class BusBuilder {
 
     // true by default
     private boolean trackPhases = true;
+    private boolean startShutdown = false;
 
     public static BusBuilder builder() {
         return new BusBuilder();
@@ -25,6 +26,10 @@ public final class BusBuilder {
         return this;
     }
 
+    public BusBuilder startShutdown() {
+        this.startShutdown = true;
+        return this;
+    }
     public IEventExceptionHandler getExceptionHandler() {
         return exceptionHandler;
     }
@@ -35,5 +40,9 @@ public final class BusBuilder {
 
     public IEventBus build() {
         return new EventBus(this);
+    }
+
+    public boolean isStartingShutdown() {
+        return this.startShutdown;
     }
 }

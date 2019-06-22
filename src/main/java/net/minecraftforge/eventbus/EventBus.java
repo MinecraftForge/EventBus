@@ -52,16 +52,17 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
         this.trackPhases = true;
     }
 
-    private EventBus(final IEventExceptionHandler handler, boolean trackPhase)
+    private EventBus(final IEventExceptionHandler handler, boolean trackPhase, boolean startShutdown)
     {
         ListenerList.resize(busID + 1);
         if (handler == null) exceptionHandler = this;
         else exceptionHandler = handler;
         this.trackPhases = trackPhase;
+        this.shutdown = startShutdown;
     }
 
     public EventBus(final BusBuilder busBuilder) {
-        this(busBuilder.getExceptionHandler(), busBuilder.getTrackPhases());
+        this(busBuilder.getExceptionHandler(), busBuilder.getTrackPhases(), busBuilder.isStartingShutdown());
     }
 
     private void registerClass(final Class<?> clazz) {
@@ -276,5 +277,10 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     {
         LOGGER.fatal(EVENTBUS, "EventBus {} shutting down - future events will not be posted.", busID, new Exception("stacktrace"));
         this.shutdown = true;
+    }
+
+    @Override
+    public void start() {
+        this.shutdown = false;
     }
 }

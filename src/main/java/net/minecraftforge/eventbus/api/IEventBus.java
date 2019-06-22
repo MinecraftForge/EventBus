@@ -153,4 +153,7 @@ public interface IEventBus {
      * No future events will be fired on this event bus, so any call to {@link #post(Event)} will be a no op after this method has been invoked
      */
     void shutdown();
+
+
+    void start();
 }
