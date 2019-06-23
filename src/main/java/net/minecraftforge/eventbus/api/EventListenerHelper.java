@@ -67,7 +67,7 @@ public class EventListenerHelper
 
         try
         {
-            Constructor<?> ctr = eventClass.getConstructor();
+            Constructor<?> ctr = eventClass.getDeclaredConstructor();
             ctr.setAccessible(true);
             Event event = (Event) ctr.newInstance();
             return event.getListenerList();

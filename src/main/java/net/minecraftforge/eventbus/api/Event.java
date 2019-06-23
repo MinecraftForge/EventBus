@@ -26,7 +26,12 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -170,5 +175,20 @@ public class Event
         int prev = phase == null ? -1 : phase.ordinal();
         if (prev >= value.ordinal()) throw new IllegalArgumentException("Attempted to set event phase to "+ value +" when already "+ phase);
         phase = value;
+    }
+    
+    private static final Map<Class<?>, Set<String>> tagCache = new HashMap<>();
+    
+    public final Set<String> getTags()
+    {
+        return getTags(getClass());
+    }
+
+    public static Set<String> getTags(Class<?> eventType)
+    {
+        return tagCache.computeIfAbsent(eventType, cls -> 
+            Arrays.stream(cls.getAnnotationsByType(EventTag.class))
+                .map(EventTag::value)
+                .collect(Collectors.toSet()));
     }
 }

@@ -1,5 +1,8 @@
 package net.minecraftforge.eventbus.api;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import net.minecraftforge.eventbus.EventBus;
 
 /**
@@ -11,6 +14,7 @@ public final class BusBuilder {
     // true by default
     private boolean trackPhases = true;
     private boolean startShutdown = false;
+    private Set<String> tags = new HashSet<>();
 
     public static BusBuilder builder() {
         return new BusBuilder();
@@ -30,12 +34,22 @@ public final class BusBuilder {
         this.startShutdown = true;
         return this;
     }
+    
+    public BusBuilder addTag(String tag) {
+        this.tags.add(tag);
+        return this;
+    }
+    
     public IEventExceptionHandler getExceptionHandler() {
         return exceptionHandler;
     }
 
     public boolean getTrackPhases() {
         return trackPhases;
+    }
+    
+    public Set<String> getTags() {
+        return tags;
     }
 
     public IEventBus build() {

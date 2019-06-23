@@ -44,25 +44,29 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     private final int busID = maxID.getAndIncrement();
     private final IEventExceptionHandler exceptionHandler;
     private volatile boolean shutdown = false;
+    
+    private final Set<String> tags;
 
     private EventBus()
     {
         ListenerList.resize(busID + 1);
         exceptionHandler = this;
         this.trackPhases = true;
+        this.tags = Collections.emptySet();
     }
 
-    private EventBus(final IEventExceptionHandler handler, boolean trackPhase, boolean startShutdown)
+    private EventBus(final IEventExceptionHandler handler, boolean trackPhase, boolean startShutdown, Collection<String> tags)
     {
         ListenerList.resize(busID + 1);
         if (handler == null) exceptionHandler = this;
         else exceptionHandler = handler;
         this.trackPhases = trackPhase;
         this.shutdown = startShutdown;
+        this.tags = Collections.unmodifiableSet(new HashSet<>(tags));
     }
 
     public EventBus(final BusBuilder busBuilder) {
-        this(busBuilder.getExceptionHandler(), busBuilder.getTrackPhases(), busBuilder.isStartingShutdown());
+        this(busBuilder.getExceptionHandler(), busBuilder.getTrackPhases(), busBuilder.isStartingShutdown(), busBuilder.getTags());
     }
 
     private void registerClass(final Class<?> clazz) {
@@ -135,6 +139,14 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
                             "but takes an argument that is not an Event subtype : " + eventType);
         }
 
+        Set<String> eventTags = Event.getTags(eventType);
+        if (!tags.containsAll(eventTags)) {
+            throw new IllegalArgumentException(
+                    "Method " + method + " has @SubscribeEvent annotation, " +
+                            "but was registered to a bus that does not contain all of its tags. " + 
+                            "Found: " + tags + ", Required: " + eventTags);
+        }
+
         register(eventType, target, real);
     }
 
@@ -201,6 +213,13 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     private <T extends Event> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer) {
+        Set<String> eventTags = Event.getTags(eventClass);
+        if (!tags.containsAll(eventTags)) {
+            throw new IllegalArgumentException(
+                    "Listener for event " + eventClass + " was registered to a bus that does not contain all of its tags. " + 
+                            "Found: " + tags + ", Required: " + eventTags);
+        }
+
         addToListeners(consumer, eventClass, e-> doCastFilter(filter, eventClass, consumer, e), priority);
     }
 
@@ -247,6 +266,14 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     public boolean post(Event event)
     {
         if (shutdown) return false;
+        
+        Set<String> eventTags = event.getTags();
+        
+        if (!tags.containsAll(eventTags)) {
+            throw new IllegalArgumentException(
+                    "Cannot post event of type " + event.getClass() + " as it has tags that this bus does not. " + 
+                            "Found: " + tags + ", Required: " + eventTags);
+        }
 
         IEventListener[] listeners = event.getListenerList().getListeners(busID);
         int index = 0;
