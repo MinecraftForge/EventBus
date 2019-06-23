@@ -15,6 +15,7 @@ public final class BusBuilder {
     private boolean trackPhases = true;
     private boolean startShutdown = false;
     private Set<String> tags = new HashSet<>();
+    private boolean checkTagsOnPost = false;
 
     public static BusBuilder builder() {
         return new BusBuilder();
@@ -40,6 +41,11 @@ public final class BusBuilder {
         return this;
     }
     
+    public BusBuilder checkTagsOnPost() {
+        this.checkTagsOnPost = true;
+        return this;
+    }
+    
     public IEventExceptionHandler getExceptionHandler() {
         return exceptionHandler;
     }
@@ -50,6 +56,10 @@ public final class BusBuilder {
     
     public Set<String> getTags() {
         return tags;
+    }
+    
+    public boolean isCheckingTagsOnPost() {
+        return checkTagsOnPost;
     }
 
     public IEventBus build() {
