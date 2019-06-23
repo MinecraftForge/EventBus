@@ -33,49 +33,57 @@ public class EventTagTests {
         assertThrows(IllegalArgumentException.class, () -> bus.post(event));
     }
     
+    private static IEventBus busWithTags(String... tags) {
+        BusBuilder builder = new BusBuilder().checkTagsOnPost();
+        for (String tag : tags) {
+            builder.addTag(tag);
+        }
+        return builder.build();
+    }
+    
     @Test
     public void testUntaggedEventUntaggedBus() {
-        nonThrowingPost(new BusBuilder().build(), new UntaggedEvent());
+        nonThrowingPost(busWithTags(), new UntaggedEvent());
     }
     
     @Test
     public void testUntaggedEventTaggedBus() {
-        nonThrowingPost(new BusBuilder().addTag(TAG1).build(), new UntaggedEvent());
+        nonThrowingPost(busWithTags(TAG1), new UntaggedEvent());
     }
     
     @Test
     public void testUntaggedEventMultiTaggedBus() {
-        nonThrowingPost(new BusBuilder().addTag(TAG1).addTag(TAG2).build(), new UntaggedEvent());
+        nonThrowingPost(busWithTags(TAG1, TAG2), new UntaggedEvent());
     }
     
     @Test
     public void testTaggedEventUntaggedBus() {
-        throwingPost(new BusBuilder().build(), new TaggedEvent());
+        throwingPost(busWithTags(), new TaggedEvent());
     }
     
     @Test
     public void testTaggedEventTaggedBus() {
-        nonThrowingPost(new BusBuilder().addTag(TAG1).build(), new TaggedEvent());
+        nonThrowingPost(busWithTags(TAG1), new TaggedEvent());
     }
 
     @Test
     public void testTaggedEventMultiTaggedBus() {
-        nonThrowingPost(new BusBuilder().addTag(TAG1).addTag(TAG2).build(), new TaggedEvent());
+        nonThrowingPost(busWithTags(TAG1, TAG2), new TaggedEvent());
     }
     
     @Test
     public void testMultiTaggedEventUntaggedBus() {
-        throwingPost(new BusBuilder().build(), new MultiTaggedEvent());
+        throwingPost(busWithTags(), new MultiTaggedEvent());
     }
     
     @Test
     public void testMultiTaggedEventTaggedBus() {
-        throwingPost(new BusBuilder().addTag(TAG1).build(), new MultiTaggedEvent());
+        throwingPost(busWithTags(TAG1), new MultiTaggedEvent());
     }
 
     @Test
     public void testMultiTaggedEventMultiTaggedBus() {
-        nonThrowingPost(new BusBuilder().addTag(TAG1).addTag(TAG2).build(), new MultiTaggedEvent());
+        nonThrowingPost(busWithTags(TAG1, TAG2), new MultiTaggedEvent());
     }
     
     public void consumeUntaggedEvent(UntaggedEvent event) {}
@@ -92,46 +100,46 @@ public class EventTagTests {
     
     @Test
     public void testUntaggedListenerUntaggedBus() {
-        nonThrowingSubscribe(new BusBuilder().build(), this::consumeUntaggedEvent);
+        nonThrowingSubscribe(busWithTags(), this::consumeUntaggedEvent);
     }
     
     @Test
     public void testUntaggedListenerTaggedBus() {
-        nonThrowingSubscribe(new BusBuilder().addTag(TAG1).build(), this::consumeUntaggedEvent);
+        nonThrowingSubscribe(busWithTags(TAG1), this::consumeUntaggedEvent);
     }
     
     @Test
     public void testUntaggedListenerMultiTaggedBus() {
-        nonThrowingSubscribe(new BusBuilder().addTag(TAG1).addTag(TAG2).build(), this::consumeUntaggedEvent);
+        nonThrowingSubscribe(busWithTags(TAG1, TAG2), this::consumeUntaggedEvent);
     }
     
     @Test
     public void testTaggedListenerUntaggedBus() {
-        throwingSubscribe(new BusBuilder().build(), this::consumeTaggedEvent);
+        throwingSubscribe(busWithTags(), this::consumeTaggedEvent);
     }
     
     @Test
     public void testTaggedListenerTaggedBus() {
-        nonThrowingSubscribe(new BusBuilder().addTag(TAG1).build(), this::consumeTaggedEvent);
+        nonThrowingSubscribe(busWithTags(TAG1), this::consumeTaggedEvent);
     }
     
     @Test
     public void testTaggedListenerMultiTaggedBus() {
-        nonThrowingSubscribe(new BusBuilder().addTag(TAG1).addTag(TAG2).build(), this::consumeTaggedEvent);
+        nonThrowingSubscribe(busWithTags(TAG1, TAG2), this::consumeTaggedEvent);
     }
     
     @Test
     public void testMultiTaggedListenerUntaggedBus() {
-        throwingSubscribe(new BusBuilder().build(), this::consumeMultiTaggedEvent);
+        throwingSubscribe(busWithTags(), this::consumeMultiTaggedEvent);
     }
     
     @Test
     public void testMultiTaggedListenerTaggedBus() {
-        throwingSubscribe(new BusBuilder().addTag(TAG1).build(), this::consumeMultiTaggedEvent);
+        throwingSubscribe(busWithTags(TAG1), this::consumeMultiTaggedEvent);
     }
     
     @Test
     public void testMultiTaggedListenerMultiTaggedBus() {
-        nonThrowingSubscribe(new BusBuilder().addTag(TAG1).addTag(TAG2).build(), this::consumeMultiTaggedEvent);
+        nonThrowingSubscribe(busWithTags(TAG1, TAG2), this::consumeMultiTaggedEvent);
     }
 }
