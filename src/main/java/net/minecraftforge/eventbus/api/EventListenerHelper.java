@@ -19,18 +19,17 @@
 
 package net.minecraftforge.eventbus.api;
 
-import net.minecraftforge.eventbus.ListenerList;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.util.Collections;
-import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import net.minecraftforge.eventbus.ListenerList;
 
 public class EventListenerHelper
 {
-    private static Map<Class<?>, ListenerList> listeners = Collections.synchronizedMap(new IdentityHashMap<>());
+    private static Map<Class<?>, ListenerList> listeners = new ConcurrentHashMap<>();
 
     /**
      * Returns a {@link ListenerList} object that contains all listeners
@@ -48,7 +47,15 @@ public class EventListenerHelper
 
     static ListenerList getListenerListInternal(Class<?> eventClass, boolean fromInstanceCall)
     {
-        return listeners.computeIfAbsent(eventClass, c -> computeListenerList(eventClass, fromInstanceCall));
+        ListenerList ret = listeners.get(eventClass);
+        if (ret == null)
+        {
+            synchronized(eventClass)
+            {
+                return listeners.computeIfAbsent(eventClass, c -> computeListenerList(eventClass, fromInstanceCall));
+            }
+        }
+        return ret;
     }
 
     private static ListenerList computeListenerList(Class<?> eventClass, boolean fromInstanceCall)
