@@ -24,14 +24,16 @@ import net.minecraftforge.eventbus.ListenerList;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class EventListenerHelper
 {
-    private static Map<Class<?>, ListenerList> listeners = Collections.synchronizedMap(new IdentityHashMap<>());
-
+    private final static Map<Class<?>, ListenerList> listeners = new IdentityHashMap<>();
+    private static final ReadWriteLock lock = new ReentrantReadWriteLock(true);
     /**
      * Returns a {@link ListenerList} object that contains all listeners
      * that are registered to this event class.
@@ -48,7 +50,23 @@ public class EventListenerHelper
 
     static ListenerList getListenerListInternal(Class<?> eventClass, boolean fromInstanceCall)
     {
-        return listeners.computeIfAbsent(eventClass, c -> computeListenerList(eventClass, fromInstanceCall));
+        final Lock readLock = lock.readLock();
+        readLock.lock();
+        ListenerList listenerList = listeners.get(eventClass);
+        readLock.unlock();
+        if (listenerList == null) {
+            final Lock write = lock.writeLock();
+            write.lock();
+            readLock.lock();
+            listenerList = listeners.get(eventClass);
+            if (listenerList == null) {
+                listenerList = computeListenerList(eventClass, fromInstanceCall);
+                listeners.put(eventClass, listenerList);
+            }
+            readLock.unlock();
+            write.unlock();
+        }
+        return listenerList;
     }
 
     private static ListenerList computeListenerList(Class<?> eventClass, boolean fromInstanceCall)
