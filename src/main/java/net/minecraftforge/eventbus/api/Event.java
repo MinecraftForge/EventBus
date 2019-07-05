@@ -134,6 +134,7 @@ public class Event
      * Called by the base constructor, this is used by ASM generated
      * event classes to setup various functionality such as the listener list.
      */
+    @Deprecated //Unused by ASM generated code, kept for compatibility until we break version
     protected void setup()
     {
     }
@@ -153,6 +154,7 @@ public class Event
         return EventListenerHelper.getListenerListInternal(this.getClass(), true);
     }
 
+    @Deprecated //Unused by ASM generated code, kept for compatibility until we break version
     protected ListenerList getParentListenerList()
     {
         return EventListenerHelper.getListenerListInternal(this.getClass().getSuperclass(), false);
