@@ -155,7 +155,7 @@ public class EventSubclassTransformer
         }
 
         /* Add:
-         *     private static volatile ListenerList LISTENER_LIST;
+         *     private static final ListenerList LISTENER_LIST;
          */
         classNode.fields.add(new FieldNode(ACC_PRIVATE | ACC_STATIC | ACC_FINAL, "LISTENER_LIST", listDesc, null, null));
 
