@@ -22,8 +22,6 @@ package net.minecraftforge.eventbus;
 import net.minecraftforge.eventbus.api.Event;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
@@ -76,9 +74,8 @@ public class EventSubclassTransformer
 
         LOGGER.debug(EVENTBUS, "Event transform begin: {}", classNode.name);
         //Class<?> listenerListClazz = Class.forName("net.minecraftforge.fml.common.eventhandler.ListenerList", false, getClass().getClassLoader());
-        Type tList = Type.getType(LISTENER_LIST);
-
-        boolean hasSetup           = false;
+        Type tList                 = Type.getType(LISTENER_LIST);
+        Type tHelper               = Type.getType(LISTENER_LIST_HELPER);
         boolean hasGetListenerList = false;
         boolean hasDefaultCtr      = false;
         boolean hasCancelable      = false;
@@ -87,10 +84,11 @@ public class EventSubclassTransformer
         String boolDesc            = Type.getMethodDescriptor(BOOLEAN_TYPE);
         String listDesc            = tList.getDescriptor();
         String listDescM           = Type.getMethodDescriptor(tList);
+        String listInitDesc        = Type.getMethodDescriptor(VOID_TYPE, tList);
+        String helperGetDesc       = Type.getMethodDescriptor(tList, Type.getType(Class.class));
 
         for (MethodNode method : classNode.methods)
         {
-            if (method.name.equals("setup") && method.desc.equals(voidDesc) && (method.access & ACC_PROTECTED) == ACC_PROTECTED) hasSetup = true;
             if ((method.access & ACC_PUBLIC) == ACC_PUBLIC)
             {
                 if (method.name.equals("getListenerList") && method.desc.equals(listDescM)) hasGetListenerList = true;
@@ -133,22 +131,8 @@ public class EventSubclassTransformer
             }
         }
 
-        if (hasSetup)
-        {
-            if (!hasGetListenerList) {
-                LOGGER.error(EVENTBUS, "Event class {} defines a custom setup() method and is missing getListenerList", classNode.name);
-                throw new RuntimeException("Event class defines setup() but does not define getListenerList! " + classNode.name);
-            } else {
-                LOGGER.debug(EVENTBUS, "Transforming event complete - already done: {}", classNode.name);
-                return true;
-            }
-        }
-
         Type tThis = Type.getObjectType(classNode.name);
         Type tSuper = Type.getObjectType(classNode.superName);
-
-        //Add private static volatile ListenerList LISTENER_LIST
-        classNode.fields.add(new FieldNode(ACC_PRIVATE | ACC_STATIC | ACC_VOLATILE, "LISTENER_LIST", listDesc, null, null));
 
         /*Add:
          *      public <init>()
@@ -165,8 +149,44 @@ public class EventSubclassTransformer
             classNode.methods.add(method);
         }
 
-        MethodNode method = generateSetupMethod(tThis, tSuper, tList);
-        classNode.methods.add(method);
+        if (hasGetListenerList) {
+            LOGGER.debug(EVENTBUS, "Transforming event complete - already done: {}", classNode.name);
+            return true;
+        }
+
+        /* Add:
+         *     private static volatile ListenerList LISTENER_LIST;
+         */
+        classNode.fields.add(new FieldNode(ACC_PRIVATE | ACC_STATIC | ACC_VOLATILE, "LISTENER_LIST", listDesc, null, null));
+
+        /* Add:
+         *     static
+         *     {
+         *         LISTENER_LIST = new ListenerList(EventListenerHelper.getListenerList(CLAZZ.class.getSuperclass());
+         *     }
+         */
+        InsnList clinit = new InsnList();
+        clinit.add(new TypeInsnNode(NEW, tList.getInternalName()));
+        clinit.add(new InsnNode(DUP));
+        clinit.add(new LdcInsnNode(tThis));
+        clinit.add(new MethodInsnNode(INVOKEVIRTUAL, "java/lang/Class", "getSuperclass", "()Ljava/lang/Class;", false));
+        clinit.add(new MethodInsnNode(INVOKESTATIC, tHelper.getInternalName(), "getListenerList", helperGetDesc, false));
+        clinit.add(new MethodInsnNode(INVOKESPECIAL, tList.getInternalName(), "<init>", listInitDesc, false));
+        clinit.add(new FieldInsnNode(PUTSTATIC, tThis.getInternalName(), "LISTENER_LIST", tList.getDescriptor()));
+
+        MethodNode method = classNode.methods.stream().filter(m -> "<clinit>".equals(m.name) && voidDesc.equals(m.desc)).findFirst().orElse(null);
+        if (method == null)
+        {
+            method = new MethodNode(ACC_STATIC, "<clinit>", voidDesc, null, null);
+            method.instructions.add(clinit);
+            method.instructions.add(new InsnNode(RETURN));
+            classNode.methods.add(method);
+        }
+        else
+        {
+            // If a static initializer already exists add our code at the beginning.
+            method.instructions.insert(clinit);
+        }
 
         /*Add:
          *      public ListenerList getListenerList()
@@ -180,78 +200,5 @@ public class EventSubclassTransformer
         classNode.methods.add(method);
         LOGGER.debug(EVENTBUS, "Event transform complete: {}", classNode.name);
         return true;
-    }
-
-
-    /*
-        protected void setup() {
-            super.setup();
-            if (LISTENER_LIST != null) return;
-            synchronized (getClass()) {
-                if (LISTENER_LIST != null) return;
-                LISTENER_LIST = new ListenerList(this.getParentListenerList());
-            }
-        }
-     */
-    private MethodNode generateSetupMethod(Type thisType, Type superType, Type llType) {
-        Type objType = Type.getType(Object.class);
-        Type clzType = Type.getType(Class.class);
-        MethodNode methodVisitor = new MethodNode(ACC_PROTECTED, "setup", getMethodDescriptor(VOID_TYPE), null, null);
-        methodVisitor.visitCode();
-        Label label0 = new Label();
-        Label label1 = new Label();
-        Label label2 = new Label();
-        methodVisitor.visitTryCatchBlock(label0, label1, label2, null);
-        Label label3 = new Label();
-        Label label4 = new Label();
-        methodVisitor.visitTryCatchBlock(label3, label4, label2, null);
-        Label label5 = new Label();
-        methodVisitor.visitTryCatchBlock(label2, label5, label2, null);
-        methodVisitor.visitVarInsn(ALOAD, 0);
-        methodVisitor.visitMethodInsn(INVOKESPECIAL, superType.getInternalName(), "setup", getMethodDescriptor(VOID_TYPE), false);
-        methodVisitor.visitFieldInsn(GETSTATIC, thisType.getInternalName(), "LISTENER_LIST", llType.getDescriptor());
-        Label label8 = new Label();
-        methodVisitor.visitJumpInsn(IFNULL, label8);
-        methodVisitor.visitInsn(RETURN);
-        methodVisitor.visitLabel(label8);
-        methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
-        methodVisitor.visitVarInsn(ALOAD, 0);
-        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, objType.getInternalName(), "getClass", getMethodDescriptor(clzType), false);
-        methodVisitor.visitInsn(DUP);
-        methodVisitor.visitVarInsn(ASTORE, 1);
-        methodVisitor.visitInsn(MONITORENTER);
-        methodVisitor.visitLabel(label0);
-        methodVisitor.visitFieldInsn(GETSTATIC, thisType.getInternalName(), "LISTENER_LIST", llType.getDescriptor());
-        methodVisitor.visitJumpInsn(IFNULL, label3);
-        methodVisitor.visitVarInsn(ALOAD, 1);
-        methodVisitor.visitInsn(MONITOREXIT);
-        methodVisitor.visitLabel(label1);
-        methodVisitor.visitInsn(RETURN);
-        methodVisitor.visitLabel(label3);
-        methodVisitor.visitFrame(Opcodes.F_APPEND, 1, new Object[]{objType.getInternalName()}, 0, null);
-        methodVisitor.visitTypeInsn(NEW, llType.getInternalName());
-        methodVisitor.visitInsn(DUP);
-        methodVisitor.visitVarInsn(ALOAD, 0);
-        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, thisType.getInternalName(), "getParentListenerList", getMethodDescriptor(llType), false);
-        methodVisitor.visitMethodInsn(INVOKESPECIAL, llType.getInternalName(), "<init>", getMethodDescriptor(VOID_TYPE, llType), false);
-        methodVisitor.visitFieldInsn(PUTSTATIC, thisType.getInternalName(), "LISTENER_LIST", llType.getDescriptor());
-        methodVisitor.visitVarInsn(ALOAD, 1);
-        methodVisitor.visitInsn(MONITOREXIT);
-        methodVisitor.visitLabel(label4);
-        Label label10 = new Label();
-        methodVisitor.visitJumpInsn(GOTO, label10);
-        methodVisitor.visitLabel(label2);
-        methodVisitor.visitFrame(Opcodes.F_SAME1, 0, null, 1, new Object[]{"java/lang/Throwable"});
-        methodVisitor.visitVarInsn(ASTORE, 2);
-        methodVisitor.visitVarInsn(ALOAD, 1);
-        methodVisitor.visitInsn(MONITOREXIT);
-        methodVisitor.visitLabel(label5);
-        methodVisitor.visitVarInsn(ALOAD, 2);
-        methodVisitor.visitInsn(ATHROW);
-        methodVisitor.visitLabel(label10);
-        methodVisitor.visitFrame(Opcodes.F_CHOP, 1, null, 0, null);
-        methodVisitor.visitInsn(RETURN);
-        methodVisitor.visitEnd();
-        return methodVisitor;
     }
 }
