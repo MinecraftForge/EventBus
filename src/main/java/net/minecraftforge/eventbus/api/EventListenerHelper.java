@@ -59,13 +59,20 @@ public class EventListenerHelper
             readLock.unlock();
         }
         if (listenerList == null) {
+            //We did not find an existing list, compute a new one OUTSIDE of the RW lock
+            //Otherwise, this could cause clinit on another thread to hang on the upper readLock as computeListenerList may have to init the class
+            //and we would have the write lock.
+            ListenerList computed = computeListenerList(eventClass, fromInstanceCall);
+
             final Lock write = lock.writeLock();
             write.lock();
             try {
+                //look if we won the race
                 listenerList = listeners.get(eventClass);
-                if (listenerList == null) {
-                    listenerList = computeListenerList(eventClass, fromInstanceCall);
-                    listeners.put(eventClass, listenerList);
+                if (listenerList == null) { //if this is false, someone else computed a list a well and put it in the map before us. Use it instead of our list
+                    //in this case, we were the first, so let's put the list into the map and use it.
+                    listeners.put(eventClass, computed);
+                    listenerList = computed;
                 }
             } finally {
                 write.unlock();
