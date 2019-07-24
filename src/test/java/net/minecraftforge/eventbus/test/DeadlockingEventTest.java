@@ -69,7 +69,7 @@ public class DeadlockingEventTest {
                 };
                 final List<Future<Void>> futures;
                 try {
-                    futures = Executors.newFixedThreadPool(2).invokeAll(Arrays.asList(task1, task2), 100, TimeUnit.SECONDS);
+                    futures = Executors.newFixedThreadPool(2).invokeAll(Arrays.asList(task1, task2), 1, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
                     fail("Interrupted", e);
                     throw new RuntimeException();
