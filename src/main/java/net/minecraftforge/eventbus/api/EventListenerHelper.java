@@ -51,20 +51,16 @@ public class EventListenerHelper
     static ListenerList getListenerListInternal(Class<?> eventClass, boolean fromInstanceCall)
     {
         final Lock readLock = lock.readLock();
+        final Lock writeLock = lock.writeLock();
         readLock.lock();
         ListenerList listenerList = listeners.get(eventClass);
         readLock.unlock();
         if (listenerList == null) {
-            final Lock write = lock.writeLock();
-            write.lock();
-            readLock.lock();
+            listenerList = computeListenerList(eventClass, fromInstanceCall);
+            writeLock.lock();
+            listeners.putIfAbsent(eventClass, listenerList);
             listenerList = listeners.get(eventClass);
-            if (listenerList == null) {
-                listenerList = computeListenerList(eventClass, fromInstanceCall);
-                listeners.put(eventClass, listenerList);
-            }
-            readLock.unlock();
-            write.unlock();
+            writeLock.unlock();
         }
         return listenerList;
     }
