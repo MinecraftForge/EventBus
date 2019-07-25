@@ -33,7 +33,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class EventListenerHelper
 {
     private final static Map<Class<?>, ListenerList> listeners = new IdentityHashMap<>();
-    private static final ReadWriteLock lock = new ReentrantReadWriteLock();
+    private static ReadWriteLock lock = new ReentrantReadWriteLock();
     /**
      * Returns a {@link ListenerList} object that contains all listeners
      * that are registered to this event class.
@@ -106,5 +106,10 @@ public class EventListenerHelper
         {
             throw new RuntimeException("Error computing listener list for " + eventClass.getName(), e);
         }
+    }
+
+    private static void clearAll() {
+        listeners.clear();
+        lock = new ReentrantReadWriteLock();
     }
 }

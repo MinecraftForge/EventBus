@@ -107,6 +107,7 @@ dependencies {
     testImplementation(sourceSets.mlservice.output)
     testImplementation('org.junit.jupiter:junit-jupiter-engine:5.4.+')
     testImplementation('org.apache.logging.log4j:log4j-core:2.11.+')
+    testImplementation('com.lmax:disruptor:3.4.2')
     testImplementation(sourceSets.testJars.runtimeClasspath)
     testImplementation(sourceSets.mlservice.output)
     testJarsImplementation(sourceSets.main.output)
