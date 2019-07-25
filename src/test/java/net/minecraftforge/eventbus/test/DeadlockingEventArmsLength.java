@@ -9,7 +9,7 @@ public class DeadlockingEventArmsLength {
     public static class ChildEvent extends ParentEvent {
         static {
             try {
-                Thread.sleep(1);
+                Thread.sleep(10);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

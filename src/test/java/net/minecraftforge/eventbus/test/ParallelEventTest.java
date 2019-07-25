@@ -6,6 +6,7 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.testjar.DummyEvent;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.RepeatedTest;
 import org.powermock.reflect.Whitebox;
 
@@ -26,6 +27,7 @@ public class ParallelEventTest
         COUNTER.set(0);
     }
 
+    @Disabled
     @RepeatedTest(10)
     public void testMultipleThreadsMultipleBus() {
         Set<IEventBus> busSet = new HashSet<>();
@@ -45,6 +47,7 @@ public class ParallelEventTest
         Assertions.assertEquals(COUNTER.get(), expected);
     }
 
+    @Disabled
     @RepeatedTest(100)
     public void testMultipleThreadsOneBus() {
         IEventBus bus = BusBuilder.builder().setTrackPhases(false).build();

@@ -3,6 +3,7 @@ package net.minecraftforge.eventbus.test;
 import cpw.mods.modlauncher.Launcher;
 import cpw.mods.modlauncher.TransformingClassLoader;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.RepeatedTest;
 
 import java.util.concurrent.Callable;
@@ -19,6 +20,7 @@ public class ParallelTransformedTest {
         COUNTER.set(0);
     }
 
+    @Disabled
     @RepeatedTest(100)
     public void testOneBusParallelTransformed() {
         System.setProperty("test.harness", "out/production/classes,out/test/classes,out/mlservice/classes,out/mlservice/resources,out/testJars/classes,build/classes/java/main,build/classes/java/mlservice,build/classes/java/test,build/classes/java/testJars,build/resources/mlservice");
