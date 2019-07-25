@@ -8,6 +8,8 @@ import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventListenerHelper;
 import net.minecraftforge.eventbus.api.IEventBus;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.spi.LoggerContext;
 import org.junit.jupiter.api.*;
 import org.powermock.reflect.Whitebox;
 
@@ -23,10 +25,13 @@ import static org.junit.jupiter.api.Assertions.*;
 public class DeadlockingEventTest {
     private static final boolean initializeAtClassloading = false;
     private static final long waittimeout = 1; // number of seconds to wait before retrying. Bump this up to debug what's going on.
+    public static final int BOUND = 10000;
     public static ThreadPoolExecutor THREAD_POOL;
 
     @BeforeAll
     static void setup() {
+        // force async logging
+        System.setProperty("log4j2.contextSelector","org.apache.logging.log4j.core.async.AsyncLoggerContextSelector");
         System.setProperty("test.harness", "out/production/classes,out/test/classes,out/mlservice/classes,out/mlservice/resources,out/testJars/classes,build/classes/java/main,build/classes/java/mlservice,build/classes/java/test,build/classes/java/testJars,build/resources/mlservice");
         System.setProperty("test.harness.callable", "net.minecraftforge.eventbus.test.DeadlockingEventTest$Callback");
    }
@@ -68,18 +73,25 @@ public class DeadlockingEventTest {
                 final CountDownLatch cdl = new CountDownLatch(1);
                 final IEventBus bus = BusBuilder.builder().build();
                 Callable<Void> task2 = () -> {
-                    LogManager.getLogger().info("Task 2");
+                    final int nanos = new Random().nextInt(BOUND);
+                    LogManager.getLogger().info("Task 2: {}", nanos);
+                    long start = System.nanoTime();
                     cdl.await();
                     final Class<? extends Event> clz = (Class<? extends Event>) Class.forName("net.minecraftforge.eventbus.test.DeadlockingEventArmsLength$ChildEvent", initializeAtClassloading, contextClassLoader);
-                    Thread.sleep(0, new Random().nextInt(10000));
+                    Thread.sleep(0, nanos);
+                    LogManager.getLogger().info(System.nanoTime() - start);
                     assertEquals(clz.newInstance().getListenerList(), EventListenerHelper.getListenerList(clz));
                     LogManager.getLogger().info("Task 2");
                     return null;
                 };
                 Callable<Void> task1 = () -> {
-                    LogManager.getLogger().info("Task 1");
+                    final int nanos = new Random().nextInt(BOUND);
+                    LogManager.getLogger().info("Task 1: {}", nanos);
+                    long start = System.nanoTime();
                     cdl.await();
                     final Class<?> clz = Class.forName("net.minecraftforge.eventbus.test.DeadlockingEventArmsLength$Listener1", initializeAtClassloading, contextClassLoader);
+                    Thread.sleep(0, nanos);
+                    LogManager.getLogger().info(System.nanoTime() - start);
                     bus.register(clz);
                     LogManager.getLogger().info("Task 1");
                     return null;
