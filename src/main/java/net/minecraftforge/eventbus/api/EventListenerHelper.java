@@ -51,15 +51,27 @@ public class EventListenerHelper
     static ListenerList getListenerListInternal(Class<?> eventClass, boolean fromInstanceCall)
     {
         final Lock readLock = lock.readLock();
-        final Lock writeLock = lock.writeLock();
+        // to read the listener list, let's take the read lock
         readLock.lock();
         ListenerList listenerList = listeners.get(eventClass);
         readLock.unlock();
+        // if there's no entry, we'll end up here
         if (listenerList == null) {
+            // Let's pre-compute our new listener list value. This will possibly call parents' listener list
+            // evaluations. as such, we need to make sure we don't hold a lock when we do this, otherwise
+            // we could conflict with the class init global lock that is implicitly present
             listenerList = computeListenerList(eventClass, fromInstanceCall);
+            // having computed a listener list, we'll grab the write lock.
+            // We'll also take the read lock, so we're very clear we have _both_ locks here.
+            final Lock writeLock = lock.writeLock();
             writeLock.lock();
+            readLock.lock();
+            // insert our computed value if no existing value is present
             listeners.putIfAbsent(eventClass, listenerList);
+            // get whatever value got stored in the list
             listenerList = listeners.get(eventClass);
+            // and unlock, and we're done
+            readLock.unlock();
             writeLock.unlock();
         }
         return listenerList;
