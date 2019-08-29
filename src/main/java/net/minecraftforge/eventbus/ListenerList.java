@@ -57,7 +57,7 @@ public class ListenerList
         allLists.add(inst);
     }
 
-    public static void resize(int max)
+    static void resize(int max)
     {
         if (max <= maxSize)
         {
@@ -70,7 +70,7 @@ public class ListenerList
         maxSize = max;
     }
 
-    public void resizeLists(int max)
+    private synchronized void resizeLists(int max)
     {
         if (parent != null)
         {

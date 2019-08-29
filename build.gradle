@@ -1,7 +1,7 @@
 plugins {
-    id 'org.ajoberstar.reckon' version '0.9.0'
-    id 'org.ajoberstar.grgit' version '3.0.0'
-    id 'com.github.ben-manes.versions' version '0.20.0'
+    id 'org.ajoberstar.reckon' version '0.11.0'
+    id 'org.ajoberstar.grgit' version '3.1.1'
+    id 'com.github.ben-manes.versions' version '0.22.0'
     id 'me.champeau.gradle.jmh' version '0.4.8'
 }
 apply plugin: 'maven'
@@ -103,7 +103,7 @@ repositories {
 dependencies {
     testImplementation('org.junit.jupiter:junit-jupiter-api:5.4.+')
     testImplementation('org.powermock:powermock-core:2.0.+')
-    testImplementation('cpw.mods:modlauncher:0.10.+')
+    testImplementation('cpw.mods:modlauncher:3.2.+')
     testImplementation(sourceSets.mlservice.output)
     testImplementation('org.junit.jupiter:junit-jupiter-engine:5.4.+')
     testImplementation('org.apache.logging.log4j:log4j-core:2.11.+')
@@ -115,13 +115,13 @@ dependencies {
     implementation('org.ow2.asm:asm-commons:6.2')
     implementation('org.ow2.asm:asm-tree:6.2')
     implementation('org.apache.logging.log4j:log4j-api:2.11.+')
-    implementation('cpw.mods:modlauncher:0.10.+:api')
+    implementation('cpw.mods:modlauncher:3.2.+:api')
     implementation('com.google.code.findbugs:jsr305:3.0.2')
     api('net.jodah:typetools:0.6.0')
-    mlserviceImplementation('cpw.mods:modlauncher:0.10.+:api')
+    mlserviceImplementation('cpw.mods:modlauncher:3.2.+:api')
     mlserviceImplementation(sourceSets.main.output)
     jmhImplementation(sourceSets.mlservice.output)
-    jmhImplementation('cpw.mods:modlauncher:0.10.+')
+    jmhImplementation('cpw.mods:modlauncher:3.2.+')
     jmhImplementation("org.powermock:powermock-core:2.0.+")
     jmhImplementation("org.ow2.asm:asm:6.2")
     jmhImplementation("org.ow2.asm:asm-tree:6.2")
