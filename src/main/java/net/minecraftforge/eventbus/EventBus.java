@@ -23,6 +23,7 @@ import net.jodah.typetools.TypeResolver;
 import net.minecraftforge.eventbus.api.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.util.Booleans;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -39,6 +40,8 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     private static final Logger LOGGER = LogManager.getLogger();
     private static AtomicInteger maxID = new AtomicInteger(0);
     private final boolean trackPhases;
+
+    private final boolean checkTypesOnDispatch = Booleans.parseBoolean(System.getProperty("eventbus.checkTypesOnDispatch"), false);
 
     private ConcurrentHashMap<Object, List<IEventListener>> listeners = new ConcurrentHashMap<>();
     private final int busID = maxID.getAndIncrement();
@@ -280,6 +283,10 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     public boolean post(Event event)
     {
         if (shutdown) return false;
+        if (checkTypesOnDispatch && !baseType.isInstance(event))
+        {
+            throw new IllegalArgumentException("Cannot post event of type " + event.getClass().getSimpleName() + " to this event. Must match type: " + baseType.getSimpleName());
+        }
 
         IEventListener[] listeners = event.getListenerList().getListeners(busID);
         int index = 0;
