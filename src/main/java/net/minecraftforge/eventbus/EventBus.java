@@ -23,7 +23,6 @@ import net.jodah.typetools.TypeResolver;
 import net.minecraftforge.eventbus.api.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.util.Booleans;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -41,7 +40,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     private static AtomicInteger maxID = new AtomicInteger(0);
     private final boolean trackPhases;
 
-    private final boolean checkTypesOnDispatch = Booleans.parseBoolean(System.getProperty("eventbus.checkTypesOnDispatch"), false);
+    private final boolean checkTypesOnDispatch = Boolean.parseBoolean(System.getProperty("eventbus.checkTypesOnDispatch"));
 
     private ConcurrentHashMap<Object, List<IEventListener>> listeners = new ConcurrentHashMap<>();
     private final int busID = maxID.getAndIncrement();
