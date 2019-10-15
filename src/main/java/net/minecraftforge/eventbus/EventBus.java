@@ -146,23 +146,37 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
         return e->e.getGenericType() == type;
     }
 
+    private void checkNotGeneric(final Consumer<? extends Event> consumer) {
+        checkNotGeneric(getEventClass(consumer));
+    }
+
+    private void checkNotGeneric(final Class<? extends Event> eventType) {
+        if (GenericEvent.class.isAssignableFrom(eventType)) {
+            throw new IllegalArgumentException("Cannot register a generic event listener with addListener, use addGenericListener");
+        }
+    }
+
     @Override
     public <T extends Event> void addListener(final Consumer<T> consumer) {
+        checkNotGeneric(consumer);
         addListener(EventPriority.NORMAL, consumer);
     }
 
     @Override
     public <T extends Event> void addListener(final EventPriority priority, final Consumer<T> consumer) {
+        checkNotGeneric(consumer);
         addListener(priority, false, consumer);
     }
 
     @Override
     public <T extends Event> void addListener(final EventPriority priority, final boolean receiveCancelled, final Consumer<T> consumer) {
+        checkNotGeneric(consumer);
         addListener(priority, passCancelled(receiveCancelled), consumer);
     }
 
     @Override
     public <T extends Event> void addListener(final EventPriority priority, final boolean receiveCancelled, final Class<T> eventType, final Consumer<T> consumer) {
+        checkNotGeneric(eventType);
         addListener(priority, passCancelled(receiveCancelled), eventType, consumer);
     }
 
@@ -187,12 +201,17 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Event> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Consumer<T> consumer) {
+    private <T extends Event> Class<T> getEventClass(Consumer<T> consumer) {
         final Class<T> eventClass = (Class<T>) TypeResolver.resolveRawArgument(Consumer.class, consumer.getClass());
         if ((Class<?>)eventClass == TypeResolver.Unknown.class) {
             LOGGER.error(EVENTBUS, "Failed to resolve handler for \"{}\"", consumer.toString());
             throw new IllegalStateException("Failed to resolve consumer event type: " + consumer.toString());
         }
+        return eventClass;
+    }
+
+    private <T extends Event> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Consumer<T> consumer) {
+        Class<T> eventClass = getEventClass(consumer);
         if (Objects.equals(eventClass, Event.class))
             LOGGER.warn(EVENTBUS,"Attempting to add a Lambda listener with computed generic type of Event. " +
                     "Are you sure this is what you meant? NOTE : there are complex lambda forms where " +
