@@ -11,7 +11,7 @@ public final class BusBuilder {
     // true by default
     private boolean trackPhases = true;
     private boolean startShutdown = false;
-    private Class<? extends Event> baseType;
+    private Class<? extends Event> baseType = Event.class;
 
     public static BusBuilder builder() {
         return new BusBuilder();
