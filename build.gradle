@@ -1,10 +1,10 @@
 plugins {
-    id 'org.ajoberstar.reckon' version '0.11.0'
-    id 'org.ajoberstar.grgit' version '3.1.1'
-    id 'com.github.ben-manes.versions' version '0.22.0'
-    id 'me.champeau.gradle.jmh' version '0.4.8'
+    id 'org.ajoberstar.reckon' version '0.12.0'
+    id 'org.ajoberstar.grgit' version '4.0.0'
+    id 'com.github.ben-manes.versions' version '0.27.0'
+    id 'me.champeau.gradle.jmh' version '0.5.0'
 }
-apply plugin: 'maven'
+
 apply plugin: 'java-library'
 apply plugin: 'eclipse'
 apply plugin: 'jacoco'
@@ -101,32 +101,32 @@ repositories {
 }
 
 dependencies {
-    testImplementation('org.junit.jupiter:junit-jupiter-api:5.4.+')
+    testImplementation('org.junit.jupiter:junit-jupiter-api:5.5.+')
     testImplementation('org.powermock:powermock-core:2.0.+')
-    testImplementation('cpw.mods:modlauncher:4.2.+')
+    testImplementation('cpw.mods:modlauncher:5.0.+')
     testImplementation(sourceSets.mlservice.output)
-    testImplementation('org.junit.jupiter:junit-jupiter-engine:5.4.+')
-    testImplementation('org.apache.logging.log4j:log4j-core:2.11.+')
+    testImplementation('org.junit.jupiter:junit-jupiter-engine:5.5.+')
+    testImplementation('org.apache.logging.log4j:log4j-core:2.12.+')
     testImplementation('com.lmax:disruptor:3.4.2')
     testImplementation(sourceSets.testJars.runtimeClasspath)
     testImplementation(sourceSets.mlservice.output)
     testJarsImplementation(sourceSets.main.output)
-    implementation('org.ow2.asm:asm:6.2')
-    implementation('org.ow2.asm:asm-commons:6.2')
-    implementation('org.ow2.asm:asm-tree:6.2')
-    implementation('org.apache.logging.log4j:log4j-api:2.11.+')
-    implementation('cpw.mods:modlauncher:3.2.+:api')
+    implementation('org.ow2.asm:asm:7.2')
+    implementation('org.ow2.asm:asm-commons:7.2')
+    implementation('org.ow2.asm:asm-tree:7.2')
+    implementation('org.apache.logging.log4j:log4j-api:2.12.+')
+    implementation('cpw.mods:modlauncher:5.0.+:api')
     implementation('com.google.code.findbugs:jsr305:3.0.2')
-    api('net.jodah:typetools:0.6.0')
-    mlserviceImplementation('cpw.mods:modlauncher:4.2.+:api')
+    api('net.jodah:typetools:0.6.1')
+    mlserviceImplementation('cpw.mods:modlauncher:5.0.+:api')
     mlserviceImplementation(sourceSets.main.output)
     jmhImplementation(sourceSets.mlservice.output)
-    jmhImplementation('cpw.mods:modlauncher:4.2.+')
+    jmhImplementation('cpw.mods:modlauncher:5.0.+')
     jmhImplementation("org.powermock:powermock-core:2.0.+")
-    jmhImplementation("org.ow2.asm:asm:6.2")
-    jmhImplementation("org.ow2.asm:asm-tree:6.2")
-    jmhImplementation("org.ow2.asm:asm-commons:6.2")
-    jmh("org.ow2.asm:asm:6.2")
+    jmhImplementation("org.ow2.asm:asm:7.2")
+    jmhImplementation("org.ow2.asm:asm-tree:7.2")
+    jmhImplementation("org.ow2.asm:asm-commons:7.2")
+    jmh("org.ow2.asm:asm:7.2")
 }
 
 jmh {
