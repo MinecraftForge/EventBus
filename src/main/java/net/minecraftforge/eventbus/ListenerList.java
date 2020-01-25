@@ -26,7 +26,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -138,14 +137,14 @@ public class ListenerList
         }
     }
 
-    private class ListenerListInst
+
+    private static class ListenerListInst
     {
         private boolean rebuild = true;
         private AtomicReference<IEventListener[]> listeners = new AtomicReference<>();
-        private ArrayList<ArrayList<IEventListener>> priorities;
+        private ArrayList<ArrayList<IEventListener>> priorities; //Requires synchronized access
         private ListenerListInst parent;
-        private List<ListenerListInst> children;
-        private Semaphore writeLock = new Semaphore(1, true);
+        private List<ListenerListInst> children; //Requires synchronized access
 
 
         private ListenerListInst()
@@ -161,10 +160,11 @@ public class ListenerList
 
         public void dispose()
         {
-            writeLock.acquireUninterruptibly();
-            priorities.forEach(ArrayList::clear);
-            priorities.clear();
-            writeLock.release();
+            synchronized (this)
+            {
+                priorities.forEach(ArrayList::clear);
+                priorities.clear();
+            }
             parent = null;
             listeners = null;
             if (children != null)
@@ -189,9 +189,12 @@ public class ListenerList
          */
         public ArrayList<IEventListener> getListeners(EventPriority priority)
         {
-            writeLock.acquireUninterruptibly();
-            ArrayList<IEventListener> ret = new ArrayList<>(priorities.get(priority.ordinal()));
-            writeLock.release();
+            ArrayList<IEventListener> ret;
+            synchronized (this)
+            {
+                ret = priorities.get(priority.ordinal());
+            }
+            ret = new ArrayList<>(ret);
             if (parent != null)
             {
                 ret.addAll(parent.getListeners(priority));
@@ -223,18 +226,24 @@ public class ListenerList
         protected void forceRebuild()
         {
             this.rebuild = true;
-            if (this.children != null)
+            synchronized (this)
             {
-                for (ListenerListInst child : this.children)
-                    child.forceRebuild();
+                if (this.children != null)
+                {
+                    for (ListenerListInst child : this.children)
+                        child.forceRebuild();
+                }
             }
         }
 
         private void addChild(ListenerListInst child)
         {
-            if (this.children == null)
-                this.children = new ArrayList<>();
-            this.children.add(child);
+            synchronized (this)
+            {
+                if (this.children == null)
+                    this.children = new ArrayList<>();
+                this.children.add(child);
+            }
         }
 
         /**
@@ -246,31 +255,41 @@ public class ListenerList
             {
                 parent.buildCache();
             }
-            ArrayList<IEventListener> ret = new ArrayList<>();
-            Arrays.stream(EventPriority.values()).forEach(value -> {
-                List<IEventListener> listeners = getListeners(value);
-                if (listeners.size() > 0) {
-                    ret.add(value); //Add the priority to notify the event of it's current phase.
-                    ret.addAll(listeners);
-                }
-            });
-            this.listeners.set(ret.toArray(new IEventListener[0]));
-            rebuild = false;
+
+            synchronized (this)
+            {
+                if (!shouldRebuild()) return; //Another thread already rebuild the list, exit early
+                ArrayList<IEventListener> ret = new ArrayList<>();
+                Arrays.stream(EventPriority.values()).forEach(value ->
+                {
+                    List<IEventListener> listeners = getListeners(value);
+                    if (listeners.size() > 0)
+                    {
+                        ret.add(value); //Add the priority to notify the event of it's current phase.
+                        ret.addAll(listeners);
+                    }
+                });
+                this.listeners.set(ret.toArray(new IEventListener[0]));
+                rebuild = false;
+            }
         }
 
         public void register(EventPriority priority, IEventListener listener)
         {
-            writeLock.acquireUninterruptibly();
-            priorities.get(priority.ordinal()).add(listener);
-            writeLock.release();
+            synchronized (this)
+            {
+                priorities.get(priority.ordinal()).add(listener);
+            }
             this.forceRebuild();
         }
 
         public void unregister(IEventListener listener)
         {
-            writeLock.acquireUninterruptibly();
-            priorities.stream().filter(list -> list.remove(listener)).forEach(list -> this.forceRebuild());
-            writeLock.release();
+            synchronized (this)
+            {
+                if (priorities.stream().filter(list -> list.remove(listener)).count() >= 1L)
+                    this.forceRebuild();
+            }
         }
     }
 }
