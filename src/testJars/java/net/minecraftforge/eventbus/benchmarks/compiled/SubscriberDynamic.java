@@ -19,7 +19,7 @@ public class SubscriberDynamic
     }
 
     @SubscribeEvent
-    public void onSimpleEvent(SimpleEvent event)
+    public void onSimpleEvent(EventWithData event)
     {
 
     }

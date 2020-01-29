@@ -2,7 +2,7 @@ plugins {
     id 'org.ajoberstar.reckon' version '0.12.0'
     id 'org.ajoberstar.grgit' version '4.0.0'
     id 'com.github.ben-manes.versions' version '0.27.0'
-    id 'me.champeau.gradle.jmh' version '0.5.0'
+    id 'me.champeau.gradle.jmh' version '0.5.0-rc-1' //0.5.0 is broken, see https://github.com/melix/jmh-gradle-plugin/issues/159
 }
 
 apply plugin: 'java-library'
@@ -100,6 +100,12 @@ repositories {
     }
 }
 
+configurations.jmh {
+    resolutionStrategy {
+        force ("net.sf.jopt-simple:jopt-simple:5.0.4")
+    }
+}
+
 dependencies {
     testImplementation('org.junit.jupiter:junit-jupiter-api:5.5.+')
     testImplementation('org.powermock:powermock-core:2.0.+')
@@ -135,7 +141,7 @@ jmh {
     benchmarkMode = ['avgt' ]
     profilers = [ 'stack' ]
     timeOnIteration = '5s'
-    warmup = '5s'
+    warmup = '3s' //These benchmarks results in nanoseconds as execution time, so 3*3 seconds is more than enough for warmup
     warmupIterations = 3
     iterations = 3
     fork = 3
