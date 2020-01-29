@@ -14,10 +14,8 @@ public class BenchmarkArmsLength implements Callable<Void>
     private static IEventBus combinedSubscriberBus;
 
     @Override
-    public Void call() throws Exception
+    public Void call()
     {
-        System.out.println("Loading on clsloader: " + this.getClass().getClassLoader().toString());
-        System.out.println("Events loading on " + this.getClass().getClassLoader().toString());
         if (!new CancelableEvent().isCancelable())
             throw new RuntimeException("Transformer did not apply!");
 

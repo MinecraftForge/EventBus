@@ -32,7 +32,6 @@ public class EventBusBenchmark
     {
         //Forks have an incorrect working dir set, so use the absolute path to correct
         String basePath = Paths.get(this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI()).getParent().getParent().toAbsolutePath().toString();
-        System.out.println(FileSystems.getDefault().getPath(basePath + "/classes/java/testJars").toAbsolutePath());
         System.setProperty("test.harness", basePath + "/classes/java/testJars," + basePath + "/classes/java/main");
         System.setProperty("test.harness.callable", "net.minecraftforge.eventbus.benchmarks.BenchmarkBootstrap");
         Launcher.main("--version", "1.0", "--launchTarget", "testharness");
@@ -46,21 +45,21 @@ public class EventBusBenchmark
     }
 
     @Benchmark
-    public int testDynamic() throws Exception
+    public int testDynamic()
     {
         postDynamic.accept(null);
         return 0;
     }
 
     @Benchmark
-    public int testLambda() throws Exception
+    public int testLambda()
     {
         postLambda.accept(null);
         return 0;
     }
 
     @Benchmark
-    public int testStatic() throws Exception
+    public int testStatic()
     {
         postStatic.accept(null);
         return 0;
