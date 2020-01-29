@@ -9,15 +9,10 @@ import java.util.concurrent.Callable;
 
 public class BenchmarkBootstrap
 {
+    @SuppressWarnings("unchecked")
     public static Callable<Void> supplier() throws Exception {
         TransformingClassLoader tcl = (TransformingClassLoader) Whitebox.getField(Launcher.class, "classLoader").get(Launcher.INSTANCE);
-        System.out.println("Bootstrapping... tcl=" + tcl);
-        tcl.addTargetPackageFilter(s->
-        {
-            boolean result = !(s.startsWith("net.minecraftforge.eventbus.") && !s.startsWith("net.minecraftforge.eventbus.benchmark"));
-            System.out.println("Filter query : " + s + ", result=" + result);
-            return result;
-        });
+        tcl.addTargetPackageFilter(s-> !(s.startsWith("net.minecraftforge.eventbus.") && !s.startsWith("net.minecraftforge.eventbus.benchmark")));
         final Class<?> clazz;
         try {
             clazz = Class.forName("net.minecraftforge.eventbus.benchmarks.compiled.BenchmarkArmsLength", true, tcl);
