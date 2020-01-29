@@ -9,5 +9,4 @@ import java.util.function.Supplier;
 @Cancelable
 public class CancelableEvent extends Event
 {
-    public static Supplier<Event> makeNew = CancelableEvent::new;
 }

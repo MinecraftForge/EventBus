@@ -8,5 +8,4 @@ import java.util.function.Supplier;
 @Event.HasResult
 public class ResultEvent extends Event
 {
-    public static Supplier<Event> makeNew = ResultEvent::new;
 }
