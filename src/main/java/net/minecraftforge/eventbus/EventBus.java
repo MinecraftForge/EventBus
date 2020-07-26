@@ -37,32 +37,38 @@ import static net.minecraftforge.eventbus.LogMarkers.EVENTBUS;
 
 public class EventBus implements IEventExceptionHandler, IEventBus {
     private static final Logger LOGGER = LogManager.getLogger();
+    private static final boolean checkTypesOnDispatch = Boolean.parseBoolean(System.getProperty("eventbus.checkTypesOnDispatch", "false"));
     private static AtomicInteger maxID = new AtomicInteger(0);
     private final boolean trackPhases;
+
 
     private ConcurrentHashMap<Object, List<IEventListener>> listeners = new ConcurrentHashMap<>();
     private final int busID = maxID.getAndIncrement();
     private final IEventExceptionHandler exceptionHandler;
     private volatile boolean shutdown = false;
+    
+    private final Class<? extends Event> baseType;
 
     private EventBus()
     {
         ListenerList.resize(busID + 1);
         exceptionHandler = this;
         this.trackPhases = true;
+        this.baseType = Event.class;
     }
 
-    private EventBus(final IEventExceptionHandler handler, boolean trackPhase, boolean startShutdown)
+    private EventBus(final IEventExceptionHandler handler, boolean trackPhase, boolean startShutdown, Class<? extends Event> baseType)
     {
         ListenerList.resize(busID + 1);
         if (handler == null) exceptionHandler = this;
         else exceptionHandler = handler;
         this.trackPhases = trackPhase;
         this.shutdown = startShutdown;
+        this.baseType = baseType;
     }
 
     public EventBus(final BusBuilder busBuilder) {
-        this(busBuilder.getExceptionHandler(), busBuilder.getTrackPhases(), busBuilder.isStartingShutdown());
+        this(busBuilder.getExceptionHandler(), busBuilder.getTrackPhases(), busBuilder.isStartingShutdown(), busBuilder.getBaseType());
     }
 
     private void registerClass(final Class<?> clazz) {
@@ -133,6 +139,12 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
             throw new IllegalArgumentException(
                     "Method " + method + " has @SubscribeEvent annotation, " +
                             "but takes an argument that is not an Event subtype : " + eventType);
+        }
+        if (baseType != Event.class && !baseType.isAssignableFrom(eventType))
+        {
+            throw new IllegalArgumentException(
+                    "Method " + method + " has @SubscribeEvent annotation, " +
+                            "but takes an argument that is not a subtype of the base type " + baseType + ": " + eventType);
         }
 
         register(eventType, target, real);
@@ -220,6 +232,10 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     private <T extends Event> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer) {
+        if (baseType != Event.class && !baseType.isAssignableFrom(eventClass)) {
+            throw new IllegalArgumentException(
+                    "Listener for event " + eventClass + " takes an argument that is not a subtype of the base type " + baseType);
+        }
         addToListeners(consumer, eventClass, e-> doCastFilter(filter, eventClass, consumer, e), priority);
     }
 
@@ -266,6 +282,10 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     public boolean post(Event event)
     {
         if (shutdown) return false;
+        if (EventBus.checkTypesOnDispatch && !baseType.isInstance(event))
+        {
+            throw new IllegalArgumentException("Cannot post event of type " + event.getClass().getSimpleName() + " to this event. Must match type: " + baseType.getSimpleName());
+        }
 
         IEventListener[] listeners = event.getListenerList().getListeners(busID);
         int index = 0;

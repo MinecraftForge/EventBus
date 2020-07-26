@@ -11,6 +11,7 @@ public final class BusBuilder {
     // true by default
     private boolean trackPhases = true;
     private boolean startShutdown = false;
+    private Class<? extends Event> baseType = Event.class;
 
     public static BusBuilder builder() {
         return new BusBuilder();
@@ -30,6 +31,12 @@ public final class BusBuilder {
         this.startShutdown = true;
         return this;
     }
+    
+    public BusBuilder baseType(Class<? extends Event> type) {
+        this.baseType = type;
+        return this;
+    }
+    
     public IEventExceptionHandler getExceptionHandler() {
         return exceptionHandler;
     }
@@ -44,5 +51,9 @@ public final class BusBuilder {
 
     public boolean isStartingShutdown() {
         return this.startShutdown;
+    }
+    
+    public Class<? extends Event> getBaseType() {
+        return this.baseType;
     }
 }
