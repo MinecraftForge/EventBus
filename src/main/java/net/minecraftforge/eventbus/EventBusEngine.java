@@ -1,6 +1,7 @@
 package net.minecraftforge.eventbus;
 
 import org.apache.logging.log4j.LogManager;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 
@@ -16,10 +17,10 @@ public enum EventBusEngine {
         this.accessTransformer = new EventAccessTransformer();
     }
 
-    public boolean processClass(final ClassNode classNode, final Type classType) {
-        boolean evtXform = eventTransformer.transform(classNode, classType).isPresent();
-        boolean axXform = accessTransformer.transform(classNode, classType);
-        return evtXform || axXform;
+    public int processClass(final ClassNode classNode, final Type classType) {
+        final int evtXformFlags = eventTransformer.transform(classNode, classType).isPresent() ? ClassWriter.COMPUTE_FRAMES : 0x0;
+        final int axXformFlags = accessTransformer.transform(classNode, classType) ? 0x100 : 0;
+        return evtXformFlags | axXformFlags;
     }
 
     public boolean handlesClass(final Type classType) {

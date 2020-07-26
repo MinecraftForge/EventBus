@@ -16,14 +16,8 @@ public class ModLauncherService implements ILaunchPluginService {
     }
 
     @Override
-    public boolean processClass(final Phase phase, final ClassNode classNode, final Type classType, String reason) {
-        return Objects.equals(reason, "classloading") && EventBusEngine.INSTANCE.processClass(classNode, classType);
-    }
-
-    @Override
-    public boolean processClass(final Phase phase, final ClassNode classNode, final Type classType) {
-        // NOOP as we override the primary method above
-        return false;
+    public int processClassWithFlags(final Phase phase, final ClassNode classNode, final Type classType, String reason) {
+        return Objects.equals(reason, "classloading") ? EventBusEngine.INSTANCE.processClass(classNode, classType) : ComputeFlags.NO_REWRITE;
     }
 
     private static final EnumSet<Phase> YAY = EnumSet.of(Phase.AFTER);

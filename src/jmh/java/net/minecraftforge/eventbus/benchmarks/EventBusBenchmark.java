@@ -46,7 +46,7 @@ public class EventBusBenchmark
         final TransformStore transformStore = new TransformStore();
         final LaunchPluginHandler lph = new LaunchPluginHandler();
         ClassTransformer classTransformer = uncheck(()->Whitebox.invokeConstructor(ClassTransformer.class, new Class[] { transformStore.getClass(),  lph.getClass(), TransformingClassLoader.class }, new Object[] { transformStore, lph, null}));
-        Method transform = Whitebox.getMethod(classTransformer.getClass(), "transform", byte[].class, String.class);
+        Method transform = Whitebox.getMethod(classTransformer.getClass(), "transform", byte[].class, String.class, String.class);
         LaunchPluginHandler pluginHandler = Whitebox.getInternalState(classTransformer, "pluginHandler");
         Map<String, ILaunchPluginService> plugins = Whitebox.getInternalState(pluginHandler, "plugins");
         ModLauncherService service = new ModLauncherService();
@@ -76,7 +76,7 @@ public class EventBusBenchmark
             String clsWithDot = className.replace('/', '.');
             try
             {
-                classBytes = (byte[]) transform.invoke(classTransformer, classBytes, clsWithDot);
+                classBytes = (byte[]) transform.invoke(classTransformer, classBytes, clsWithDot, "");
                 classes[i] = (Class) defineClass.invoke(getClass().getClassLoader(), clsWithDot, classBytes, 0, classBytes.length);
             } catch (ReflectiveOperationException e)
             {
