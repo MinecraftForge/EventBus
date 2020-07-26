@@ -25,6 +25,12 @@ public class WeirdGenericTests {
 		});
 		Assertions.assertTrue(genericEventHandled);
 	}
+	
+	@Test
+	public void testGenericListenerRegisteredIncorrectly() {
+	    IEventBus bus = BusBuilder.builder().build();
+	    Assertions.assertThrows(IllegalArgumentException.class, () -> bus.addListener(this::handleGenericEvent));
+	}
 
 	private void handleGenericEvent(GenericEvent<List<String>> evt) {
 		genericEventHandled = true;
