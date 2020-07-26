@@ -19,7 +19,7 @@ public class SubscriberStatic
     }
 
     @SubscribeEvent
-    public static void onSimpleEvent(SimpleEvent event)
+    public static void onSimpleEvent(EventWithData event)
     {
 
     }
