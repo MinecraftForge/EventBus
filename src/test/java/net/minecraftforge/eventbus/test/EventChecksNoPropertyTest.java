@@ -5,7 +5,6 @@ import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.IEventBus;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class EventChecksNoPropertyTest {
@@ -23,7 +22,7 @@ public class EventChecksNoPropertyTest {
     private static final String PROP_NAME = "eventbus.checkTypesOnDispatch";
 
     private static IEventBus bus() {
-        return new BusBuilder().baseType(BaseEvent.class).build();
+        return new BusBuilder().markerType(BaseEvent.class).build();
     }
 
     @Test

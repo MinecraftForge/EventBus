@@ -47,7 +47,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     private final IEventExceptionHandler exceptionHandler;
     private volatile boolean shutdown = false;
     
-    private final Class<? extends Event> baseType;
+    private final Class<?> baseType;
 
     private EventBus()
     {
@@ -57,7 +57,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
         this.baseType = Event.class;
     }
 
-    private EventBus(final IEventExceptionHandler handler, boolean trackPhase, boolean startShutdown, Class<? extends Event> baseType)
+    private EventBus(final IEventExceptionHandler handler, boolean trackPhase, boolean startShutdown, Class<?> baseType)
     {
         ListenerList.resize(busID + 1);
         if (handler == null) exceptionHandler = this;
@@ -68,7 +68,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     public EventBus(final BusBuilder busBuilder) {
-        this(busBuilder.getExceptionHandler(), busBuilder.getTrackPhases(), busBuilder.isStartingShutdown(), busBuilder.getBaseType());
+        this(busBuilder.getExceptionHandler(), busBuilder.getTrackPhases(), busBuilder.isStartingShutdown(), busBuilder.getMarkerType());
     }
 
     private void registerClass(final Class<?> clazz) {

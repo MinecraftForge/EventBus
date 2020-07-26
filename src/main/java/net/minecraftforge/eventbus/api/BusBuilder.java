@@ -11,7 +11,7 @@ public final class BusBuilder {
     // true by default
     private boolean trackPhases = true;
     private boolean startShutdown = false;
-    private Class<? extends Event> baseType = Event.class;
+    private Class<?> markerType = Event.class;
 
     public static BusBuilder builder() {
         return new BusBuilder();
@@ -32,8 +32,9 @@ public final class BusBuilder {
         return this;
     }
     
-    public BusBuilder baseType(Class<? extends Event> type) {
-        this.baseType = type;
+    public BusBuilder markerType(Class<?> type) {
+        if (!type.isInterface()) throw new IllegalArgumentException("Cannot specify a class marker type");
+        this.markerType = type;
         return this;
     }
     
@@ -53,7 +54,7 @@ public final class BusBuilder {
         return this.startShutdown;
     }
     
-    public Class<? extends Event> getBaseType() {
-        return this.baseType;
+    public Class<?> getMarkerType() {
+        return this.markerType;
     }
 }

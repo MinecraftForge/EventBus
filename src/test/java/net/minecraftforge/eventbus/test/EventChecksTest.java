@@ -29,7 +29,7 @@ public class EventChecksTest {
     }
     
     private static IEventBus bus() {
-        return new BusBuilder().baseType(BaseEvent.class).build();
+        return new BusBuilder().markerType(BaseEvent.class).build();
     }
 
     @Test
