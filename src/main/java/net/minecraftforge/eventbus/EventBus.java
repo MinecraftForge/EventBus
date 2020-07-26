@@ -37,10 +37,10 @@ import static net.minecraftforge.eventbus.LogMarkers.EVENTBUS;
 
 public class EventBus implements IEventExceptionHandler, IEventBus {
     private static final Logger LOGGER = LogManager.getLogger();
+    private static final boolean checkTypesOnDispatch = Boolean.parseBoolean(System.getProperty("eventbus.checkTypesOnDispatch", "false"));
     private static AtomicInteger maxID = new AtomicInteger(0);
     private final boolean trackPhases;
 
-    private final boolean checkTypesOnDispatch = Boolean.parseBoolean(System.getProperty("eventbus.checkTypesOnDispatch"));
 
     private ConcurrentHashMap<Object, List<IEventListener>> listeners = new ConcurrentHashMap<>();
     private final int busID = maxID.getAndIncrement();
@@ -282,7 +282,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     public boolean post(Event event)
     {
         if (shutdown) return false;
-        if (checkTypesOnDispatch && !baseType.isInstance(event))
+        if (EventBus.checkTypesOnDispatch && !baseType.isInstance(event))
         {
             throw new IllegalArgumentException("Cannot post event of type " + event.getClass().getSimpleName() + " to this event. Must match type: " + baseType.getSimpleName());
         }
