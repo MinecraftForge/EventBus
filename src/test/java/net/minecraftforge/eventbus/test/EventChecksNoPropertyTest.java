@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class EventChecksNoPropertyTest {
-
-    public static class BaseEvent extends Event {
+    public interface MarkerEvent {}
+    public static class BaseEvent extends Event implements MarkerEvent {
 
         public BaseEvent() {}
     }
@@ -22,7 +22,7 @@ public class EventChecksNoPropertyTest {
     private static final String PROP_NAME = "eventbus.checkTypesOnDispatch";
 
     private static IEventBus bus() {
-        return new BusBuilder().markerType(BaseEvent.class).build();
+        return new BusBuilder().markerType(MarkerEvent.class).build();
     }
 
     @Test

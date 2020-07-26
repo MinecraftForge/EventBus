@@ -10,8 +10,8 @@ import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.IEventBus;
 
 public class EventChecksTest {
-    
-    public static class BaseEvent extends Event {
+    public interface MarkerEvent {}
+    public static class BaseEvent extends Event implements MarkerEvent {
         
         public BaseEvent() {}
     }
@@ -29,7 +29,7 @@ public class EventChecksTest {
     }
     
     private static IEventBus bus() {
-        return new BusBuilder().markerType(BaseEvent.class).build();
+        return new BusBuilder().markerType(MarkerEvent.class).build();
     }
 
     @Test
