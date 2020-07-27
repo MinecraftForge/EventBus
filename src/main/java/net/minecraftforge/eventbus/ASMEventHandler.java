@@ -24,10 +24,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.*;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -62,6 +59,14 @@ public class ASMEventHandler implements IEventListener
                 if (filter instanceof ParameterizedType) // Unlikely that nested generics will ever be relevant for event filtering, so discard them
                 {
                 	filter = ((ParameterizedType)filter).getRawType();
+                }
+                else if (filter instanceof WildcardType)
+                {
+                    // If there's a wildcard filter of Object.class, then remove the filter.
+                    final WildcardType wfilter = (WildcardType) filter;
+                    if (wfilter.getUpperBounds().length == 1 && wfilter.getUpperBounds()[0] == Object.class && wfilter.getLowerBounds().length == 0) {
+                        filter = null;
+                    }
                 }
             }
         }

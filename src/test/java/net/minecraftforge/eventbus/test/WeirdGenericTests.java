@@ -4,6 +4,7 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 import net.minecraftforge.eventbus.api.BusBuilder;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -36,4 +37,20 @@ public class WeirdGenericTests {
 		genericEventHandled = true;
 	}
 
+	static boolean hit;
+	@Test
+	public void testNoFilterRegisterWithWildcard() {
+		IEventBus bus = BusBuilder.builder().build();
+		bus.register(new GenericHandler());
+		hit = false;
+		bus.post(new GenericEvent<>());
+		Assertions.assertTrue(hit, "Hit the event");
+	}
+
+	public static class GenericHandler {
+		@SubscribeEvent
+		public void handleWildcardGeneric(GenericEvent<?> ge) {
+			hit = true;
+		}
+	}
 }
