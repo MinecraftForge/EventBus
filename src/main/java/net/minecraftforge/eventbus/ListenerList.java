@@ -59,15 +59,17 @@ public class ListenerList
 
     static void resize(int max)
     {
-        if (max <= maxSize)
+        if (max > maxSize)
         {
-            return;
+            synchronized (ListenerList.class)
+            {
+                if (max > maxSize)
+                {
+                    allLists.forEach(list -> list.resizeLists(max));
+                    maxSize = max;
+                }
+            }
         }
-        synchronized (ListenerList.class)
-        {
-            allLists.forEach(list -> list.resizeLists(max));
-        }
-        maxSize = max;
     }
 
     private synchronized void resizeLists(int max)
