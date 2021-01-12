@@ -225,17 +225,18 @@ public class ListenerList
         protected void forceRebuild()
         {
             this.rebuild = true;
-            if (this.children != null)
-            {
-                for (ListenerListInst child : this.children)
-                    child.forceRebuild();
+            if (this.children != null) {
+                synchronized (this.children) {
+                    for (ListenerListInst child : this.children)
+                        child.forceRebuild();
+                }
             }
         }
 
         private void addChild(ListenerListInst child)
         {
             if (this.children == null)
-                this.children = new ArrayList<>();
+                this.children = Collections.synchronizedList(new ArrayList<>(2));
             this.children.add(child);
         }
 
