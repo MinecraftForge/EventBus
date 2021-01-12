@@ -34,7 +34,7 @@ public class ASMEventHandler implements IEventListener
 {
     private static final AtomicInteger IDs = new AtomicInteger();
     private static final String HANDLER_DESC = Type.getInternalName(IEventListener.class);
-    private static final String HANDLER_FUNC_DESC = Type.getMethodDescriptor(IEventListener.class.getDeclaredMethods()[0]);
+    private static final String HANDLER_FUNC_DESC = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Event.class));
     private static final ASMClassLoader LOADER = new ASMClassLoader();
     private static final HashMap<Method, Class<?>> cache = new HashMap<>();
 

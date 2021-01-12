@@ -148,6 +148,17 @@ public interface IEventBus {
     boolean post(Event event);
 
     /**
+     * Submit the event for dispatch to listeners. The invoke wrapper allows for
+     * wrap handling of the actual dispatch, to allow for monitoring of individual event
+     * dispatch
+     *
+     * @param event The event to dispatch to listeners
+     * @param wrapper A wrapper function to handle actual dispatch
+     * @return true if the event was {@link Cancelable} cancelled
+     */
+    boolean post(Event event, IEventBusInvokeDispatcher wrapper);
+
+    /**
      * Shuts down this event bus.
      *
      * No future events will be fired on this event bus, so any call to {@link #post(Event)} will be a no op after this method has been invoked

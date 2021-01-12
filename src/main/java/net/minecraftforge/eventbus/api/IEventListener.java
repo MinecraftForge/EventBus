@@ -26,4 +26,8 @@ package net.minecraftforge.eventbus.api;
 public interface IEventListener
 {
     void invoke(Event event);
+
+    default String listenerName() {
+        return getClass().getName();
+    }
 }

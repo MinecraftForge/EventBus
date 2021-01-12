@@ -236,7 +236,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
             throw new IllegalArgumentException(
                     "Listener for event " + eventClass + " takes an argument that is not a subtype of the base type " + baseType);
         }
-        addToListeners(consumer, eventClass, e-> doCastFilter(filter, eventClass, consumer, e), priority);
+        addToListeners(consumer, eventClass, NamedEventListener.namedWrapper(e-> doCastFilter(filter, eventClass, consumer, e), consumer.getClass()::getName), priority);
     }
 
     @SuppressWarnings("unchecked")
@@ -279,7 +279,12 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     @Override
-    public boolean post(Event event)
+    public boolean post(Event event) {
+        return post(event, (IEventListener::invoke));
+    }
+
+    @Override
+    public boolean post(Event event, IEventBusInvokeDispatcher wrapper)
     {
         if (shutdown) return false;
         if (EventBus.checkTypesOnDispatch && !baseType.isInstance(event))
@@ -294,7 +299,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
             for (; index < listeners.length; index++)
             {
                 if (!trackPhases && Objects.equals(listeners[index].getClass(), EventPriority.class)) continue;
-                listeners[index].invoke(event);
+                wrapper.invoke(listeners[index], event);
             }
         }
         catch (Throwable throwable)
