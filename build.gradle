@@ -38,7 +38,6 @@ test {
 }
 
 sourceSets {
-    mlservice
     testJars
 }
 
@@ -56,15 +55,6 @@ ext.sharedManifest = manifest {
             'net/minecraftforge/eventbus/service/')
 }
 
-task mlserviceJar(type: Jar) {
-    archiveClassifier = 'service'
-    from sourceSets.main.output
-    from sourceSets.mlservice.output
-    manifest = project.manifest {
-        from sharedManifest
-    }
-}
-
 jar {
     manifest = project.manifest {
         from sharedManifest
@@ -79,11 +69,8 @@ task testsJar(type: Jar) {
 task sourcesJar(type: Jar) {
     archiveClassifier = 'sources'
     from sourceSets.main.allSource
-    from sourceSets.mlservice.allSource
 }
 
-
-build.dependsOn mlserviceJar
 
 repositories {
     mavenCentral()
@@ -103,12 +90,10 @@ dependencies {
     testImplementation('org.junit.jupiter:junit-jupiter-api:5.6.+')
     testImplementation('org.powermock:powermock-core:2.0.+')
     testImplementation('cpw.mods:modlauncher:6.1.+')
-    testImplementation(sourceSets.mlservice.output)
     testImplementation('org.junit.jupiter:junit-jupiter-engine:5.6.+')
     testImplementation('org.apache.logging.log4j:log4j-core:2.11.+')
     testImplementation('com.lmax:disruptor:3.4.2')
     testImplementation(sourceSets.testJars.runtimeClasspath)
-    testImplementation(sourceSets.mlservice.output)
     testJarsImplementation(sourceSets.main.output)
     implementation('org.ow2.asm:asm:7.2')
     implementation('org.ow2.asm:asm-commons:7.2')
@@ -117,9 +102,6 @@ dependencies {
     implementation('cpw.mods:modlauncher:6.1.+:api')
     implementation('com.google.code.findbugs:jsr305:3.0.2')
     api('net.jodah:typetools:0.8.+')
-    mlserviceImplementation('cpw.mods:modlauncher:6.1.+:api')
-    mlserviceImplementation(sourceSets.main.output)
-    jmhImplementation(sourceSets.mlservice.output)
     jmhImplementation('cpw.mods:modlauncher:6.1.+')
     jmhImplementation("org.powermock:powermock-core:2.0.+")
     jmhImplementation("org.ow2.asm:asm:7.2")
@@ -147,7 +129,6 @@ artifacts {
     archives jar
     archives sourcesJar
     archives testsJar
-    archives mlserviceJar
 }
 
 publishing {
@@ -155,7 +136,6 @@ publishing {
         mavenJava(MavenPublication) {
             from components.java
             artifact sourcesJar
-            artifact mlserviceJar
             pom {
                 name = 'Event Bus'
                 description = 'High performance Event Bus library'
