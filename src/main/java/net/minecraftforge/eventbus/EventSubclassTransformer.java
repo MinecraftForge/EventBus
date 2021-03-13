@@ -57,13 +57,18 @@ public class EventSubclassTransformer
         // well, we should at least use the context classloader - this is forcing all the game classes in through
         // the system classloader otherwise...
         Class<?> parent = null;
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        if (classLoader == null)
+        {
+            classLoader = ClassLoader.getSystemClassLoader();
+        }
         try
         {
-            parent = Thread.currentThread().getContextClassLoader().loadClass(classNode.superName.replace('/', '.'));
+            parent = classLoader.loadClass(classNode.superName.replace('/', '.'));
         }
         catch (ClassNotFoundException e)
         {
-            LOGGER.error(EVENTBUS, "Could not find parent {} for class {} in classloader {} on thread {}", classNode.superName, classNode.name, Thread.currentThread().getContextClassLoader(), Thread.currentThread());
+            LOGGER.error(EVENTBUS, "Could not find parent {} for class {} in classloader {} on thread {}", classNode.superName, classNode.name, classLoader, Thread.currentThread());
             throw e;
         }
 
