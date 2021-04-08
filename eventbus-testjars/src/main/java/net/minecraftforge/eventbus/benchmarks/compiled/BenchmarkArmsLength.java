@@ -11,7 +11,8 @@ public class BenchmarkArmsLength
         IEventBus staticSubscriberBus,
         IEventBus dynamicSubscriberBus,
         IEventBus lambdaSubscriberBus,
-        IEventBus combinedSubscriberBus
+        IEventBus combinedSubscriberBus,
+        IEventBus classLambdaSubscriberBus
     ) {
         public Bus register() {
             staticSubscriberBus.register(SubscriberStatic.class);
@@ -20,6 +21,7 @@ public class BenchmarkArmsLength
             combinedSubscriberBus.register(new SubscriberDynamic());
             SubscriberLambda.register(lambdaSubscriberBus);
             SubscriberLambda.register(combinedSubscriberBus);
+            SubscriberClassLambda.register(classLambdaSubscriberBus);
             return this;
         }
     };
@@ -36,9 +38,11 @@ public class BenchmarkArmsLength
                 BusBuilder.builder().useModLauncher().build(),
                 BusBuilder.builder().useModLauncher().build(),
                 BusBuilder.builder().useModLauncher().build(),
+                BusBuilder.builder().useModLauncher().build(),
                 BusBuilder.builder().useModLauncher().build()
             ).register();
             ClassLoader = new Bus(
+                BusBuilder.builder().build(),
                 BusBuilder.builder().build(),
                 BusBuilder.builder().build(),
                 BusBuilder.builder().build(),
@@ -53,6 +57,7 @@ public class BenchmarkArmsLength
         BusBuilder.builder().build(),
         BusBuilder.builder().build(),
         BusBuilder.builder().build(),
+        BusBuilder.builder().build(),
         BusBuilder.builder().build()
     ).register();
 
@@ -60,6 +65,7 @@ public class BenchmarkArmsLength
     public static final Consumer<Object> postDynamic = BenchmarkArmsLength::postDynamic;
     public static final Consumer<Object> postLambda = BenchmarkArmsLength::postLambda;
     public static final Consumer<Object> postCombined = BenchmarkArmsLength::postCombined;
+    public static final Consumer<Object> postClassLambda = BenchmarkArmsLength::postLambda;
 
     public static void postStatic(Object bus)
     {
@@ -79,6 +85,11 @@ public class BenchmarkArmsLength
     public static void postCombined(Object bus)
     {
         postAll(((Bus)bus).combinedSubscriberBus);
+    }
+
+    public static void postClassLambda(Object bus)
+    {
+        postAll(((Bus)bus).classLambdaSubscriberBus);
     }
 
     private static void postAll(IEventBus bus)

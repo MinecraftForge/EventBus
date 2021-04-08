@@ -32,4 +32,10 @@ public class EventBusBenchmarkNoLoader {
         BenchmarkArmsLength.postCombined(BenchmarkArmsLength.NoLoader);
         return 0;
     }
+
+    @Benchmark
+    public int testNoLoaderClassLambda() {
+        BenchmarkArmsLength.postClassLambda(BenchmarkArmsLength.NoLoader);
+        return 0;
+    }
 }

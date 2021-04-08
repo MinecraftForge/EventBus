@@ -20,6 +20,7 @@ public class EventBusBenchmark {
     private Consumer<Object> postStatic;
     private Consumer<Object> postDynamic;
     private Consumer<Object> postLambda;
+    private Consumer<Object> postClassLambda;
     private Consumer<Object> postCombined;
 
     @SuppressWarnings("unchecked")
@@ -37,6 +38,7 @@ public class EventBusBenchmark {
         postDynamic  = (Consumer<Object>)cls.getField("postDynamic").get(null);
         postLambda   = (Consumer<Object>)cls.getField("postLambda").get(null);
         postCombined = (Consumer<Object>)cls.getField("postCombined").get(null);
+        postClassLambda   = (Consumer<Object>)cls.getField("postClassLambda").get(null);
     }
 
     public static class TestCallback {
@@ -70,6 +72,13 @@ public class EventBusBenchmark {
         return 0;
     }
 
+    @Benchmark
+    public int testModLauncherClassLambda()
+    {
+        postClassLambda.accept(ModLauncher);
+        return 0;
+    }
+
     // ClassLoader ASM Factory
     @Benchmark
     public int testClassLoaderDynamic() throws Throwable {
@@ -92,6 +101,13 @@ public class EventBusBenchmark {
     @Benchmark
     public int testClassLoaderCombined() throws Throwable {
         postCombined.accept(ClassLoader);
+        return 0;
+    }
+
+    @Benchmark
+    public int testClassLoaderClassLambda()
+    {
+        postClassLambda.accept(ClassLoader);
         return 0;
     }
 }

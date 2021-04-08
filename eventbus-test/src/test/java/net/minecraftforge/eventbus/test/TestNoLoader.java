@@ -3,6 +3,7 @@ package net.minecraftforge.eventbus.test;
 import org.junit.jupiter.api.Test;
 
 import net.minecraftforge.eventbus.test.general.AbstractEventListenerTest;
+import net.minecraftforge.eventbus.test.general.ClassLambdaHandlerTest;
 import net.minecraftforge.eventbus.test.general.DeadlockingEventTest;
 import net.minecraftforge.eventbus.test.general.EventBusSubtypeFilterTest;
 import net.minecraftforge.eventbus.test.general.EventFiringEventTest;
@@ -73,6 +74,16 @@ public class TestNoLoader extends TestNoLoaderBase {
     @Test
     public void lambdaGenerics() {
         doTest(new LambdaHandlerTest.Generics() {});
+    }
+
+    @Test
+    public void classLambdaBasic() {
+        doTest(new ClassLambdaHandlerTest.Basic() {});
+    }
+
+    @Test
+    public void classLambdaSubClass() {
+        doTest(new ClassLambdaHandlerTest.SubClassEvent() {});
     }
 
     @Disabled
