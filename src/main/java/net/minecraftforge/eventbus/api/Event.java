@@ -21,9 +21,9 @@ package net.minecraftforge.eventbus.api;
 
 import net.minecraftforge.eventbus.EventSubclassTransformer;
 import net.minecraftforge.eventbus.ListenerList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.Objects;
@@ -166,7 +166,7 @@ public class Event
         return this.phase;
     }
 
-    public void setPhase(@Nonnull EventPriority value)
+    public void setPhase(@NotNull EventPriority value)
     {
         Objects.requireNonNull(value, "setPhase argument must not be null");
         int prev = phase == null ? -1 : phase.ordinal();

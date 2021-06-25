@@ -45,7 +45,7 @@ public class ASMEventHandler implements IEventListener
 
     public ASMEventHandler(Object target, Method method, boolean isGeneric) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         if (Modifier.isStatic(method.getModifiers()))
-            handler = (IEventListener)createWrapper(method).newInstance();
+            handler = (IEventListener)createWrapper(method).getDeclaredConstructor().newInstance();
         else
             handler = (IEventListener)createWrapper(method).getConstructor(Object.class).newInstance(target);
         subInfo = method.getAnnotation(SubscribeEvent.class);

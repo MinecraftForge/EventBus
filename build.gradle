@@ -11,6 +11,7 @@ apply plugin: 'org.javamodularity.moduleplugin'
 
 group 'net.minecraftforge'
 
+java.toolchain.languageVersion = JavaLanguageVersion.of(16)
 
 version = grgit.describe(longDescr: true).split('-').with { "${it[0]}.${it[1]}" }
 
@@ -93,7 +94,8 @@ dependencies {
     implementation('org.ow2.asm:asm-commons:9.1')
     implementation('org.ow2.asm:asm-tree:9.1')
     implementation('org.apache.logging.log4j:log4j-api:2.14.1')
-    implementation('com.google.code.findbugs:jsr305:3.0.2')
+    implementation('cpw.mods:modlauncher:9.0.+')
+    compileOnly('org.jetbrains:annotations:21.0.1')
     api('net.jodah:typetools:0.8.+')
     jmhImplementation('cpw.mods:modlauncher:9.0.+')
     jmhImplementation('org.powermock:powermock-core:2.0.+')
@@ -165,11 +167,14 @@ publishing {
     }
     repositories {
         maven {
-            credentials {
-                username project.properties.forgeMavenUser?:'fake'
-                password project.properties.forgeMavenPassword?:'news'
+            authentication {
+                basic(BasicAuthentication)
             }
-            url 'http://files.minecraftforge.net/maven/manage/upload'
+            credentials {
+                username = System.env.MAVEN_USER ?: 'not'
+                password = System.env.MAVEN_PASSWORD ?: 'set'
+            }
+            url 'https://maven.minecraftforge.net/releases/'
         }
     }
 }
