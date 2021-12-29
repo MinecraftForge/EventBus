@@ -18,3 +18,5 @@ bin
 out
 *.idea
 *.iml
+/data.txt
+/test.txt
