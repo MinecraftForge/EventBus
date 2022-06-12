@@ -20,3 +20,4 @@ out
 *.iml
 /data.txt
 /test.txt
+/src/jmh/generated/

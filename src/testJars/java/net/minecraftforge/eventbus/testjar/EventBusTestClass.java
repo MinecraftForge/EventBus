@@ -3,8 +3,8 @@ package net.minecraftforge.eventbus.testjar;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EventBusTestClass {
-    public static boolean HIT1= false;
-    public static boolean HIT2= false;
+    public boolean HIT1= false;
+    public boolean HIT2= false;
     @SubscribeEvent
     public void eventMethod(DummyEvent evt) {
         HIT1 = true;

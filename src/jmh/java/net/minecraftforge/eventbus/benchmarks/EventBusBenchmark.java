@@ -1,30 +1,22 @@
 package net.minecraftforge.eventbus.benchmarks;
 
-import cpw.mods.modlauncher.Launcher;
-import cpw.mods.modlauncher.TransformingClassLoader;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.core.config.Configurator;
-import org.junit.jupiter.api.BeforeAll;
+import cpw.mods.bootstraplauncher.BootstrapLauncher;
+import cpw.mods.modlauncher.api.ServiceRunner;
+import net.minecraftforge.eventbus.benchmarks.compiled.BenchmarkArmsLength;
 import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import org.powermock.reflect.Whitebox;
 
-import java.io.File;
-import java.net.URISyntaxException;
-import java.nio.file.FileSystems;
 import java.nio.file.Paths;
-import java.util.function.Consumer;
 
 @State(Scope.Benchmark)
 public class EventBusBenchmark
 {
-    private Consumer<Void> postStatic;
-    private Consumer<Void> postDynamic;
-    private Consumer<Void> postLambda;
-    private Consumer<Void> postCombined;
+    private Runnable postStatic;
+    private Runnable postDynamic;
+    private Runnable postLambda;
+    private Runnable postCombined;
 
     @SuppressWarnings("unchecked")
     @Setup
@@ -32,36 +24,42 @@ public class EventBusBenchmark
     {
         //Forks have an incorrect working dir set, so use the absolute path to correct
         String basePath = Paths.get(this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI()).getParent().getParent().toAbsolutePath().toString();
-        System.setProperty("test.harness", basePath + "/classes/java/testJars," + basePath + "/classes/java/main");
-        System.setProperty("test.harness.callable", "net.minecraftforge.eventbus.benchmarks.BenchmarkBootstrap");
-        Launcher.main("--version", "1.0", "--launchTarget", "testharness");
+        System.setProperty("test.harness.game", "build/classes/java/testJars,build/classes/java/jmh");
+//        System.setProperty("test.harness.plugin", basePath + "/classes/java/main");
+        System.setProperty("test.harness.callable", "net.minecraftforge.eventbus.benchmarks.EventBusBenchmark$TestCallback");
+        System.setProperty("ignoreList", "");
+        BootstrapLauncher.main("--version", "1.0", "--launchTarget", "testharness");
 
-        TransformingClassLoader tcl = (TransformingClassLoader) Whitebox.getField(Launcher.class, "classLoader").get(Launcher.INSTANCE);
-        Class<?> cls = Class.forName("net.minecraftforge.eventbus.benchmarks.compiled.BenchmarkArmsLength", false, tcl);
-        postStatic = (Consumer<Void>) cls.getDeclaredField("postStatic").get(null);
-        postDynamic = (Consumer<Void>) cls.getDeclaredField("postDynamic").get(null);
-        postLambda = (Consumer<Void>) cls.getDeclaredField("postLambda").get(null);
-        postCombined = (Consumer<Void>) cls.getDeclaredField("postCombined").get(null);
+        Class<?> cls = Class.forName("net.minecraftforge.eventbus.benchmarks.compiled.BenchmarkArmsLength", false, Thread.currentThread().getContextClassLoader());
+        postStatic = (Runnable) cls.getField("postStatic").get(null);
+        postDynamic = (Runnable) cls.getField("postDynamic").get(null);
+        postLambda = (Runnable) cls.getField("postLambda").get(null);
+        postCombined = (Runnable) cls.getField("postCombined").get(null);
     }
 
+    public static class TestCallback {
+        public static ServiceRunner supplier() {
+            return () -> BenchmarkArmsLength.supplier().run();
+        }
+    }
     @Benchmark
     public int testDynamic()
     {
-        postDynamic.accept(null);
+        postDynamic.run();
         return 0;
     }
 
     @Benchmark
     public int testLambda()
     {
-        postLambda.accept(null);
+        postLambda.run();
         return 0;
     }
 
     @Benchmark
     public int testStatic()
     {
-        postStatic.accept(null);
+        postStatic.run();
         return 0;
     }
 

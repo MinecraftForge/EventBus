@@ -1,31 +1,50 @@
 package net.minecraftforge.eventbus.service;
 
+import cpw.mods.modlauncher.Launcher;
+import cpw.mods.modlauncher.api.IModuleLayerManager;
 import cpw.mods.modlauncher.serviceapi.ILaunchPluginService;
 import net.minecraftforge.eventbus.EventBusEngine;
+import net.minecraftforge.eventbus.IEventBusEngine;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.nio.file.Path;
 import java.util.EnumSet;
 import java.util.Objects;
+import java.util.ServiceLoader;
 
 public class ModLauncherService implements ILaunchPluginService {
+    private IEventBusEngine eventBusEngine;
+
     @Override
     public String name() {
         return "eventbus";
     }
 
-    @Override
-    public int processClassWithFlags(final Phase phase, final ClassNode classNode, final Type classType, String reason) {
-        return Objects.equals(reason, "classloading") ? EventBusEngine.INSTANCE.processClass(classNode, classType) : ComputeFlags.NO_REWRITE;
+    public IEventBusEngine getEventBusEngine() {
+        if (eventBusEngine == null) {
+            var service = Launcher.INSTANCE.findLayerManager().flatMap(lm->lm.getLayer(IModuleLayerManager.Layer.PLUGIN)).orElseThrow();
+            this.eventBusEngine = ServiceLoader.load(service, IEventBusEngine.class).findFirst().orElseThrow();
+        }
+        return eventBusEngine;
     }
 
+    @Override
+    public int processClassWithFlags(final Phase phase, final ClassNode classNode, final Type classType, String reason) {
+        return Objects.equals(reason, "classloading") ? getEventBusEngine().processClass(classNode, classType) : ComputeFlags.NO_REWRITE;
+    }
+
+    private static final EnumSet<Phase> DOIT = EnumSet.of(Phase.BEFORE);
     private static final EnumSet<Phase> YAY = EnumSet.of(Phase.AFTER);
     private static final EnumSet<Phase> NAY = EnumSet.noneOf(Phase.class);
 
     @Override
     public EnumSet<Phase> handlesClass(final Type classType, final boolean isEmpty) {
-        // we never handle empty classes
-        return !isEmpty && EventBusEngine.INSTANCE.handlesClass(classType) ? YAY : NAY;
+        if (isEmpty) {
+            return getEventBusEngine().findASMEventDispatcher(classType) ? DOIT : NAY;
+        } else {
+            return getEventBusEngine().handlesClass(classType) ? YAY : NAY;
+        }
+
     }
 }

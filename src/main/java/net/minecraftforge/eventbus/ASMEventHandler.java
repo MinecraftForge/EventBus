@@ -23,6 +23,7 @@ import net.minecraftforge.eventbus.api.*;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.ClassNode;
 
 import java.lang.reflect.*;
 import java.util.HashMap;
@@ -32,22 +33,21 @@ import static org.objectweb.asm.Opcodes.*;
 
 public class ASMEventHandler implements IEventListener
 {
-    private static final AtomicInteger IDs = new AtomicInteger();
     private static final String HANDLER_DESC = Type.getInternalName(IEventListener.class);
     private static final String HANDLER_FUNC_DESC = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Event.class));
-    private static final ASMClassLoader LOADER = new ASMClassLoader();
-    private static final HashMap<Method, Class<?>> cache = new HashMap<>();
+    private static final HashMap<String, Method> PENDING = new HashMap<>();
 
     private final IEventListener handler;
     private final SubscribeEvent subInfo;
     private String readable;
     private java.lang.reflect.Type filter = null;
 
-    public ASMEventHandler(Object target, Method method, boolean isGeneric) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+    public ASMEventHandler(Object target, Method method, boolean isGeneric) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException {
+        enqueueWrapper(method);
         if (Modifier.isStatic(method.getModifiers()))
-            handler = (IEventListener)createWrapper(method).getDeclaredConstructor().newInstance();
+            handler = (IEventListener)Class.forName(getUniqueName(method), true, Thread.currentThread().getContextClassLoader()).getDeclaredConstructor().newInstance();
         else
-            handler = (IEventListener)createWrapper(method).getConstructor(Object.class).newInstance(target);
+            handler = (IEventListener)Class.forName(getUniqueName(method), true, Thread.currentThread().getContextClassLoader()).getConstructor(Object.class).newInstance(target);
         subInfo = method.getAnnotation(SubscribeEvent.class);
         readable = "ASM: " + target + " " + method.getName() + Type.getMethodDescriptor(method);
         if (isGeneric)
@@ -72,6 +72,14 @@ public class ASMEventHandler implements IEventListener
         }
     }
 
+    public static boolean hasPendingWrapperClass(final String className) {
+        return PENDING.containsKey(className);
+    }
+
+    public static void processWrapperClass(final String className, final ClassNode node) {
+        Method meth = PENDING.get(className);
+        transformNode(className, meth, node);
+    }
     @SuppressWarnings("rawtypes")
     @Override
     public void invoke(Event event)
@@ -93,18 +101,16 @@ public class ASMEventHandler implements IEventListener
         return subInfo.priority();
     }
 
-    public Class<?> createWrapper(Method callback)
-    {
-        if (cache.containsKey(callback))
-        {
-            return cache.get(callback);
-        }
+    public void enqueueWrapper(Method callback) {
+        String name = getUniqueName(callback);
+        PENDING.putIfAbsent(name, callback);
+    }
 
-        ClassWriter cw = new ClassWriter(0);
+
+    private static void transformNode(String name, Method callback, ClassNode target) {
         MethodVisitor mv;
 
         boolean isStatic = Modifier.isStatic(callback.getModifiers());
-        String name = getUniqueName(callback);
         String desc = name.replace('.',  '/');
         String instType = Type.getInternalName(callback.getDeclaringClass());
         String eventType = Type.getInternalName(callback.getParameterTypes()[0]);
@@ -117,15 +123,15 @@ public class ASMEventHandler implements IEventListener
         System.out.println("Event:    " + eventType);
         */
 
-        cw.visit(V1_6, ACC_PUBLIC | ACC_SUPER, desc, null, "java/lang/Object", new String[]{ HANDLER_DESC });
+        target.visit(V16, ACC_PUBLIC | ACC_SUPER, desc, null, "java/lang/Object", new String[]{ HANDLER_DESC });
 
-        cw.visitSource(".dynamic", null);
+        target.visitSource(".dynamic", null);
         {
             if (!isStatic)
-                cw.visitField(ACC_PUBLIC, "instance", "Ljava/lang/Object;", null, null).visitEnd();
+                target.visitField(ACC_PUBLIC, "instance", "Ljava/lang/Object;", null, null).visitEnd();
         }
         {
-            mv = cw.visitMethod(ACC_PUBLIC, "<init>", isStatic ? "()V" : "(Ljava/lang/Object;)V", null, null);
+            mv = target.visitMethod(ACC_PUBLIC, "<init>", isStatic ? "()V" : "(Ljava/lang/Object;)V", null, null);
             mv.visitCode();
             mv.visitVarInsn(ALOAD, 0);
             mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
@@ -140,7 +146,7 @@ public class ASMEventHandler implements IEventListener
             mv.visitEnd();
         }
         {
-            mv = cw.visitMethod(ACC_PUBLIC, "invoke", HANDLER_FUNC_DESC, null, null);
+            mv = target.visitMethod(ACC_PUBLIC, "invoke", HANDLER_FUNC_DESC, null, null);
             mv.visitCode();
             mv.visitVarInsn(ALOAD, 0);
             if (!isStatic)
@@ -155,36 +161,14 @@ public class ASMEventHandler implements IEventListener
             mv.visitMaxs(2, 2);
             mv.visitEnd();
         }
-        cw.visitEnd();
-        Class<?> ret = LOADER.define(name, cw.toByteArray());
-        cache.put(callback, ret);
-        return ret;
+        target.visitEnd();
     }
 
     private String getUniqueName(Method callback)
     {
-        return String.format("%s_%d_%s_%s_%s", getClass().getName(), IDs.getAndIncrement(),
-                callback.getDeclaringClass().getSimpleName(),
+        return String.format("%s.__%s_%s_%s", callback.getDeclaringClass().getPackageName(), callback.getDeclaringClass().getSimpleName(),
                 callback.getName(),
                 callback.getParameterTypes()[0].getSimpleName());
-    }
-
-    private static class ASMClassLoader extends ClassLoader
-    {
-        private ASMClassLoader()
-        {
-            super(null);
-        }
-
-        @Override
-        protected Class<?> loadClass(final String name, final boolean resolve) throws ClassNotFoundException {
-            return Class.forName(name, resolve, Thread.currentThread().getContextClassLoader());
-        }
-
-        Class<?> define(String name, byte[] data)
-        {
-            return defineClass(name, data, 0, data.length);
-        }
     }
 
     public String toString()

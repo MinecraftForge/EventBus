@@ -1,13 +1,11 @@
 plugins {
     id 'net.minecraftforge.gradleutils' version '2.+'
-    id 'com.github.ben-manes.versions' version '0.39.0'
-    id 'me.champeau.jmh' version '0.6.5'
-    id 'org.javamodularity.moduleplugin' version '1.8.7' apply false
+    id 'com.github.ben-manes.versions' version '0.42.0'
+    id 'de.jjohannes.extra-java-module-info' version '0.11'
 }
 apply plugin: 'java-library'
 apply plugin: 'maven-publish'
 apply plugin: 'eclipse'
-apply plugin: 'org.javamodularity.moduleplugin'
 
 group 'net.minecraftforge'
 
@@ -39,6 +37,7 @@ test {
 
 sourceSets {
     testJars
+    jmh
 }
 
 ext.sharedManifest = manifest {
@@ -53,6 +52,14 @@ ext.sharedManifest = manifest {
                 'Git-Branch': gradleutils.gitInfo.branch,
                 'Build-Number': "${System.getenv('BUILD_NUMBER')?:0}" ],
             'net/minecraftforge/eventbus/service/')
+}
+
+extraJavaModuleInfo {
+    failOnMissingModuleInfo = false
+
+    automaticModule('jmh-core-1.35.jar', 'jmh.core')
+    automaticModule('jopt-simple-5.0.4.jar', 'jopt.simple')
+    automaticModule('typetools-0.8.3.jar', 'typetools')
 }
 
 jar {
@@ -71,6 +78,9 @@ task sourcesJar(type: Jar) {
     from sourceSets.main.allSource
 }
 
+configurations {
+    jmhOnly
+}
 
 repositories {
     mavenLocal()
@@ -80,50 +90,68 @@ repositories {
     }
 }
 
-configurations.jmh {
-    resolutionStrategy {
-        force ('net.sf.jopt-simple:jopt-simple:5.0.4')
-    }
-}
-
 dependencies {
-    testImplementation('org.junit.jupiter:junit-jupiter-api:5.7.+')
-    testImplementation('org.powermock:powermock-core:2.0.+')
-    testImplementation('cpw.mods:modlauncher:9.0.+')
-    testImplementation('org.junit.jupiter:junit-jupiter-engine:5.7.+')
-    testImplementation('org.apache.logging.log4j:log4j-core:2.14.1')
+    testImplementation('org.junit.jupiter:junit-jupiter-api:5.8.+')
+    testImplementation('cpw.mods:modlauncher:10.0.+')
+    testImplementation('cpw.mods:securejarhandler:1.0.+')
+    testImplementation('org.junit.jupiter:junit-jupiter-engine:5.8.+')
+    testImplementation('org.apache.logging.log4j:log4j-core:2.17.1')
     testImplementation('com.lmax:disruptor:3.4.2')
+    testImplementation('net.sf.jopt-simple:jopt-simple:5.0.4')
+    testImplementation('cpw.mods:bootstraplauncher:1.1.0')
+    testCompileOnly('org.jetbrains:annotations:23.0.0')
     testImplementation(sourceSets.testJars.runtimeClasspath)
     testJarsImplementation(sourceSets.main.output)
-    implementation('org.ow2.asm:asm:9.1')
-    implementation('org.ow2.asm:asm-commons:9.1')
-    implementation('org.ow2.asm:asm-tree:9.1')
-    implementation('org.apache.logging.log4j:log4j-api:2.14.1')
-    implementation('cpw.mods:modlauncher:9.0.+')
-    compileOnly('org.jetbrains:annotations:21.0.1')
+    implementation('org.ow2.asm:asm:9.2')
+    implementation('org.ow2.asm:asm-commons:9.2')
+    implementation('org.ow2.asm:asm-tree:9.2')
+    implementation('org.apache.logging.log4j:log4j-api:2.17.1')
+    implementation('cpw.mods:modlauncher:10.0.+')
+    compileOnly('org.jetbrains:annotations:23.0.0')
     api('net.jodah:typetools:0.8.+')
-    jmhImplementation('cpw.mods:modlauncher:9.0.+')
-    jmhImplementation('org.powermock:powermock-core:2.0.+')
-    jmhImplementation('org.ow2.asm:asm:9.1')
-    jmhImplementation('org.ow2.asm:asm-tree:9.1')
-    jmhImplementation('org.ow2.asm:asm-commons:9.1')
-    jmh('org.ow2.asm:asm:9.1')
+    jmhImplementation(sourceSets.main.output)
+    jmhImplementation(sourceSets.testJars.output)
+    jmhImplementation('cpw.mods:modlauncher:10.0.+')
+    jmhImplementation('cpw.mods:securejarhandler:1.0.+')
+    jmhImplementation('org.junit.jupiter:junit-jupiter-engine:5.8.+')
+    jmhImplementation('org.apache.logging.log4j:log4j-core:2.17.1')
+    jmhImplementation('org.apache.logging.log4j:log4j-api:2.17.1')
+    jmhImplementation('org.ow2.asm:asm:9.2')
+    jmhImplementation('org.ow2.asm:asm-tree:9.2')
+    jmhImplementation('org.ow2.asm:asm-commons:9.2')
+    jmhImplementation('org.openjdk.jmh:jmh-core:1.35')
+    jmhImplementation('cpw.mods:bootstraplauncher:1.1.0')
+    jmhOnly('org.openjdk.jmh:jmh-core:1.35')
+    jmhOnly('org.openjdk.jmh:jmh-generator-annprocess:1.35')
+    jmhOnly('cpw.mods:bootstraplauncher:1.1.0')
+    jmhOnly('cpw.mods:securejarhandler:1.0.+')
+    jmhOnly(sourceSets.jmh.output)
+    jmhCompileOnly('org.jetbrains:annotations:23.0.0')
+    jmhAnnotationProcessor('org.openjdk.jmh:jmh-generator-annprocess:1.35')
 }
+configurations.jmhImplementation.extendsFrom(configurations.implementation)
 
-jmh {
-    jvmArgs = ['-Djmh.separateClasspathJAR=true']
-    includes = [ 'net.minecraftforge.eventbus.benchmarks.EventBusBenchmark' ]
-    benchmarkMode = ['avgt' ]
-    profilers = [ 'stack' ]
-    timeOnIteration = '5s'
-    warmup = '5s'
-    warmupIterations = 3
-    iterations = 3
-    fork = 3
-    timeUnit = 'ns'
+task jmh(type: JavaExec, dependsOn: sourceSets.jmh.output) {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+    jvmArgs= [
+            '-p', sourceSets.jmh.runtimeClasspath.asPath,
+            '--add-modules', 'ALL-MODULE-PATH',
+            '--add-exports', 'net.minecraftforge.eventbus.jmh/net.minecraftforge.eventbus.benchmarks.jmh_generated=jmh.core'
+    ]
+    classpath = files(configurations.jmhOnly.asPath)
+    mainClass = 'org.openjdk.jmh.Main'
+    args    '-bm', 'avgt'  // benchmark mode
+    args    '-r', '5s' // iteration time
+    args    '-w', '5s' // warmup time
+    args    '-wi', '3' // warmup iterations
+    args    '-prof', 'stack' // profilers
+    args    '-tu', 'ns' // time unit
+    args    '-f', '3' // forks
+    args    '-rff', project.file("${project.buildDir}/results/jmh/results.txt")  // results file
+    args    'net.minecraftforge.eventbus.benchmarks.EventBusBenchmark'
 }
-
-tasks['jmh'].dependsOn(clean)
 
 artifacts {
     archives jar

@@ -6,54 +6,54 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
-public class BenchmarkArmsLength implements Callable<Void>
+public class BenchmarkArmsLength
 {
     private static IEventBus staticSubscriberBus;
     private static IEventBus dynamicSubscriberBus;
     private static IEventBus lambdaSubscriberBus;
     private static IEventBus combinedSubscriberBus;
 
-    @Override
-    public Void call()
+    public static Runnable supplier()
     {
-        if (!new CancelableEvent().isCancelable())
-            throw new RuntimeException("Transformer did not apply!");
+        return () -> {
+            if (!new CancelableEvent().isCancelable())
+                throw new RuntimeException("Transformer did not apply!");
 
-        staticSubscriberBus = BusBuilder.builder().build();
-        dynamicSubscriberBus = BusBuilder.builder().build();
-        lambdaSubscriberBus = BusBuilder.builder().build();
-        combinedSubscriberBus = BusBuilder.builder().build();
+            staticSubscriberBus = BusBuilder.builder().build();
+            dynamicSubscriberBus = BusBuilder.builder().build();
+            lambdaSubscriberBus = BusBuilder.builder().build();
+            combinedSubscriberBus = BusBuilder.builder().build();
 
-        staticSubscriberBus.register(SubscriberStatic.class);
-        combinedSubscriberBus.register(SubscriberStatic.class);
-        dynamicSubscriberBus.register(new SubscriberDynamic());
-        combinedSubscriberBus.register(new SubscriberDynamic());
-        SubscriberLambda.register(lambdaSubscriberBus);
-        SubscriberLambda.register(combinedSubscriberBus);
-        return null;
+            staticSubscriberBus.register(SubscriberStatic.class);
+            combinedSubscriberBus.register(SubscriberStatic.class);
+            dynamicSubscriberBus.register(new SubscriberDynamic());
+            combinedSubscriberBus.register(new SubscriberDynamic());
+            SubscriberLambda.register(lambdaSubscriberBus);
+            SubscriberLambda.register(combinedSubscriberBus);
+        };
     }
 
-    public static final Consumer<Void> postStatic = BenchmarkArmsLength::postStatic;
-    public static final Consumer<Void> postDynamic = BenchmarkArmsLength::postDynamic;
-    public static final Consumer<Void> postLambda = BenchmarkArmsLength::postLambda;
-    public static final Consumer<Void> postCombined = BenchmarkArmsLength::postCombined;
+    public static final Runnable postStatic = BenchmarkArmsLength::postStatic;
+    public static final Runnable postDynamic = BenchmarkArmsLength::postDynamic;
+    public static final Runnable postLambda = BenchmarkArmsLength::postLambda;
+    public static final Runnable postCombined = BenchmarkArmsLength::postCombined;
 
-    public static void postStatic(Void nothing)
+    public static void postStatic()
     {
         postAll(staticSubscriberBus);
     }
 
-    public static void postDynamic(Void nothing)
+    public static void postDynamic()
     {
         postAll(dynamicSubscriberBus);
     }
 
-    public static void postLambda(Void nothing)
+    public static void postLambda()
     {
         postAll(lambdaSubscriberBus);
     }
 
-    public static void postCombined(Void nothing)
+    public static void postCombined()
     {
         postAll(combinedSubscriberBus);
     }

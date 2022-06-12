@@ -81,7 +81,6 @@ public class ThreadedListenerExceptionTest {
         });
     }
 
-    @Disabled
     @RepeatedTest(100)
     public void testWithTimeout() {
         assertTimeoutPreemptively(Duration.ofMillis(10000), this::testListenerList);

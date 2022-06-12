@@ -7,16 +7,13 @@ import net.minecraftforge.eventbus.api.IEventListener;
 import net.minecraftforge.eventbus.testjar.DummyEvent;
 import org.apache.logging.log4j.LogManager;
 import org.junit.jupiter.api.Assertions;
-import org.powermock.reflect.Whitebox;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
-public class ArmsLengthHandler implements Callable<Void> {
-    @Override
-    public Void call() throws Exception {
+public class ArmsLengthHandler {
+    public void call() throws Exception {
         final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         LogManager.getLogger().info("CCL is {}", contextClassLoader);
         IEventBus bus = BusBuilder.builder().setTrackPhases(false).build();
@@ -50,6 +47,5 @@ public class ArmsLengthHandler implements Callable<Void> {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
     }
 }
