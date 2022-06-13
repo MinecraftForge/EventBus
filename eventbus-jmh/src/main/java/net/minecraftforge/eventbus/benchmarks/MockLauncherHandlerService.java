@@ -22,8 +22,6 @@ import cpw.mods.modlauncher.api.ILaunchHandlerService;
 import cpw.mods.modlauncher.api.ITransformingClassLoaderBuilder;
 import cpw.mods.modlauncher.api.ServiceRunner;
 
-import java.util.concurrent.Callable;
-
 /**
  * Mock launch handler for testing
  */

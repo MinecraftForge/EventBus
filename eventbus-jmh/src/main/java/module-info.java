@@ -8,12 +8,12 @@ open module net.minecraftforge.eventbus.jmh {
     requires org.apache.logging.log4j;
     requires org.apache.logging.log4j.core;
     requires net.minecraftforge.eventbus;
-    requires jopt.simple;
+    requires joptsimple;
     requires jmh.core;
     requires cpw.mods.bootstraplauncher;
 
     requires static org.jetbrains.annotations;
-    requires net.minecraftforge.eventbus.testjars;
+    requires static net.minecraftforge.eventbus.testjars;
 
     exports net.minecraftforge.eventbus.benchmarks;
 

@@ -71,6 +71,7 @@ public class MockTransformerService implements ITransformationService {
 
     }
 
+    @SuppressWarnings("resource")
     @Override
     public List<Resource> beginScanning(IEnvironment environment) {
         if (System.getProperty("testJars.location")!=null) {
@@ -87,6 +88,7 @@ public class MockTransformerService implements ITransformationService {
         }
     }
 
+    @SuppressWarnings("resource")
     @Override
     public List<Resource> completeScan(IModuleLayerManager layerManager) {
         if (System.getProperty("testJars.location")!=null) {
@@ -103,6 +105,7 @@ public class MockTransformerService implements ITransformationService {
         }
     }
 
+    @SuppressWarnings("rawtypes")
     @NotNull
     @Override
     public List<ITransformer> transformers() {

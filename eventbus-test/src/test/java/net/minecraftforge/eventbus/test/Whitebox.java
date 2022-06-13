@@ -1,15 +1,8 @@
 package net.minecraftforge.eventbus.test;
 
-import net.minecraftforge.eventbus.api.EventListenerHelper;
-import net.minecraftforge.eventbus.testjar.DummyEvent;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
-import java.util.Dictionary;
-import java.util.HashSet;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
 public class Whitebox {
 
