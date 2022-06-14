@@ -8,7 +8,7 @@ open module net.minecraftforge.eventbus.jmh {
     requires org.apache.logging.log4j;
     requires org.apache.logging.log4j.core;
     requires net.minecraftforge.eventbus;
-    requires joptsimple;
+    requires jopt.simple;
     requires jmh.core;
     requires cpw.mods.bootstraplauncher;
 

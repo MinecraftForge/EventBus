@@ -10,9 +10,6 @@ import org.apache.logging.log4j.core.config.Configurator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 public class BadEventDispatcherTest {
@@ -22,10 +19,10 @@ public class BadEventDispatcherTest {
     }
 
     @Test
-    public void testBadEvent() throws IOException, URISyntaxException {
+    public void testBadEvent() throws Exception {
         System.setProperty("legacyClassPath", "");
 //        System.setProperty("test.harness.plugin", "build/classes/java/main");
-        System.setProperty("test.harness.game", "build/classes/java/testJars,build/classes/java/test");
+        System.setProperty("test.harness.game", MockTransformerService.getTestJarsPath() + "," + MockTransformerService.getBasePath());
         System.setProperty("test.harness.callable", "net.minecraftforge.eventbus.test.BadEventDispatcherTest$TestCallback");
         BootstrapLauncher.main("--version", "1.0", "--launchTarget", "testharness");
         assertEquals("true", System.getProperty("testCalledSuccessfully"), "We got called back!");

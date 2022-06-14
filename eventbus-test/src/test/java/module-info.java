@@ -9,7 +9,7 @@ open module net.minecraftforge.eventbus.test {
     requires org.apache.logging.log4j;
     requires org.apache.logging.log4j.core;
     requires net.minecraftforge.eventbus;
-    requires joptsimple;
+    requires jopt.simple;
 
     requires static org.jetbrains.annotations;
 

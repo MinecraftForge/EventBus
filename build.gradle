@@ -1,13 +1,18 @@
+buildscript {
+    dependencies {
+        classpath('de.jjohannes.gradle:extra-java-module-info:0.14')
+    }
+}
 plugins {
     id 'net.minecraftforge.gradleutils' version '2.+'
     id 'com.github.ben-manes.versions' version '0.42.0'
-    id 'de.jjohannes.extra-java-module-info' version '0.11'
 }
 apply plugin: 'maven-publish'
 
 allprojects {
     apply plugin: 'java-library'
     apply plugin: 'eclipse'
+    apply plugin: 'de.jjohannes.extra-java-module-info'
     
     group 'net.minecraftforge'
     java {
@@ -23,11 +28,15 @@ allprojects {
             url = 'https://maven.minecraftforge.net/'
         }
     }
+    
     dependencies.testRuntimeOnly('org.apiguardian:apiguardian-api:1.1.2') // No idea why, but windows needs this to not explode.
+    dependencies.implementation('net.sf.jopt-simple:jopt-simple:5.0.4') // Modlauncher depends on this but doesnt do it transitivly so the tests need it explit
+    
     extraJavaModuleInfo {
         failOnMissingModuleInfo = false
         automaticModule('jmh-core-1.35.jar', 'jmh.core')
-        automaticModule('jopt-simple-6.0-alpha-3.jar', 'jopt.simple')
+        automaticModule('jopt-simple-5.0.4.jar', 'jopt.simple') // TODO: Update ModLauncher to use jopt 6.0-alpha-3+, which sets the module name to 'joptsimple'
+        automaticModule('typetools-0.8.3.jar', 'typetools')
     }
     
     def isNonStable = { String version ->

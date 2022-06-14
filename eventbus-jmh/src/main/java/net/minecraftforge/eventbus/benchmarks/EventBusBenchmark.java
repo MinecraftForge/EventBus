@@ -8,8 +8,6 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 
-import java.nio.file.Paths;
-
 @State(Scope.Benchmark)
 public class EventBusBenchmark
 {
@@ -23,8 +21,7 @@ public class EventBusBenchmark
     public void setup() throws Exception
     {
         //Forks have an incorrect working dir set, so use the absolute path to correct
-        String basePath = Paths.get(this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI()).getParent().getParent().toAbsolutePath().toString();
-        System.setProperty("test.harness.game", "build/classes/java/testJars,build/classes/java/jmh");
+        System.setProperty("test.harness.game", MockTransformerService.getTestJarsPath() + "," + MockTransformerService.getBasePath());
 //        System.setProperty("test.harness.plugin", basePath + "/classes/java/main");
         System.setProperty("test.harness.callable", "net.minecraftforge.eventbus.benchmarks.EventBusBenchmark$TestCallback");
         System.setProperty("ignoreList", "");
