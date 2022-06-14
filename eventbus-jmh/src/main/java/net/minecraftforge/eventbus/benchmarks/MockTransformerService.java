@@ -22,6 +22,8 @@ import cpw.mods.jarhandling.SecureJar;
 import cpw.mods.modlauncher.api.*;
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionSpecBuilder;
+import net.minecraftforge.eventbus.testjar.TestListener;
+
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
@@ -29,6 +31,7 @@ import org.objectweb.asm.tree.FieldNode;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -71,6 +74,7 @@ public class MockTransformerService implements ITransformationService {
 
     }
 
+    @SuppressWarnings("resource")
     @Override
     public List<Resource> beginScanning(IEnvironment environment) {
         if (System.getProperty("testJars.location")!=null) {
@@ -87,6 +91,7 @@ public class MockTransformerService implements ITransformationService {
         }
     }
 
+    @SuppressWarnings("resource")
     @Override
     public List<Resource> completeScan(IModuleLayerManager layerManager) {
         if (System.getProperty("testJars.location")!=null) {
@@ -103,6 +108,7 @@ public class MockTransformerService implements ITransformationService {
         }
     }
 
+    @SuppressWarnings("rawtypes")
     @NotNull
     @Override
     public List<ITransformer> transformers() {
@@ -137,4 +143,15 @@ public class MockTransformerService implements ITransformationService {
         }
     }
 
+    static String getTestJarsPath() throws Exception {
+        Path path = Paths.get(TestListener.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        String basePath = path.toAbsolutePath().toString();
+        return basePath;
+    }
+
+    static String getBasePath() throws Exception {
+        Path path = Paths.get(MockTransformerService.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        String basePath = path.toAbsolutePath().toString();
+        return basePath;
+    }
 }

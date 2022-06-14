@@ -58,7 +58,7 @@ public class ASMEventHandler implements IEventListener
                 filter = ((ParameterizedType)type).getActualTypeArguments()[0];
                 if (filter instanceof ParameterizedType) // Unlikely that nested generics will ever be relevant for event filtering, so discard them
                 {
-                	filter = ((ParameterizedType)filter).getRawType();
+                    filter = ((ParameterizedType)filter).getRawType();
                 }
                 else if (filter instanceof WildcardType)
                 {
@@ -101,7 +101,7 @@ public class ASMEventHandler implements IEventListener
         return subInfo.priority();
     }
 
-    public void enqueueWrapper(Method callback) {
+    private void enqueueWrapper(Method callback) {
         String name = getUniqueName(callback);
         PENDING.putIfAbsent(name, callback);
     }

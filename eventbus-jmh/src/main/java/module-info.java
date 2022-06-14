@@ -13,7 +13,7 @@ open module net.minecraftforge.eventbus.jmh {
     requires cpw.mods.bootstraplauncher;
 
     requires static org.jetbrains.annotations;
-    requires net.minecraftforge.eventbus.testjars;
+    requires static net.minecraftforge.eventbus.testjars;
 
     exports net.minecraftforge.eventbus.benchmarks;
 

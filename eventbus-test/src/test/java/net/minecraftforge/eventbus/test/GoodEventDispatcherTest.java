@@ -9,24 +9,20 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-
 import static org.junit.jupiter.api.Assertions.*;
 
-public class BadEventDispatcherTest {
+public class GoodEventDispatcherTest {
     @BeforeAll
     public static void setup() {
         Configurator.setRootLevel(Level.DEBUG);
     }
 
     @Test
-    public void testBadEvent() throws IOException, URISyntaxException {
+    public void testGoodEvents() throws Exception {
         System.setProperty("legacyClassPath", "");
 //        System.setProperty("test.harness.plugin", "build/classes/java/main");
-        System.setProperty("test.harness.game", "build/classes/java/testJars,build/classes/java/test");
-        System.setProperty("test.harness.callable", "net.minecraftforge.eventbus.test.BadEventDispatcherTest$TestCallback");
+        System.setProperty("test.harness.game", MockTransformerService.getTestJarsPath() + "," + MockTransformerService.getBasePath());
+        System.setProperty("test.harness.callable", "net.minecraftforge.eventbus.test.GoodEventDispatcherTest$TestCallback");
         BootstrapLauncher.main("--version", "1.0", "--launchTarget", "testharness");
         assertEquals("true", System.getProperty("testCalledSuccessfully"), "We got called back!");
         System.out.println("We did it chat!");
@@ -40,9 +36,12 @@ public class BadEventDispatcherTest {
                 var bus = BusBuilder.builder().build();
                 var listener = new EventBusTestClass();
                 bus.register(listener);
-                assertThrows(RuntimeException.class, ()->bus.post(new DummyEvent.BadEvent()));
+                bus.post(new DummyEvent.GoodEvent());
+                assertAll(
+                        () -> assertTrue(listener.HIT1, "HIT1 was hit"),
+                        () -> assertTrue(listener.HIT2, "HIT2 was hit")
+                );
             };
         }
     }
-
 }
