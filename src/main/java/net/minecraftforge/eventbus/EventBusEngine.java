@@ -18,8 +18,8 @@ public final class EventBusEngine implements IEventBusEngine {
 
     @Override
     public int processClass(final ClassNode classNode, final Type classType) {
-        if (ModLoaderFactory.hasPendingWrapperClass(classType.getClassName())) {
-            ModLoaderFactory.processWrapperClass(classType.getClassName(), classNode);
+        if (ModLauncherFactory.hasPendingWrapperClass(classType.getClassName())) {
+            ModLauncherFactory.processWrapperClass(classType.getClassName(), classNode);
             LogManager.getLogger().debug(LogMarkers.EVENTBUS, "Built transformed event wrapper class {}", classType.getClassName());
             return ClassWriter.COMPUTE_FRAMES;
         }
@@ -36,6 +36,6 @@ public final class EventBusEngine implements IEventBusEngine {
 
     @Override
     public boolean findASMEventDispatcher(final Type classType) {
-        return ModLoaderFactory.hasPendingWrapperClass(classType.getClassName());
+        return ModLauncherFactory.hasPendingWrapperClass(classType.getClassName());
     }
 }

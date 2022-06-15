@@ -14,7 +14,7 @@ public final class BusBuilderImpl implements BusBuilder {
     boolean startShutdown = false;
     boolean checkTypesOnDispatch = false;
     Class<?> markerType = Event.class;
-    boolean modLoader = false;
+    boolean modLauncher = false;
 
     @Override
     public BusBuilder setTrackPhases(boolean trackPhases) {
@@ -48,8 +48,8 @@ public final class BusBuilderImpl implements BusBuilder {
     }
 
     @Override
-    public BusBuilder useModLoader() {
-        this.modLoader = true;
+    public BusBuilder useModLauncher() {
+        this.modLauncher = true;
         return this;
     }
 

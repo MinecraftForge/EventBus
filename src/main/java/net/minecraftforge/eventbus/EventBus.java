@@ -76,7 +76,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     public EventBus(final BusBuilderImpl busBuilder) {
         this(busBuilder.exceptionHandler, busBuilder.trackPhases, busBuilder.startShutdown,
              busBuilder.markerType, busBuilder.checkTypesOnDispatch,
-             busBuilder.modLoader ? new ModLoaderFactory() : new ClassLoaderFactory());
+             busBuilder.modLauncher ? new ModLauncherFactory() : new ClassLoaderFactory());
     }
 
     private void registerClass(final Class<?> clazz) {
@@ -159,7 +159,6 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
         {
             throw new IllegalArgumentException("Failed to create ASMEventHandler for " + target.getClass().getName() + "." + method.getName() + Type.getMethodDescriptor(method) + " it is not public and our transformer is disabled");
         }
-        System.out.println(target.getClass().getName() + "." + method.getName() + Type.getMethodDescriptor(method) + " " + method.getModifiers());
 
         register(eventType, target, real);
     }

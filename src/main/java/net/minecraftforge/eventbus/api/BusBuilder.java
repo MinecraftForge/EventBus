@@ -18,7 +18,7 @@ public interface BusBuilder {
     BusBuilder markerType(Class<?> type);
 
     /* Use ModLauncher hooks when creating ASM handlers. */
-    BusBuilder useModLoader();
+    BusBuilder useModLauncher();
 
     IEventBus build();
 }

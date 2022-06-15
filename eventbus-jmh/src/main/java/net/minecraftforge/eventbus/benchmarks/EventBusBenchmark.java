@@ -16,7 +16,6 @@ public class EventBusBenchmark
     private Runnable postLambda;
     private Runnable postCombined;
 
-    @SuppressWarnings("unchecked")
     @Setup
     public void setup() throws Exception
     {

@@ -44,9 +44,7 @@ import java.util.stream.Stream;
  */
 public class MockTransformerService implements ITransformationService {
     private ArgumentAcceptingOptionSpec<String> modsList;
-    private ArgumentAcceptingOptionSpec<Integer> modlists;
     private List<String> modList;
-    private String state;
 
     @NotNull
     @Override
@@ -66,7 +64,6 @@ public class MockTransformerService implements ITransformationService {
 
     @Override
     public void initialize(IEnvironment environment) {
-        state = "INITIALIZED";
     }
 
     @Override

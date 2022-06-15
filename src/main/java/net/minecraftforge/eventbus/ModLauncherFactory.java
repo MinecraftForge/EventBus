@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 import org.objectweb.asm.tree.ClassNode;
 
-public class ModLoaderFactory extends ClassLoaderFactory {
+public class ModLauncherFactory extends ClassLoaderFactory {
     private static final HashMap<String, Method> PENDING = new HashMap<>();
 
     @Override
