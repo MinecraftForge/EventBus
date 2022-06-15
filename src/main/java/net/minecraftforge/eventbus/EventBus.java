@@ -23,6 +23,7 @@ import net.jodah.typetools.TypeResolver;
 import net.minecraftforge.eventbus.api.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.objectweb.asm.Type;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -37,7 +38,7 @@ import static net.minecraftforge.eventbus.LogMarkers.EVENTBUS;
 
 public class EventBus implements IEventExceptionHandler, IEventBus {
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final boolean checkTypesOnDispatch = Boolean.parseBoolean(System.getProperty("eventbus.checkTypesOnDispatch", "false"));
+    private static final boolean checkTypesOnDispatchProperty = Boolean.parseBoolean(System.getProperty("eventbus.checkTypesOnDispatch", "false"));
     private static AtomicInteger maxID = new AtomicInteger(0);
     private final boolean trackPhases;
 
@@ -46,29 +47,36 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     private final int busID = maxID.getAndIncrement();
     private final IEventExceptionHandler exceptionHandler;
     private volatile boolean shutdown = false;
-    
-    private final Class<?> baseType;
 
-    private EventBus()
-    {
+    private final Class<?> baseType;
+    private final boolean checkTypesOnDispatch;
+    private final IEventListenerFactory factory;
+
+    @SuppressWarnings("unused")
+    private EventBus() {
         ListenerList.resize(busID + 1);
         exceptionHandler = this;
         this.trackPhases = true;
         this.baseType = Event.class;
+        this.checkTypesOnDispatch = checkTypesOnDispatchProperty;
+        this.factory = new ClassLoaderFactory();
     }
 
-    private EventBus(final IEventExceptionHandler handler, boolean trackPhase, boolean startShutdown, Class<?> baseType)
-    {
+    private EventBus(final IEventExceptionHandler handler, boolean trackPhase, boolean startShutdown, Class<?> baseType, boolean checkTypesOnDispatch, IEventListenerFactory factory) {
         ListenerList.resize(busID + 1);
         if (handler == null) exceptionHandler = this;
         else exceptionHandler = handler;
         this.trackPhases = trackPhase;
         this.shutdown = startShutdown;
         this.baseType = baseType;
+        this.checkTypesOnDispatch = checkTypesOnDispatch || checkTypesOnDispatchProperty;
+        this.factory = factory;
     }
 
-    public EventBus(final BusBuilder busBuilder) {
-        this(busBuilder.getExceptionHandler(), busBuilder.getTrackPhases(), busBuilder.isStartingShutdown(), busBuilder.getMarkerType());
+    public EventBus(final BusBuilderImpl busBuilder) {
+        this(busBuilder.exceptionHandler, busBuilder.trackPhases, busBuilder.startShutdown,
+             busBuilder.markerType, busBuilder.checkTypesOnDispatch,
+             busBuilder.modLoader ? new ModLoaderFactory() : new ClassLoaderFactory());
     }
 
     private void registerClass(final Class<?> clazz) {
@@ -146,6 +154,12 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
                     "Method " + method + " has @SubscribeEvent annotation, " +
                             "but takes an argument that is not a subtype of the base type " + baseType + ": " + eventType);
         }
+
+        if (!Modifier.isPublic(method.getModifiers()))
+        {
+            throw new IllegalArgumentException("Failed to create ASMEventHandler for " + target.getClass().getName() + "." + method.getName() + Type.getMethodDescriptor(method) + " it is not public and our transformer is disabled");
+        }
+        System.out.println(target.getClass().getName() + "." + method.getName() + Type.getMethodDescriptor(method) + " " + method.getModifiers());
 
         register(eventType, target, real);
     }
@@ -251,7 +265,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     private void register(Class<?> eventType, Object target, Method method)
     {
         try {
-            final ASMEventHandler asm = new ASMEventHandler(target, method, IGenericEvent.class.isAssignableFrom(eventType));
+            final ASMEventHandler asm = new ASMEventHandler(this.factory, target, method, IGenericEvent.class.isAssignableFrom(eventType));
 
             addToListeners(target, eventType, asm, asm.getPriority());
         } catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException | ClassNotFoundException e) {
@@ -287,7 +301,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     public boolean post(Event event, IEventBusInvokeDispatcher wrapper)
     {
         if (shutdown) return false;
-        if (EventBus.checkTypesOnDispatch && !baseType.isInstance(event))
+        if (checkTypesOnDispatch && !baseType.isInstance(event))
         {
             throw new IllegalArgumentException("Cannot post event of type " + event.getClass().getSimpleName() + " to this event. Must match type: " + baseType.getSimpleName());
         }

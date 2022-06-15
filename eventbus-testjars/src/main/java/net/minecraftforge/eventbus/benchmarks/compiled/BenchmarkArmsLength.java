@@ -1,10 +1,8 @@
 package net.minecraftforge.eventbus.benchmarks.compiled;
 
 import net.minecraftforge.eventbus.api.BusBuilder;
+import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.IEventBus;
-
-import java.util.concurrent.Callable;
-import java.util.function.Consumer;
 
 public class BenchmarkArmsLength
 {
@@ -16,8 +14,11 @@ public class BenchmarkArmsLength
     public static Runnable supplier()
     {
         return () -> {
-            if (!new CancelableEvent().isCancelable())
-                throw new RuntimeException("Transformer did not apply!");
+            try {
+                Event.class.getDeclaredField("LISTENER_LIST");
+            } catch (Exception e) {
+                throw new RuntimeException("Transformer did not apply!", e);
+            }
 
             staticSubscriberBus = BusBuilder.builder().build();
             dynamicSubscriberBus = BusBuilder.builder().build();

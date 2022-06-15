@@ -51,10 +51,7 @@ public class Event
     private Result result = Result.DEFAULT;
     private EventPriority phase = null;
 
-    public Event()
-    {
-        setup();
-    }
+    public Event() { }
 
     /**
      * Determine if this function is cancelable at all.
@@ -65,7 +62,7 @@ public class Event
      */
     public boolean isCancelable()
     {
-        return false;
+        return EventListenerHelper.isCancelable(this.getClass());
     }
 
     /**
@@ -106,7 +103,7 @@ public class Event
      */
     public boolean hasResult()
     {
-        return false;
+        return EventListenerHelper.hasResult(this.getClass());
     }
 
     /**
@@ -131,15 +128,6 @@ public class Event
     }
 
     /**
-     * Called by the base constructor, this is used by ASM generated
-     * event classes to setup various functionality such as the listener list.
-     */
-    @Deprecated //Unused by ASM generated code, kept for compatibility until we break version
-    protected void setup()
-    {
-    }
-
-    /**
      * Returns a ListenerList object that contains all listeners
      * that are registered to this event.
      *
@@ -152,12 +140,6 @@ public class Event
     public ListenerList getListenerList()
     {
         return EventListenerHelper.getListenerListInternal(this.getClass(), true);
-    }
-
-    @Deprecated //Unused by ASM generated code, kept for compatibility until we break version
-    protected ListenerList getParentListenerList()
-    {
-        return EventListenerHelper.getListenerListInternal(this.getClass().getSuperclass(), false);
     }
 
     @Nullable

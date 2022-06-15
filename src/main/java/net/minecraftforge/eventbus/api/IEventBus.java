@@ -1,7 +1,5 @@
 package net.minecraftforge.eventbus.api;
 
-import net.minecraftforge.eventbus.EventBus;
-
 import java.util.function.Consumer;
 
 /**

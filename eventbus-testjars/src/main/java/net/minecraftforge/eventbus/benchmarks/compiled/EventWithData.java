@@ -1,9 +1,6 @@
 package net.minecraftforge.eventbus.benchmarks.compiled;
 
-
 import net.minecraftforge.eventbus.api.Event;
-
-import java.util.function.Supplier;
 
 public class EventWithData extends Event
 {
