@@ -44,9 +44,7 @@ import java.util.stream.Stream;
  */
 public class MockTransformerService implements ITransformationService {
     private ArgumentAcceptingOptionSpec<String> modsList;
-    private ArgumentAcceptingOptionSpec<Integer> modlists;
     private List<String> modList;
-    private String state;
 
     @NotNull
     @Override
@@ -66,7 +64,6 @@ public class MockTransformerService implements ITransformationService {
 
     @Override
     public void initialize(IEnvironment environment) {
-        state = "INITIALIZED";
     }
 
     @Override
@@ -74,6 +71,7 @@ public class MockTransformerService implements ITransformationService {
 
     }
 
+    @SuppressWarnings("resource")
     @Override
     public List<Resource> beginScanning(IEnvironment environment) {
         if (System.getProperty("testJars.location")!=null) {
@@ -96,6 +94,7 @@ public class MockTransformerService implements ITransformationService {
         }
     }
 
+    @SuppressWarnings("resource")
     @Override
     public List<Resource> completeScan(IModuleLayerManager layerManager) {
         if (System.getProperty("testJars.location")!=null) {
@@ -112,6 +111,7 @@ public class MockTransformerService implements ITransformationService {
         }
     }
 
+    @SuppressWarnings("rawtypes")
     @NotNull
     @Override
     public List<ITransformer> transformers() {
@@ -146,13 +146,13 @@ public class MockTransformerService implements ITransformationService {
         }
     }
 
-    static String getTestJarsPath() throws Exception {
+    public static String getTestJarsPath() throws Exception {
         Path path = Paths.get(TestListener.class.getProtectionDomain().getCodeSource().getLocation().toURI());
         String basePath = path.toAbsolutePath().toString();
         return basePath;
     }
 
-    static String getBasePath() throws Exception {
+    public static String getBasePath() throws Exception {
         Path path = Paths.get(MockTransformerService.class.getProtectionDomain().getCodeSource().getLocation().toURI());
         String basePath = path.toAbsolutePath().toString();
         return basePath;

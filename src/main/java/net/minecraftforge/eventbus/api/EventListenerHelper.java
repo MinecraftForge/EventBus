@@ -20,20 +20,22 @@
 package net.minecraftforge.eventbus.api;
 
 import net.minecraftforge.eventbus.ListenerList;
+import net.minecraftforge.eventbus.LockHelper;
+import net.minecraftforge.eventbus.api.Event.HasResult;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.IdentityHashMap;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Function;
 
 public class EventListenerHelper
 {
-    private final static Map<Class<?>, ListenerList> listeners = new IdentityHashMap<>();
-    private static ReadWriteLock lock = new ReentrantReadWriteLock(true);
+    private static final LockHelper<Class<?>, ListenerList> listeners = new LockHelper<>(new IdentityHashMap<>());
+    private static final ListenerList EVENTS_LIST = new ListenerList();
+    private static final LockHelper<Class<?>, Boolean> cancelable = new LockHelper<>(new IdentityHashMap<>());
+    private static final LockHelper<Class<?>, Boolean> hasResult = new LockHelper<>(new IdentityHashMap<>());
     /**
      * Returns a {@link ListenerList} object that contains all listeners
      * that are registered to this event class.
@@ -50,31 +52,8 @@ public class EventListenerHelper
 
     static ListenerList getListenerListInternal(Class<?> eventClass, boolean fromInstanceCall)
     {
-        final Lock readLock = lock.readLock();
-        // to read the listener list, let's take the read lock
-        readLock.lock();
-        ListenerList listenerList = listeners.get(eventClass);
-        readLock.unlock();
-        // if there's no entry, we'll end up here
-        if (listenerList == null) {
-            // Let's pre-compute our new listener list value. This will possibly call parents' listener list
-            // evaluations. as such, we need to make sure we don't hold a lock when we do this, otherwise
-            // we could conflict with the class init global lock that is implicitly present
-            listenerList = computeListenerList(eventClass, fromInstanceCall);
-            // having computed a listener list, we'll grab the write lock.
-            // We'll also take the read lock, so we're very clear we have _both_ locks here.
-            final Lock writeLock = lock.writeLock();
-            writeLock.lock();
-            readLock.lock();
-            // insert our computed value if no existing value is present
-            listeners.putIfAbsent(eventClass, listenerList);
-            // get whatever value got stored in the list
-            listenerList = listeners.get(eventClass);
-            // and unlock, and we're done
-            readLock.unlock();
-            writeLock.unlock();
-        }
-        return listenerList;
+        if (eventClass == Event.class) return EVENTS_LIST; // Small optimization, bypasses all the locks/maps.
+        return listeners.get(eventClass, () -> computeListenerList(eventClass, fromInstanceCall), list -> list);
     }
 
     private static ListenerList computeListenerList(Class<?> eventClass, boolean fromInstanceCall)
@@ -104,8 +83,26 @@ public class EventListenerHelper
         }
     }
 
+    @SuppressWarnings("unused") // Used in DeadlockingEventTest
     private static void clearAll() {
-        listeners.clear();
-        lock = new ReentrantReadWriteLock(true);
+        listeners.clearAll();
+    }
+
+    static boolean isCancelable(Class<?> eventClass) {
+        return hasAnnotation(eventClass, Cancelable.class, cancelable);
+    }
+
+    static boolean hasResult(Class<?> eventClass) {
+        return hasAnnotation(eventClass, HasResult.class, hasResult);
+    }
+
+    private static boolean hasAnnotation(Class<?> eventClass, Class<? extends Annotation> annotation, LockHelper<Class<?>, Boolean> lock) {
+        if (eventClass == Event.class)
+            return false;
+
+        return lock.get(eventClass, () -> {
+            var parent = eventClass.getSuperclass();
+            return eventClass.isAnnotationPresent(annotation) || (parent != null && hasAnnotation(parent, annotation, lock));
+        }, Function.identity());
     }
 }

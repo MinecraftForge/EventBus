@@ -8,6 +8,7 @@ import org.objectweb.asm.tree.ClassNode;
 public final class EventBusEngine implements IEventBusEngine {
     private final EventSubclassTransformer eventTransformer;
     private final EventAccessTransformer accessTransformer;
+    final String EVENT_CLASS = "net.minecraftforge.eventbus.api.Event";
 
     public EventBusEngine() {
         LogManager.getLogger().debug(LogMarkers.EVENTBUS, "Loading EventBus transformers");
@@ -17,8 +18,8 @@ public final class EventBusEngine implements IEventBusEngine {
 
     @Override
     public int processClass(final ClassNode classNode, final Type classType) {
-        if (ASMEventHandler.hasPendingWrapperClass(classType.getClassName())) {
-            ASMEventHandler.processWrapperClass(classType.getClassName(), classNode);
+        if (ModLauncherFactory.hasPendingWrapperClass(classType.getClassName())) {
+            ModLauncherFactory.processWrapperClass(classType.getClassName(), classNode);
             LogManager.getLogger().debug(LogMarkers.EVENTBUS, "Built transformed event wrapper class {}", classType.getClassName());
             return ClassWriter.COMPUTE_FRAMES;
         }
@@ -30,13 +31,11 @@ public final class EventBusEngine implements IEventBusEngine {
     @Override
     public boolean handlesClass(final Type classType) {
         final String name = classType.getClassName();
-        return !(name.equals("net.minecraftforge.eventbus.api.Event") ||
-                name.startsWith("net.minecraft.") ||
-                name.indexOf('.') == -1);
+        return !(name.startsWith("net.minecraft.") || name.indexOf('.') == -1);
     }
 
     @Override
     public boolean findASMEventDispatcher(final Type classType) {
-        return ASMEventHandler.hasPendingWrapperClass(classType.getClassName());
+        return ModLauncherFactory.hasPendingWrapperClass(classType.getClassName());
     }
 }

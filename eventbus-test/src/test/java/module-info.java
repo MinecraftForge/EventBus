@@ -17,6 +17,5 @@ open module net.minecraftforge.eventbus.test {
 
     exports net.minecraftforge.eventbus.test;
 
-    provides cpw.mods.modlauncher.api.ILaunchHandlerService with net.minecraftforge.eventbus.test.MockLauncherHandlerService;
     provides cpw.mods.modlauncher.api.ITransformationService with net.minecraftforge.eventbus.test.MockTransformerService;
 }

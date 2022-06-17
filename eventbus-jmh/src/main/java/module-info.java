@@ -17,7 +17,6 @@ open module net.minecraftforge.eventbus.jmh {
 
     exports net.minecraftforge.eventbus.benchmarks;
 
-    provides cpw.mods.modlauncher.api.ILaunchHandlerService with net.minecraftforge.eventbus.benchmarks.MockLauncherHandlerService;
     provides cpw.mods.modlauncher.api.ITransformationService with net.minecraftforge.eventbus.benchmarks.MockTransformerService;
 
 }

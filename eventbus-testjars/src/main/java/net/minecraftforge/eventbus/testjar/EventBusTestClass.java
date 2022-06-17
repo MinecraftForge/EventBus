@@ -11,7 +11,7 @@ public class EventBusTestClass {
     }
 
     @SubscribeEvent
-    void eventMethod2(DummyEvent.GoodEvent evt) {
+    public void eventMethod2(DummyEvent.GoodEvent evt) {
         HIT2 = true;
     }
 

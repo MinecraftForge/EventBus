@@ -3,12 +3,10 @@ package net.minecraftforge.eventbus.service;
 import cpw.mods.modlauncher.Launcher;
 import cpw.mods.modlauncher.api.IModuleLayerManager;
 import cpw.mods.modlauncher.serviceapi.ILaunchPluginService;
-import net.minecraftforge.eventbus.EventBusEngine;
 import net.minecraftforge.eventbus.IEventBusEngine;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 
-import java.nio.file.Path;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.ServiceLoader;

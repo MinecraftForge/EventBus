@@ -44,4 +44,13 @@ public class Whitebox {
             throw new RuntimeException(e);
         }
     }
+
+    public static boolean hasField(final Class<?> clazz, final String fieldName) {
+        try {
+            clazz.getDeclaredField(fieldName);
+            return true;
+        } catch (NoSuchFieldException e) {
+            return false;
+        }
+    }
 }

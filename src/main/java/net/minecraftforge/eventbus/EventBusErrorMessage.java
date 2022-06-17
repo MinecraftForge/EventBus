@@ -8,14 +8,15 @@ import org.apache.logging.log4j.util.StringBuilderFormattable;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+@SuppressWarnings("serial")
 public class EventBusErrorMessage implements Message, StringBuilderFormattable {
-    private final Event event;
+    //private final Event event;
     private final int index;
     private final IEventListener[] listeners;
     private final Throwable throwable;
 
     public EventBusErrorMessage(final Event event, final int index, final IEventListener[] listeners, final Throwable throwable) {
-        this.event = event;
+        //this.event = event;
         this.index = index;
         this.listeners = listeners;
         this.throwable = throwable;
