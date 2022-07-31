@@ -53,7 +53,7 @@ public class EventListenerHelper
     static ListenerList getListenerListInternal(Class<?> eventClass, boolean fromInstanceCall)
     {
         if (eventClass == Event.class) return EVENTS_LIST; // Small optimization, bypasses all the locks/maps.
-        return listeners.get(eventClass, () -> computeListenerList(eventClass, fromInstanceCall), list -> list);
+        return listeners.computeIfAbsent(eventClass, () -> computeListenerList(eventClass, fromInstanceCall));
     }
 
     private static ListenerList computeListenerList(Class<?> eventClass, boolean fromInstanceCall)
@@ -100,9 +100,9 @@ public class EventListenerHelper
         if (eventClass == Event.class)
             return false;
 
-        return lock.get(eventClass, () -> {
+        return lock.computeIfAbsent(eventClass, () -> {
             var parent = eventClass.getSuperclass();
             return eventClass.isAnnotationPresent(annotation) || (parent != null && hasAnnotation(parent, annotation, lock));
-        }, Function.identity());
+        });
     }
 }

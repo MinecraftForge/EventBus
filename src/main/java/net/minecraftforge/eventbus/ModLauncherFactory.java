@@ -6,7 +6,7 @@ import java.util.HashMap;
 import org.objectweb.asm.tree.ClassNode;
 
 public class ModLauncherFactory extends ClassLoaderFactory {
-    private static final HashMap<String, Method> PENDING = new HashMap<>();
+    private static final LockHelper<String, Method> PENDING = new LockHelper<>(new HashMap<>());
 
     @Override
     protected Class<?> createWrapper(Method callback) throws ClassNotFoundException {
@@ -17,7 +17,7 @@ public class ModLauncherFactory extends ClassLoaderFactory {
 
     private void enqueueWrapper(Method callback) {
         String name = getUniqueName(callback);
-        PENDING.putIfAbsent(name, callback);
+        PENDING.computeIfAbsent(name, () -> callback);
     }
 
     public static boolean hasPendingWrapperClass(final String className) {

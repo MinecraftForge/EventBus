@@ -19,7 +19,32 @@ public class LockHelper<K,V> {
         this.map = map;
     }
 
+    public V get(K key) {
+        var readLock =  lock.readLock();
+        readLock.lock();
+        var ret = map.get(key);
+        readLock.unlock();
+        return ret;
+    }
+
+    public boolean containsKey(K key) {
+        var readLock =  lock.readLock();
+        readLock.lock();
+        var ret = map.containsKey(key);
+        readLock.unlock();
+        return ret;
+    }
+
+    public V computeIfAbsent(K key, Supplier<V> factory) {
+        return get(key, factory, Function.identity());
+    }
+
+    @Deprecated(forRemoval = true, since = "6.0") // I chose a stupid name, it should be computeIfAbsent
     public <I> V get(K key, Supplier<I> factory, Function<I, V> finalizer) {
+        return computeIfAbsent(key, factory, finalizer);
+    }
+
+    public <I> V computeIfAbsent(K key, Supplier<I> factory, Function<I, V> finalizer) {
         // let's take the read lock
         var readLock = lock.readLock();
         readLock.lock();

@@ -31,7 +31,7 @@ public class ClassLoaderFactory implements IEventListenerFactory {
 
 
     protected Class<?> createWrapper(Method callback) throws ClassNotFoundException {
-        return cache.get(callback, () -> {
+        return cache.computeIfAbsent(callback, () -> {
             var node = new ClassNode();
             transformNode(getUniqueName(callback), callback, node);
             return node;
