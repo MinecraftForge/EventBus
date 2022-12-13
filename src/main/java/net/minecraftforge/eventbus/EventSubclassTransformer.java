@@ -181,7 +181,7 @@ public class EventSubclassTransformer
                  *      }
                  */
                 MethodNode method = new MethodNode(ACC_PUBLIC, CANCELABLE_M.name(), CANCELABLE_M.desc(), null, null);
-                method.instructions.add(new InsnNode(ICONST_1));
+                method.instructions.add(new InsnNode(ICONST_0));
                 method.instructions.add(new InsnNode(IRETURN));
                 classNode.methods.add(method);
             }
@@ -272,12 +272,16 @@ public class EventSubclassTransformer
          */
         method = classNode.methods.stream().filter(LISTENER_LIST_GET::equals).findFirst().orElse(null);
         if (method == null)
+        {
             method = new MethodNode(ACC_PUBLIC, LISTENER_LIST_GET.name(), LISTENER_LIST_GET.desc(), null, null);
+            classNode.methods.add(method);
+        }
         else
+        {
             clear(method);
+        }
         method.instructions.add(new FieldInsnNode(GETSTATIC, classNode.name, LISTENER_LIST_F.name(), LISTENER_LIST_F.desc()));
         method.instructions.add(new InsnNode(ARETURN));
-        classNode.methods.add(method);
         LOGGER.debug(EVENTBUS, "Event transform complete: {}", classNode.name);
         return true;
     }
