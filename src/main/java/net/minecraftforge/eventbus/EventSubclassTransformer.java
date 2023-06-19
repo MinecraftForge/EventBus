@@ -25,6 +25,9 @@ import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
+import cpw.mods.modlauncher.Launcher;
+import cpw.mods.modlauncher.api.IModuleLayerManager;
+
 import java.util.Optional;
 
 import static net.minecraftforge.eventbus.LogMarkers.EVENTBUS;
@@ -35,6 +38,7 @@ import static org.objectweb.asm.Type.*;
 public class EventSubclassTransformer
 {
     private static final Logger LOGGER = LogManager.getLogger();
+    private Optional<ClassLoader> gameClassLoader = null;
 
     public Optional<ClassNode> transform(final ClassNode classNode, final Type classType)
     {
@@ -87,13 +91,14 @@ public class EventSubclassTransformer
         // well, we should at least use the context classloader - this is forcing all the game classes in through
         // the system classloader otherwise...
         Class<?> parent = null;
+        ClassLoader loader = getClassLoader();
         try
         {
-            parent = Thread.currentThread().getContextClassLoader().loadClass(classNode.superName.replace('/', '.'));
+            parent = loader.loadClass(classNode.superName.replace('/', '.'));
         }
         catch (ClassNotFoundException e)
         {
-            LOGGER.error(EVENTBUS, "Could not find parent {} for class {} in classloader {} on thread {}", classNode.superName, classNode.name, Thread.currentThread().getContextClassLoader(), Thread.currentThread());
+            LOGGER.error(EVENTBUS, "Could not find parent {} for class {} in classloader {} on thread {}", classNode.superName, classNode.name, loader, Thread.currentThread());
             throw e;
         }
 
@@ -284,5 +289,22 @@ public class EventSubclassTransformer
         method.instructions.add(new InsnNode(ARETURN));
         LOGGER.debug(EVENTBUS, "Event transform complete: {}", classNode.name);
         return true;
+    }
+    
+    private ClassLoader getClassLoader() {
+    	var loader = Thread.currentThread().getContextClassLoader();
+    	if (loader == null)
+    		loader = getGameClassLoader();
+    	if(loader == null)
+    		loader = this.getClass().getClassLoader();
+    	return loader;
+    }
+    
+    private ClassLoader getGameClassLoader() {
+    	if (this.gameClassLoader == null) {
+    		var gameLayer = Launcher.INSTANCE.findLayerManager().flatMap(lm -> lm.getLayer(IModuleLayerManager.Layer.GAME)).orElseThrow();
+        	this.gameClassLoader = gameLayer.modules().stream().findFirst().map(Module::getClassLoader);
+    	}
+    	return this.gameClassLoader.orElse(null);
     }
 }
