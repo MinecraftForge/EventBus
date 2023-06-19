@@ -32,16 +32,16 @@ public class ModLauncherFactory extends ClassLoaderFactory {
         Method meth = PENDING.get(className);
         transformNode(className, meth, node);
     }
-    
+
     private ClassLoader getClassLoader() {
-    	var loader = Thread.currentThread().getContextClassLoader();
-    	if (loader != null)
-    		return loader;
-    	
-    	if (this.gameClassLoader == null) {
-    		var gameLayer = Launcher.INSTANCE.findLayerManager().flatMap(lm -> lm.getLayer(IModuleLayerManager.Layer.GAME)).orElseThrow();
-        	this.gameClassLoader = gameLayer.modules().stream().findFirst().map(Module::getClassLoader);
-    	}
-    	return this.gameClassLoader.orElse(null);
+        var loader = Thread.currentThread().getContextClassLoader();
+        if (loader != null)
+            return loader;
+
+        if (this.gameClassLoader == null) {
+            var gameLayer = Launcher.INSTANCE.findLayerManager().flatMap(lm -> lm.getLayer(IModuleLayerManager.Layer.GAME)).orElseThrow();
+            this.gameClassLoader = gameLayer.modules().stream().findFirst().map(Module::getClassLoader);
+        }
+        return this.gameClassLoader.orElse(null);
     }
 }

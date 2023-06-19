@@ -290,21 +290,21 @@ public class EventSubclassTransformer
         LOGGER.debug(EVENTBUS, "Event transform complete: {}", classNode.name);
         return true;
     }
-    
+
     private ClassLoader getClassLoader() {
-    	var loader = Thread.currentThread().getContextClassLoader();
-    	if (loader == null)
-    		loader = getGameClassLoader();
-    	if(loader == null)
-    		loader = this.getClass().getClassLoader();
-    	return loader;
+        var loader = Thread.currentThread().getContextClassLoader();
+        if (loader == null)
+            loader = getGameClassLoader();
+        if(loader == null)
+            loader = this.getClass().getClassLoader();
+        return loader;
     }
-    
+
     private ClassLoader getGameClassLoader() {
-    	if (this.gameClassLoader == null) {
-    		var gameLayer = Launcher.INSTANCE.findLayerManager().flatMap(lm -> lm.getLayer(IModuleLayerManager.Layer.GAME)).orElseThrow();
-        	this.gameClassLoader = gameLayer.modules().stream().findFirst().map(Module::getClassLoader);
-    	}
-    	return this.gameClassLoader.orElse(null);
+        if (this.gameClassLoader == null) {
+            var gameLayer = Launcher.INSTANCE.findLayerManager().flatMap(lm -> lm.getLayer(IModuleLayerManager.Layer.GAME)).orElseThrow();
+            this.gameClassLoader = gameLayer.modules().stream().findFirst().map(Module::getClassLoader);
+        }
+        return this.gameClassLoader.orElse(null);
     }
 }
