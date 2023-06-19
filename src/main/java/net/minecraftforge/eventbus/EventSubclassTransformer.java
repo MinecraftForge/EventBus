@@ -295,7 +295,7 @@ public class EventSubclassTransformer
         var loader = Thread.currentThread().getContextClassLoader();
         if (loader == null)
             loader = getGameClassLoader();
-        if(loader == null)
+        if (loader == null)
             loader = this.getClass().getClassLoader();
         return loader;
     }
