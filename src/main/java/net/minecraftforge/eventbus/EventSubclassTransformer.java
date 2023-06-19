@@ -19,6 +19,8 @@
 
 package net.minecraftforge.eventbus;
 
+import cpw.mods.modlauncher.Launcher;
+import cpw.mods.modlauncher.api.IModuleLayerManager;
 import net.minecraftforge.eventbus.api.Event;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,6 +37,11 @@ import static org.objectweb.asm.Type.*;
 public class EventSubclassTransformer
 {
     private static final Logger LOGGER = LogManager.getLogger();
+    private final EventBusEngine engine;
+
+    public EventSubclassTransformer(final EventBusEngine eventBusEngine) {
+        this.engine = eventBusEngine;
+    }
 
     public Optional<ClassNode> transform(final ClassNode classNode, final Type classType)
     {
@@ -89,7 +96,7 @@ public class EventSubclassTransformer
         Class<?> parent = null;
         try
         {
-            parent = Thread.currentThread().getContextClassLoader().loadClass(classNode.superName.replace('/', '.'));
+            parent = this.engine.getClassLoader().loadClass(classNode.superName.replace('/', '.'));
         }
         catch (ClassNotFoundException e)
         {

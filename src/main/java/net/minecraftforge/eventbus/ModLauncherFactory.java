@@ -12,7 +12,7 @@ public class ModLauncherFactory extends ClassLoaderFactory {
     protected Class<?> createWrapper(Method callback) throws ClassNotFoundException {
         enqueueWrapper(callback);
         var name = getUniqueName(callback);
-        return Class.forName(name, true, Thread.currentThread().getContextClassLoader());
+        return Class.forName(name, true, EventBusEngine.INSTANCE.getClassLoader());
     }
 
     private void enqueueWrapper(Method callback) {

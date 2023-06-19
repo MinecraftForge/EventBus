@@ -5,15 +5,21 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 
+import java.util.function.Supplier;
+
 public final class EventBusEngine implements IEventBusEngine {
+    static EventBusEngine INSTANCE;
     private final EventSubclassTransformer eventTransformer;
     private final EventAccessTransformer accessTransformer;
     final String EVENT_CLASS = "net.minecraftforge.eventbus.api.Event";
+    private Supplier<ClassLoader> clazzLoaderSupplier = ()->
+            Thread.currentThread().getContextClassLoader() != null ? Thread.currentThread().getContextClassLoader() : EventBusEngine.INSTANCE.getClassLoader();
 
     public EventBusEngine() {
         LogManager.getLogger().debug(LogMarkers.EVENTBUS, "Loading EventBus transformers");
-        this.eventTransformer = new EventSubclassTransformer();
-        this.accessTransformer = new EventAccessTransformer();
+        this.eventTransformer = new EventSubclassTransformer(this);
+        this.accessTransformer = new EventAccessTransformer(this);
+        INSTANCE = this;
     }
 
     @Override
@@ -37,5 +43,14 @@ public final class EventBusEngine implements IEventBusEngine {
     @Override
     public boolean findASMEventDispatcher(final Type classType) {
         return ModLauncherFactory.hasPendingWrapperClass(classType.getClassName());
+    }
+
+    @Override
+    public void acceptClassLoaderSupplier(final Supplier<ClassLoader> classLoaderSupplier) {
+        this.clazzLoaderSupplier = classLoaderSupplier;
+    }
+
+    ClassLoader getClassLoader() {
+        return this.clazzLoaderSupplier.get();
     }
 }

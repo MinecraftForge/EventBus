@@ -39,6 +39,11 @@ public class EventAccessTransformer
 {
 
     private static final Logger LOGGER = LogManager.getLogger();
+    private final EventBusEngine engine;
+
+    public EventAccessTransformer(final EventBusEngine eventBusEngine) {
+        this.engine = eventBusEngine;
+    }
 
     public boolean transform(final ClassNode classNode, final Type classType)
     {

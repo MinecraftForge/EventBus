@@ -107,7 +107,7 @@ public class ClassLoaderFactory implements IEventListenerFactory {
 
         @Override
         protected Class<?> loadClass(final String name, final boolean resolve) throws ClassNotFoundException {
-            return Class.forName(name, resolve, Thread.currentThread().getContextClassLoader());
+            return Class.forName(name, resolve, EventBusEngine.INSTANCE.getClassLoader());
         }
 
         Class<?> define(String name, byte[] data) {

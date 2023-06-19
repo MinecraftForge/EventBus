@@ -14,6 +14,7 @@ import java.util.ServiceLoader;
 public class ModLauncherService implements ILaunchPluginService {
     private IEventBusEngine eventBusEngine;
 
+    private ClassLoader gameClassLoader;
     @Override
     public String name() {
         return "eventbus";
@@ -23,6 +24,7 @@ public class ModLauncherService implements ILaunchPluginService {
         if (eventBusEngine == null) {
             var service = Launcher.INSTANCE.findLayerManager().flatMap(lm->lm.getLayer(IModuleLayerManager.Layer.PLUGIN)).orElseThrow();
             this.eventBusEngine = ServiceLoader.load(service, IEventBusEngine.class).findFirst().orElseThrow();
+            this.eventBusEngine.acceptClassLoaderSupplier(this::getGameClassLoader);
         }
         return eventBusEngine;
     }
@@ -43,6 +45,13 @@ public class ModLauncherService implements ILaunchPluginService {
         } else {
             return getEventBusEngine().handlesClass(classType) ? YAY : NAY;
         }
+    }
 
+    private ClassLoader getGameClassLoader() {
+        if (this.gameClassLoader == null) {
+            var gameLayer = Launcher.INSTANCE.findLayerManager().flatMap(lm -> lm.getLayer(IModuleLayerManager.Layer.GAME)).orElseThrow();
+            this.gameClassLoader = gameLayer.findLoader("minecraft");
+        }
+        return this.gameClassLoader;
     }
 }
