@@ -78,8 +78,12 @@ public class Event
      * Sets the cancel state of this event. Note, not all events are cancelable, and any attempt to
      * invoke this method on an event that is not cancelable (as determined by {@link #isCancelable}
      * will result in an {@link UnsupportedOperationException}.
-     *
+     * <br>
      * The functionality of setting the canceled state is defined on a per-event bases.
+     * <br>
+     * Throws a {@link IllegalStateException} if called during the {@link EventPriority#MINOTOR} phase.<br>
+     * Note: If the event bus does not track the phases then this protection doesn't function. Most standard
+     * use cases should track phases.
      *
      * @param cancel The new canceled value
      */
@@ -92,6 +96,10 @@ public class Event
                 + this.getClass().getCanonicalName()
             );
         }
+
+        if (seenPhase(EventPriority.MONITOR))
+            throw new IllegalStateException("Attempted to call Event#setCanceled() after the MONITOR phase");
+
         isCanceled = cancel;
     }
 
@@ -151,8 +159,13 @@ public class Event
     public void setPhase(@NotNull EventPriority value)
     {
         Objects.requireNonNull(value, "setPhase argument must not be null");
-        int prev = phase == null ? -1 : phase.ordinal();
-        if (prev >= value.ordinal()) throw new IllegalArgumentException("Attempted to set event phase to "+ value +" when already "+ phase);
+        if (seenPhase(value)) throw new IllegalArgumentException("Attempted to set event phase to "+ value +" when already "+ phase);
         phase = value;
+    }
+
+    private boolean seenPhase(@NotNull EventPriority value)
+    {
+        int prev = phase == null ? -1 : phase.ordinal();
+        return prev >= value.ordinal();
     }
 }

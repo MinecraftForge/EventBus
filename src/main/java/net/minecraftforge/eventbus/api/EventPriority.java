@@ -39,7 +39,11 @@ public enum EventPriority implements IEventListener
     HIGH,
     NORMAL,
     LOW,
-    LOWEST; //Last to execute
+    LOWEST,
+    /**
+     * When in this state, {@link Event#setCanceled(boolean)} will throw an exception if called with any value.
+     */
+    MONITOR; //Last to execute
 
 
     @Override
