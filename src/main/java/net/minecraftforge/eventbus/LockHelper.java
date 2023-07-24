@@ -6,9 +6,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-/*
- *
- * Helper class that should be faster then ConcurrentHashMap,
+/**
+ * Helper class that should be faster than ConcurrentHashMap,
  * yet still manages to properly deal with many threads.
  */
 public class LockHelper<K,V> {
