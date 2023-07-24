@@ -22,6 +22,7 @@ package net.minecraftforge.eventbus;
 import net.minecraftforge.eventbus.api.Event;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
@@ -38,7 +39,7 @@ import static org.objectweb.asm.Type.*;
 public class EventSubclassTransformer
 {
     private static final Logger LOGGER = LogManager.getLogger();
-    private Optional<ClassLoader> gameClassLoader = null;
+    private @Nullable ClassLoader gameClassLoader = null;
 
     public Optional<ClassNode> transform(final ClassNode classNode, final Type classType)
     {
@@ -287,6 +288,67 @@ public class EventSubclassTransformer
         }
         method.instructions.add(new FieldInsnNode(GETSTATIC, classNode.name, LISTENER_LIST_F.name(), LISTENER_LIST_F.desc()));
         method.instructions.add(new InsnNode(ARETURN));
+
+        /* Add or replace:
+         *      public static ListenerList getListenerListStatically()
+         *      {
+         *          return this.LISTENER_LIST;
+         *      }
+         */
+        method = classNode.methods.stream().filter(LISTENER_LIST_GET_STATICALLY::equals).findFirst().orElse(null);
+        if (method == null)
+        {
+            method = new MethodNode(ACC_PUBLIC | ACC_STATIC, LISTENER_LIST_GET_STATICALLY.name(), LISTENER_LIST_GET_STATICALLY.desc(), null, null);
+            classNode.methods.add(method);
+        }
+        else
+        {
+            clear(method);
+        }
+        method.instructions.add(new FieldInsnNode(GETSTATIC, classNode.name, LISTENER_LIST_F.name(), LISTENER_LIST_F.desc()));
+        method.instructions.add(new InsnNode(ARETURN));
+
+        /* Add or replace:
+         *     public static boolean hasAnyListeners()
+         *     {
+         *         return this.LISTENER_LIST.hasAnyListeners();
+         *     }
+         */
+        // todo: fix this
+//        method = classNode.methods.stream().filter(HAS_ANY_LISTENERS_M::equals).findFirst().orElse(null);
+//        if (method == null)
+//        {
+//            method = new MethodNode(ACC_PUBLIC | ACC_STATIC, HAS_ANY_LISTENERS_M.name(), HAS_ANY_LISTENERS_M.desc(), null, null);
+//            classNode.methods.add(method);
+//        }
+//        else
+//        {
+//            clear(method);
+//        }
+//        method.instructions.add(new FieldInsnNode(GETSTATIC, classNode.name, LISTENER_LIST_F.name(), LISTENER_LIST_F.desc()));
+//        method.instructions.add(new MethodInsnNode(INVOKEVIRTUAL, tList.getInternalName(), HAS_ANY_LISTENERS_M.name(), HAS_ANY_LISTENERS_M.desc(), false));
+
+        /* Add or replace:
+         *     public static boolean hasListeners(EventBus bus)
+         *     {
+         *         return this.LISTENER_LIST.hasListeners(bus);
+         *     }
+         */
+        // todo: fix this
+//        method = classNode.methods.stream().filter(HAS_LISTENERS_M::equals).findFirst().orElse(null);
+//        if (method == null)
+//        {
+//            method = new MethodNode(ACC_PUBLIC | ACC_STATIC, HAS_LISTENERS_M.name(), HAS_LISTENERS_M.desc(), null, null);
+//            classNode.methods.add(method);
+//        }
+//        else
+//        {
+//            clear(method);
+//        }
+//        method.instructions.add(new FieldInsnNode(GETSTATIC, classNode.name, LISTENER_LIST_F.name(), LISTENER_LIST_F.desc()));
+//        method.instructions.add(new VarInsnNode(ALOAD, 0));
+//        method.instructions.add(new MethodInsnNode(INVOKEVIRTUAL, tList.getInternalName(), HAS_LISTENERS_M.name(), HAS_LISTENERS_M.desc(), false));
+
         LOGGER.debug(EVENTBUS, "Event transform complete: {}", classNode.name);
         return true;
     }
@@ -300,11 +362,12 @@ public class EventSubclassTransformer
         return loader;
     }
 
+    @Nullable
     private ClassLoader getGameClassLoader() {
         if (this.gameClassLoader == null) {
             var gameLayer = Launcher.INSTANCE.findLayerManager().flatMap(lm -> lm.getLayer(IModuleLayerManager.Layer.GAME)).orElseThrow();
-            this.gameClassLoader = gameLayer.modules().stream().findFirst().map(Module::getClassLoader);
+            this.gameClassLoader = gameLayer.modules().stream().findFirst().map(Module::getClassLoader).orElse(null);
         }
-        return this.gameClassLoader.orElse(null);
+        return this.gameClassLoader;
     }
 }

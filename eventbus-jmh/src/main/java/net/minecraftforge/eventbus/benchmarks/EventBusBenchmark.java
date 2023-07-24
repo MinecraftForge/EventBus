@@ -21,6 +21,8 @@ public class EventBusBenchmark {
     private Consumer<Object> postDynamic;
     private Consumer<Object> postLambda;
     private Consumer<Object> postCombined;
+    private Consumer<Object> postCombinedHasListeners;
+    private Consumer<Object> postCombinedHasAnyListeners;
 
     @SuppressWarnings("unchecked")
     @Setup
@@ -37,6 +39,8 @@ public class EventBusBenchmark {
         postDynamic  = (Consumer<Object>)cls.getField("postDynamic").get(null);
         postLambda   = (Consumer<Object>)cls.getField("postLambda").get(null);
         postCombined = (Consumer<Object>)cls.getField("postCombined").get(null);
+        postCombinedHasListeners = (Consumer<Object>)cls.getField("postCombinedHasListeners").get(null);
+        postCombinedHasAnyListeners = (Consumer<Object>)cls.getField("postCombinedHasAnyListeners").get(null);
     }
 
     public static class TestCallback {
@@ -72,6 +76,18 @@ public class EventBusBenchmark {
 
     // ClassLoader ASM Factory
     @Benchmark
+    public int testModLauncherCombinedHasListeners() throws Throwable {
+        postCombinedHasListeners.accept(ModLauncher);
+        return 0;
+    }
+
+    @Benchmark
+    public int testModLauncherCombinedHasAnyListeners() throws Throwable {
+        postCombinedHasAnyListeners.accept(ModLauncher);
+        return 0;
+    }
+
+    // ClassLoader ASM Factory
     public int testClassLoaderDynamic() throws Throwable {
         postDynamic.accept(ClassLoader);
         return 0;
@@ -92,6 +108,18 @@ public class EventBusBenchmark {
     @Benchmark
     public int testClassLoaderCombined() throws Throwable {
         postCombined.accept(ClassLoader);
+        return 0;
+    }
+
+    @Benchmark
+    public int testClassLoaderCombinedHasListeners() throws Throwable {
+        postCombinedHasListeners.accept(ClassLoader);
+        return 0;
+    }
+
+    @Benchmark
+    public int testClassLoaderCombinedHasAnyListeners() throws Throwable {
+        postCombinedHasAnyListeners.accept(ClassLoader);
         return 0;
     }
 }

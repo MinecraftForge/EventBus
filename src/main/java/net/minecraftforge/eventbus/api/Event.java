@@ -19,6 +19,7 @@
 
 package net.minecraftforge.eventbus.api;
 
+import net.minecraftforge.eventbus.EventBus;
 import net.minecraftforge.eventbus.EventSubclassTransformer;
 import net.minecraftforge.eventbus.ListenerList;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +28,8 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.Objects;
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -150,6 +153,11 @@ public class Event
         return EventListenerHelper.getListenerListInternal(this.getClass(), true);
     }
 
+    public static ListenerList getListenerListStatically()
+    {
+        return EventListenerHelper.getListenerListInternal(Event.class, false);
+    }
+
     @Nullable
     public EventPriority getPhase()
     {
@@ -167,5 +175,21 @@ public class Event
     {
         int prev = phase == null ? -1 : phase.ordinal();
         return prev >= value.ordinal();
+    }
+
+    /**
+     * @return true if there are any listeners added for this event on any bus.
+     */
+    public static boolean hasAnyListeners()
+    {
+        return getListenerListStatically().hasAnyListeners();
+    }
+
+    /**
+     * @return true if there are any listeners added for this event on the specified bus.
+     */
+    public static boolean hasListeners(final EventBus bus)
+    {
+        return getListenerListStatically().hasListeners(bus.getBusID());
     }
 }

@@ -340,4 +340,8 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     public void start() {
         this.shutdown = false;
     }
+
+    public int getBusID() {
+        return busID;
+    }
 }
