@@ -123,6 +123,21 @@ public class ListenerList
         return lists[id].getListeners();
     }
 
+    public boolean hasListeners(int id)
+    {
+        return lists[id].getListeners().length > 0;
+    }
+
+    public boolean hasAnyListeners()
+    {
+        for (final ListenerListInst list : lists) {
+            if (list.getListeners().length > 0)
+                return true;
+        }
+
+        return false;
+    }
+
     public void register(int id, EventPriority priority, IEventListener listener)
     {
         lists[id].register(priority, listener);

@@ -19,6 +19,7 @@
 
 package net.minecraftforge.eventbus.api;
 
+import net.minecraftforge.eventbus.EventBus;
 import net.minecraftforge.eventbus.EventSubclassTransformer;
 import net.minecraftforge.eventbus.ListenerList;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +28,8 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.Objects;
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -79,9 +82,9 @@ public class Event
      * invoke this method on an event that is not cancelable (as determined by {@link #isCancelable}
      * will result in an {@link UnsupportedOperationException}.
      * <br>
-     * The functionality of setting the canceled state is defined on a per-event bases.
+     * The functionality of setting the canceled state is defined on a per-event basis.
      * <br>
-     * Throws a {@link IllegalStateException} if called during the {@link EventPriority#MINOTOR} phase.<br>
+     * Throws a {@link IllegalStateException} if called during the {@link EventPriority#MONITOR} phase.<br>
      * Note: If the event bus does not track the phases then this protection doesn't function. Most standard
      * use cases should track phases.
      *
@@ -124,9 +127,9 @@ public class Event
 
     /**
      * Sets the result value for this event, not all events can have a result set, and any attempt to
-     * set a result for a event that isn't expecting it will result in a IllegalArgumentException.
+     * set a result for an event that isn't expecting it will result in a IllegalArgumentException.
      *
-     * The functionality of setting the result is defined on a per-event bases.
+     * The functionality of setting the result is defined on a per-event basis.
      *
      * @param value The new result
      */
@@ -150,6 +153,11 @@ public class Event
         return EventListenerHelper.getListenerListInternal(this.getClass(), true);
     }
 
+    public static ListenerList getListenerListStatically()
+    {
+        return EventListenerHelper.getListenerListInternal(Event.class, false);
+    }
+
     @Nullable
     public EventPriority getPhase()
     {
@@ -167,5 +175,21 @@ public class Event
     {
         int prev = phase == null ? -1 : phase.ordinal();
         return prev >= value.ordinal();
+    }
+
+    /**
+     * @return true if there are any listeners added for this event on any bus.
+     */
+    public static boolean hasAnyListeners()
+    {
+        return getListenerListStatically().hasAnyListeners();
+    }
+
+    /**
+     * @return true if there are any listeners added for this event on the specified bus.
+     */
+    public static boolean hasListeners(final EventBus bus)
+    {
+        return getListenerListStatically().hasListeners(bus.getBusID());
     }
 }

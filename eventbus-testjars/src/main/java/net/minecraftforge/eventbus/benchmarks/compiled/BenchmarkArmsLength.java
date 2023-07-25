@@ -2,6 +2,7 @@ package net.minecraftforge.eventbus.benchmarks.compiled;
 
 import java.util.function.Consumer;
 
+import net.minecraftforge.eventbus.EventBus;
 import net.minecraftforge.eventbus.api.BusBuilder;
 import net.minecraftforge.eventbus.api.IEventBus;
 
@@ -60,6 +61,8 @@ public class BenchmarkArmsLength
     public static final Consumer<Object> postDynamic = BenchmarkArmsLength::postDynamic;
     public static final Consumer<Object> postLambda = BenchmarkArmsLength::postLambda;
     public static final Consumer<Object> postCombined = BenchmarkArmsLength::postCombined;
+    public static final Consumer<Object> postCombinedHasListeners = BenchmarkArmsLength::postCombinedHasListeners;
+    public static final Consumer<Object> postCombinedHasAnyListeners = BenchmarkArmsLength::postCombinedHasAnyListeners;
 
     public static void postStatic(Object bus)
     {
@@ -81,10 +84,45 @@ public class BenchmarkArmsLength
         postAll(((Bus)bus).combinedSubscriberBus);
     }
 
+    public static void postCombinedHasListeners(Object bus)
+    {
+        postAllWithHasListeners((EventBus) ((Bus)bus).combinedSubscriberBus);
+    }
+
+    public static void postCombinedHasAnyListeners(Object bus)
+    {
+        postAllWithHasAnyListeners(((Bus)bus).combinedSubscriberBus);
+    }
+
     private static void postAll(IEventBus bus)
     {
         bus.post(new CancelableEvent());
         bus.post(new ResultEvent());
         bus.post(new EventWithData("Foo", 5, true)); //Some example data
     }
+
+    private static void postAllWithHasListeners(EventBus bus)
+    {
+        if (CancelableEvent.hasListeners(bus))
+            bus.post(new CancelableEvent());
+
+        if (ResultEvent.hasListeners(bus))
+            bus.post(new ResultEvent());
+
+        if (EventWithData.hasListeners(bus))
+            bus.post(new EventWithData("Foo", 5, true)); //Some example data
+    }
+
+    private static void postAllWithHasAnyListeners(IEventBus bus)
+    {
+        if (CancelableEvent.hasAnyListeners())
+            bus.post(new CancelableEvent());
+
+        if (ResultEvent.hasAnyListeners())
+            bus.post(new ResultEvent());
+
+        if (EventWithData.hasAnyListeners())
+            bus.post(new EventWithData("Foo", 5, true)); //Some example data
+    }
+
 }
