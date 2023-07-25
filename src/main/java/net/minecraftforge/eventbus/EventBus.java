@@ -188,9 +188,21 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     @Override
+    public <T extends Event> void addListener(final Class<T> eventType, final Consumer<T> consumer) {
+        checkNotGeneric(eventType);
+        addListener(EventPriority.NORMAL, eventType, consumer);
+    }
+
+    @Override
     public <T extends Event> void addListener(final EventPriority priority, final Consumer<T> consumer) {
         checkNotGeneric(consumer);
         addListener(priority, false, consumer);
+    }
+
+    @Override
+    public <T extends Event> void addListener(final EventPriority priority, final Class<T> eventType, final Consumer<T> consumer) {
+        checkNotGeneric(eventType);
+        addListener(priority, false, eventType, consumer);
     }
 
     @Override
@@ -211,8 +223,18 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     @Override
+    public <T extends GenericEvent<? extends F>, F> void addGenericListener(final Class<F> genericClassFilter, final Class<T> eventType, final Consumer<T> consumer) {
+        addGenericListener(genericClassFilter, EventPriority.NORMAL, eventType, consumer);
+    }
+
+    @Override
     public <T extends GenericEvent<? extends F>, F> void addGenericListener(final Class<F> genericClassFilter, final EventPriority priority, final Consumer<T> consumer) {
         addGenericListener(genericClassFilter, priority, false, consumer);
+    }
+
+    @Override
+    public <T extends GenericEvent<? extends F>, F> void addGenericListener(final Class<F> genericClassFilter, final EventPriority priority, final Class<T> eventType, final Consumer<T> consumer) {
+        addGenericListener(genericClassFilter, priority, false, eventType, consumer);
     }
 
     @Override
