@@ -39,11 +39,11 @@ import static net.minecraftforge.eventbus.LogMarkers.EVENTBUS;
 public class EventBus implements IEventExceptionHandler, IEventBus {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final boolean checkTypesOnDispatchProperty = Boolean.parseBoolean(System.getProperty("eventbus.checkTypesOnDispatch", "false"));
-    private static AtomicInteger maxID = new AtomicInteger(0);
+    private static final AtomicInteger maxID = new AtomicInteger(0);
     private final boolean trackPhases;
 
 
-    private ConcurrentHashMap<Object, List<IEventListener>> listeners = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Object, List<IEventListener>> listeners = new ConcurrentHashMap<>();
     private final int busID = maxID.getAndIncrement();
     private final IEventExceptionHandler exceptionHandler;
     private volatile boolean shutdown = false;

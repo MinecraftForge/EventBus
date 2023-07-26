@@ -5,7 +5,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'eventbus'
+rootProject.name = 'EventBus'
 include 'eventbus-jmh'
 include 'eventbus-test'
 include 'eventbus-testjars'
