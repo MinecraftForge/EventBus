@@ -153,6 +153,16 @@ public class Event
         return EventListenerHelper.getListenerListInternal(this.getClass(), true);
     }
 
+    /**
+     * Returns a ListenerList object that contains all listeners
+     * that are registered to this event.
+     *
+     * Note: for better efficiency, this gets overridden automatically
+     * using a Transformer, there is no need to override it yourself.
+     * @see EventSubclassTransformer
+     *
+     * @return Listener List
+     */
     public static ListenerList getListenerListStatically()
     {
         return EventListenerHelper.getListenerListInternal(Event.class, false);

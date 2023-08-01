@@ -130,8 +130,9 @@ public class ListenerList
 
     public boolean hasAnyListeners()
     {
-        for (final ListenerListInst list : lists) {
-            if (list.getListeners().length > 0)
+        for (int i = 0, listsLength = lists.length; i < listsLength; i++)
+        {
+            if (lists[i].getListeners().length > 0)
                 return true;
         }
 
