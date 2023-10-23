@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Forge Development LLC
+ * SPDX-License-Identifier: LGPL-2.1-only
+ */
+
 package net.minecraftforge.eventbus.test;
 
 import org.junit.jupiter.api.Test;
@@ -111,7 +116,7 @@ public class TestNoLoader extends TestNoLoaderBase {
         doTest(new GenericListenerTests.Wildcard() {});
     }
 
-    @Disabled //TODO: Do we want to add checks for this? By Default the methods just silent are ignored.
+    @Disabled //TODO: [EventBus][Test] Do we want to add checks for this? By Default the methods just silent are ignored.
     @Test
     public void testNonPublicEventHandler() {
         doTest(new NonPublicEventHandler(false) {});

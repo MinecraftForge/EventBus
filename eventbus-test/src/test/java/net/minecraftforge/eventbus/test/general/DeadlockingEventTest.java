@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Forge Development LLC
+ * SPDX-License-Identifier: LGPL-2.1-only
+ */
+
 package net.minecraftforge.eventbus.test.general;
 
 import net.minecraftforge.eventbus.api.BusBuilder;
@@ -20,7 +25,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-//TODO: This is disabled, eventually re-enable and figure out what it's actually testing
+//TODO: [EventBus][Test] This is disabled, eventually re-enable and figure out what it's actually testing
 public class DeadlockingEventTest implements ITestHandler {
     private static final boolean initializeAtClassloading = false;
     private static final long waittimeout = 1; // number of seconds to wait before retrying. Bump this up to debug what's going on.

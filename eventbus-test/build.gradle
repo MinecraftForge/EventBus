@@ -1,21 +1,93 @@
+plugins {
+    id 'org.cadixdev.licenser' version '0.6.1'
+    id 'eclipse'
+    id 'java-library'
+    id 'org.gradlex.extra-java-module-info' version '1.4.2'
+    id 'net.minecraftforge.gradleutils' version '[2.1.2,)'
+}
 
-dependencies {
-    implementation(rootProject)
-    implementation(project(':eventbus-testjars'))
-    implementation('org.junit.jupiter:junit-jupiter-api:5.8.+')
-    implementation('cpw.mods:modlauncher:10.0.+')
-    implementation('cpw.mods:securejarhandler:2.0.+')
-    implementation('org.junit.jupiter:junit-jupiter-engine:5.8.+')
-    implementation('org.apache.logging.log4j:log4j-core:2.17.1')
-    implementation('cpw.mods:bootstraplauncher:1.1.0')
-    testCompileOnly('org.jetbrains:annotations:23.0.0')
-    testRuntimeOnly('org.apiguardian:apiguardian-api:1.1.2')
+repositories {
+    mavenCentral()
+    maven gradleutils.forgeMaven
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(16)
+}
+
+license {
+    header = rootProject.file("LICENSE-header.txt")
 }
 
 test {
     useJUnitPlatform()
-    forkEvery 1
-    jvmArgs(
-        '--add-opens', 'java.base/java.lang.invoke=cpw.mods.securejarhandler'
-    )
+    reports.html.destination = rootProject.file("build/reports/")
+    reports.junitXml.destination = rootProject.file("build/test-results/")
+}
+
+dependencies {
+    testImplementation(rootProject)
+    testImplementation(project(':eventbus-test-jar'))
+    testImplementation(libs.junit.api)
+    testImplementation(libs.securemodules)
+    testImplementation(libs.modlauncher)
+    testImplementation(libs.asm)
+    testImplementation(libs.asm.tree)
+    testImplementation(libs.jopt.simple)
+    testImplementation(libs.log4j.api)
+    testRuntimeOnly(libs.bundles.junit.runtime)
+    testCompileOnly(libs.nulls)
+}
+
+extraJavaModuleInfo {
+    failOnMissingModuleInfo = false
+    automaticModule('jopt-simple-5.0.4.jar', 'jopt.simple')
+}
+
+// If we are being told a specific vendor then we are probably being run in parallel
+if (project.hasProperty('javaVendor') && project.hasProperty('javaVersion')) {
+    test.javaLauncher.set(javaToolchains.launcherFor {
+        it.vendor.set(JvmVendorSpec."${project.property('javaVendor').toUpperCase(Locale.ROOT)}" as JvmVendorSpec)
+        it.languageVersion.set(JavaLanguageVersion.of(project.property('javaVersion') as int))
+        it.implementation.set(JvmImplementation.VENDOR_SPECIFIC)
+    })
+} else if (project.hasProperty('enable_bulk_tests')) { // Some of the tests can take a long time, so opt-into bulk testing
+    configurations {
+        groovyScript
+    }
+
+    dependencies {
+        groovyScript 'org.apache.ivy:ivy:2.4.0'
+        groovyScript 'org.codehaus.groovy:groovy-all:3.0.19'
+    }
+
+    tasks.register('collectTests', JavaExec) {
+        classpath = configurations.groovyScript
+        main = 'groovy.ui.GroovyMain'
+        args '.github/workflows/aggregate-junit-tests.groovy'
+        workingDir rootProject.projectDir
+    }
+
+    VALID_VMS.each { javaVendor, javaVersions ->
+        javaVersions.each { javaVersion ->
+            def task = tasks.register("test${javaVendor}${javaVersion}", Test) {
+                useJUnitPlatform()
+                javaLauncher.set(javaToolchains.launcherFor {
+                    it.vendor.set(JvmVendorSpec."${javaVendor.toUpperCase(Locale.ROOT)}" as JvmVendorSpec)
+                    it.languageVersion.set(JavaLanguageVersion.of(javaVersion))
+                    it.implementation.set(JvmImplementation.VENDOR_SPECIFIC)
+                })
+                reports.html.destination = rootProject.file("build/test_artifacts/test-reports-${javaVendor}-${javaVersion}/")
+                reports.junitXml.destination = rootProject.file("build/test_artifacts/test-results-${javaVendor}-${javaVersion}/")
+            }
+            test.dependsOn(task)
+            collectTests.mustRunAfter(task)
+        }
+    }
+}
+
+// Hack eclipse into knowing that the gradle deps are modules
+eclipse.classpath {
+    containers 'org.eclipse.buildship.core.gradleclasspathcontainer'
+    file.whenMerged { entries.findAll { it.kind == 'lib' || it.path == 'org.eclipse.buildship.core.gradleclasspathcontainer' }.each { it.entryAttributes['module'] = 'true' } }
 }

@@ -1,0 +1,30 @@
+
+plugins {
+    id 'org.cadixdev.licenser' version '0.6.1'
+    id 'eclipse'
+    id 'java-library'
+    id 'net.minecraftforge.gradleutils' version '[2.1.2,)'
+}
+
+repositories {
+    mavenCentral()
+    maven gradleutils.forgeMaven
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(16)
+}
+
+dependencies {
+    implementation(rootProject)
+}
+
+license {
+    header = rootProject.file("LICENSE-header.txt")
+}
+
+// Hack eclipse into knowing that the gradle deps are modules
+eclipse.classpath {
+    containers 'org.eclipse.buildship.core.gradleclasspathcontainer'
+    file.whenMerged { entries.findAll { it.kind == 'lib' || it.path == 'org.eclipse.buildship.core.gradleclasspathcontainer' }.each { it.entryAttributes['module'] = 'true' } }
+}

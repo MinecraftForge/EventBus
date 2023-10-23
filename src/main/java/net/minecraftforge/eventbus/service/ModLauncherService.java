@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Forge Development LLC
+ * SPDX-License-Identifier: LGPL-2.1-only
+ */
 package net.minecraftforge.eventbus.service;
 
 import cpw.mods.modlauncher.Launcher;

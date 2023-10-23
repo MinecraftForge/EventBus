@@ -1,6 +1,12 @@
+/*
+ * Copyright (c) Forge Development LLC
+ * SPDX-License-Identifier: LGPL-2.1-only
+ */
+
 package net.minecraftforge.eventbus.test;
 
-import cpw.mods.bootstraplauncher.BootstrapLauncher;
+import cpw.mods.cl.ModuleClassLoader;
+import cpw.mods.modlauncher.Launcher;
 import cpw.mods.modlauncher.api.ServiceRunner;
 import net.minecraftforge.eventbus.api.BusBuilder;
 
@@ -8,8 +14,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.module.ModuleFinder;
 import java.lang.reflect.Modifier;
-
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -55,7 +62,21 @@ public class TestModLauncherBase {
             System.setProperty(METHOD_NAME, method.getName());
             System.setProperty("test.harness.game", paths);
             System.setProperty("test.harness.callable", TestCallback.class.getName());
-            BootstrapLauncher.main("--version", "1.0", "--launchTarget", "testharness");
+
+            var cfg = ModuleLayer.boot().configuration().resolveAndBind(ModuleFinder.of(), ModuleFinder.ofSystem(), List.of());
+            var cl = new ModuleClassLoader("MC-BOOTSTRAP", cfg, List.of(ModuleLayer.boot()));
+            var clold = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(cl);
+
+            try {
+                var launcher = Class.forName(Launcher.class.getName(), true, cl);
+                var main = launcher.getMethod("main", String[].class);
+                main.invoke(null, (Object)new String[]{"--version", "1.0", "--launchTarget", "testharness"});
+            } catch (Exception e) {
+                sneak(e);
+            } finally {
+                Thread.currentThread().setContextClassLoader(clold);
+            }
         }
     }
 
@@ -83,5 +104,10 @@ public class TestModLauncherBase {
                 }
             };
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <E extends Throwable, R> R sneak(Throwable e) throws E {
+        throw (E)e;
     }
 }
