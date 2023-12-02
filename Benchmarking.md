@@ -1,9 +1,6 @@
 __Running the benchmark__
 
 The EventBus has JMH Benchmarks.
-The gradle jmh tasks runs them, but you need to either disable the daemon with `--no-daemon` or stop it before running it again, because otherwise the next benchmark will crash.
+The gradle `jmh` task runs them, and coolates all data into a easily understandable markdown file `jmh_results.md`, as well as provides the `jmh_data_output.json` file which can be renamed to `jmh_data_input.json`. Doing so will cause the markdown file to have easily understandable comparisons. This makes creating reports of changes before and after a commit/refactor really easy.
 
-Due to windows command argument length limitations, you also need to have the JVM arg jmh.separateClasspathJAR is set by default to work around this issue.
-This requires you the project folder to be on the same partition as your gradle cache folder, though.
-
-If you you a linux/macos user, you can try disabling the flag in the build.gradle jmh section to put this project folder on a different partition than the gradle cache
+By default it will run the JMH tests using a single java toolchain. If you specify the `bulk_tests` property it will instead run the tests multiple times using different java distributers and versions. This is not recommended unless you have a lot of time to kill. But it may be useful to verify implementation performance across multiple java versions.

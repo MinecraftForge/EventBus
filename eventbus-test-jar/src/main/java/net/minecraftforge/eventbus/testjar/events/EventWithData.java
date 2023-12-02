@@ -3,41 +3,35 @@
  * SPDX-License-Identifier: LGPL-2.1-only
  */
 
-package net.minecraftforge.eventbus.benchmarks.compiled;
+package net.minecraftforge.eventbus.testjar.events;
 
 import net.minecraftforge.eventbus.api.Event;
 
-public class EventWithData extends Event
-{
+public class EventWithData extends Event {
     private final String data;
     private final int foo;
     private final boolean bar;
 
     // This constructor is needed for events if they do not pass through the transformer
-    public EventWithData()
-    {
+    public EventWithData() {
         this(null, 0, false);
     }
 
-    public EventWithData(String data, int foo, boolean bar)
-    {
+    public EventWithData(String data, int foo, boolean bar) {
         this.data = data;
         this.foo = foo;
         this.bar = bar;
     }
 
-    public int getFoo()
-    {
+    public int getFoo() {
         return foo;
     }
 
-    public String getData()
-    {
+    public String getData() {
         return data;
     }
 
-    public boolean isBar()
-    {
+    public boolean isBar() {
         return bar;
     }
 }

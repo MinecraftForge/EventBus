@@ -4,9 +4,10 @@ plugins {
     id 'eclipse'
     id 'java-library'
     id 'maven-publish'
-    id 'org.cadixdev.licenser' version '0.6.1'
+    id 'com.github.ben-manes.versions' version '0.50.0'
     id 'org.gradlex.extra-java-module-info' version '1.4.2'
-    id 'net.minecraftforge.gradleutils' version '[2.1.2,)'
+    id 'net.minecraftforge.gradleutils' version '2.3.3'
+    id 'net.minecraftforge.licenser' version '1.0.1'
 }
 
 group = 'net.minecraftforge'
@@ -37,7 +38,7 @@ extraJavaModuleInfo {
 }
 
 changelog {
-    fromTag "1.0.0"
+    from '1.0.0'
 }
 
 jar {
@@ -66,7 +67,7 @@ publishing {
             name = 'Event Bus'
             description = 'High performance Event Bus library'
             url = 'https://github.com/MinecraftForge/EventBus'
-        
+
             PomUtils.setGitHubDetails(pom, 'EventBus')
 
             license PomUtils.Licenses.LGPLv2_1
@@ -77,7 +78,7 @@ publishing {
             }
         }
     }
-    
+
     repositories {
         maven gradleutils.publishingForgeMaven
     }
@@ -95,4 +96,8 @@ allprojects {
         'Oracle':    (16..21),
         'SAP':       (16..20)
     ]
+    
+    // Tests are expensive to run all variants, so only run if asked to
+    if (!project.hasProperty('bulk_tests'))
+        ext.VALID_VMS = ['Adoptium':  [17] ]
 }

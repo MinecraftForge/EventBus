@@ -1,9 +1,8 @@
 plugins {
-    id 'eclipse'
     id 'java-library'
-    id 'org.gradlex.extra-java-module-info' version '1.4.2'
-    id 'net.minecraftforge.gradleutils' version '[2.1.2,)'
-    id 'com.diffplug.eclipse.apt' version '3.43.0'
+    id 'org.gradlex.extra-java-module-info'
+    id 'net.minecraftforge.gradleutils'
+    id 'net.minecraftforge.licenser'
 }
 
 repositories {
@@ -15,115 +14,97 @@ java {
     toolchain.languageVersion = JavaLanguageVersion.of(16)
 }
 
+license {
+    header = rootProject.file("LICENSE-header.txt")
+    newLine = false
+}
+
 dependencies {
     compileOnly(libs.nulls)
-    
+
     implementation(rootProject)
     implementation(libs.bundles.asm) // Needed by ModLauncher
     implementation(libs.junit.api)
     implementation(libs.securemodules)
     implementation(libs.modlauncher)
+    implementation(libs.unsafe)
     implementation(project(':eventbus-test-jar'))
-    
-    implementation('org.openjdk.jmh:jmh-core:1.35')
-    runtimeOnly('org.openjdk.jmh:jmh-generator-annprocess:1.35')
-    annotationProcessor('org.openjdk.jmh:jmh-generator-annprocess:1.35')
+
+    implementation('org.openjdk.jmh:jmh-core:1.37')
+    runtimeOnly('org.openjdk.jmh:jmh-generator-annprocess:1.37')
+    annotationProcessor('org.openjdk.jmh:jmh-generator-annprocess:1.37')
 }
 
 extraJavaModuleInfo {
     failOnMissingModuleInfo = false
-    automaticModule('jmh-core-1.35.jar', 'jmh.core')
-    automaticModule('jopt-simple-5.0.4.jar', 'jopt.simple')
+    automaticModule('org.openjdk.jmh:jmh-core', 'jmh.core')
+    automaticModule('net.sf.jopt-simple:jopt-simple', 'jopt.simple')
 }
 
-def jmhArgs = [
-    '-bm', 'AverageTime',  // Benchmark mode. Available modes are: [Throughput, AverageTime, SampleTime, SingleShotTime, All]
-    '-r',  '5s',  // Minimum iteration time
-    '-w',  '5s',  // Minimum warmup time
-    '-wi', '2',   // Warmup iterations
-    '-i',  '2',   // Iterations
-    '-tu', 'ns',  // Time unit: [m, s, ms, us, ns]
-    '-f',  '1',   // Forks per benchmark
-    '-rf', 'json', // Results File Format
-    '-prof', 'stack', // Profiler: Simple and naive Java stack profiler
-    '-prof', 'jfr',   // Profiler: Java Flight Recorder profiler
-]
-
-tasks.register('jmh', JavaExec) {
-    dependsOn(rootProject.build)
-    dependsOn(build)
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'org.openjdk.jmh.Main'
-    args jmhArgs + ['-rff', rootProject.file('build/jmh_results.json')]
-
-    if (project.hasProperty('javaVendor') && project.hasProperty('javaVersion')) {
-        javaLauncher.set(javaToolchains.launcherFor {
-            it.vendor.set(JvmVendorSpec."${project.property('javaVendor').toUpperCase(Locale.ROOT)}" as JvmVendorSpec)
-            it.languageVersion.set(JavaLanguageVersion.of(project.property('javaVersion') as int))
-            it.implementation.set(JvmImplementation.VENDOR_SPECIFIC)
-        })
-    } else {
-        javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
-    }
+tasks.register('aggregateJmh', AggregateJmh) {
+    if (rootProject.file('jmh_data_input.json').exists())
+        inputData = rootProject.file('jmh_data_input.json')
+    timeUnit = 'ns'
+    collate = true
+    output = rootProject.file('jmh_results.md')
+    outputData = rootProject.file('jmh_data_output.json')
 }
 
-// JMH's are expensive to run all variants, so only run if asked to
-if (project.hasProperty('local_jmh')) { 
-    configurations {
-        groovyScript
-    }
+tasks.register('archiveJfr', ArchiveJfr) {
+    input = file("build/jmh_profile_results/last_run/")
+    output = file('build/jmh_profile_results/' + new Date().format('yyyMMdd.HHmmss') + '/')
+}
 
-    dependencies {
-        groovyScript 'org.apache.ivy:ivy:2.4.0'
-        groovyScript 'org.codehaus.groovy:groovy-all:3.0.19'
-    }
+tasks.register('jmh').configure {
+    dependsOn('aggregateJmh', 'archiveJfr')
+}
 
-    tasks.register('jmhAll', JavaExec) {
-        classpath = configurations.groovyScript
-        main = 'groovy.ui.GroovyMain'
-        args '.github/workflows/aggregate-jmh-results.groovy'
-        workingDir rootProject.projectDir
-    }
-
-    VALID_VMS.each { javaVendor, javaVersions ->
-        javaVersions.each { javaVersion ->
-            def task = tasks.register("jmh${javaVendor}${javaVersion}", JavaExec) {
-                def output = rootProject.file("build/jmh_results/jmh-${javaVendor}${javaVersion}/jmh_results.json")
-                dependsOn(rootProject.build)
-                dependsOn(build)
-                classpath = sourceSets.main.runtimeClasspath
-                mainClass = 'org.openjdk.jmh.Main'
-                args jmhArgs + [
-                    '-v', 'SILENT', // Verbosity [SILENT, NORMAL, EXTRA]
-                    '-rff', output
-                ]
-                doFirst { output.parentFile.mkdirs() }
-                javaLauncher.set(javaToolchains.launcherFor {
-                    it.vendor.set(JvmVendorSpec."${javaVendor.toUpperCase(Locale.ROOT)}" as JvmVendorSpec)
-                    it.languageVersion.set(JavaLanguageVersion.of(javaVersion))
-                    it.implementation.set(JvmImplementation.VENDOR_SPECIFIC)
-                })
+VALID_VMS.each { javaVendor, javaVersions ->
+    javaVersions.each { int javaVersion ->
+        def output = file("build/jmh_results/jmh-${javaVendor}-${javaVersion}.json")
+        def outputJfr = file("build/jmh_profile_results/last_run/${javaVendor}-${javaVersion}/")
+        def task = tasks.register("jmh${javaVendor}${javaVersion}", JavaExec) {
+            classpath = sourceSets.main.runtimeClasspath
+            mainModule = 'net.minecraftforge.eventbus.jmh'
+            mainClass = 'net.minecraftforge.eventbus.benchmarks.Main'
+            modularity.inferModulePath = true
+            systemProperty 'jmh.ignoreLock', 'true'
+            jvmArgs += '-Xmx8g' // Some tests are fast enough that they generate millions of class files, so, give more memory
+            args = [
+                    '-bm', 'AverageTime',  // Benchmark mode. Available modes are: [Throughput, AverageTime, SampleTime, SingleShotTime, All]
+                    '-r',  '5s',  // Minimum iteration time
+                    '-w',  '5s',  // Minimum warmup time
+                    '-wi', '2',   // Warmup iterations, Only 2 because running all benchmarks takes a long time
+                    '-i',  '5',   // Iterations
+                    '-tu', 'ns',  // Time unit: [m, s, ms, us, ns]
+                    '-f',  '1',   // Forks per benchmark
+                    '-rf', 'json', // Results File Format
+                    '-prof', 'stack', // Profiler: Simple and naive Java stack profiler
+                    '-prof', "jfr:dir=${outputJfr}", // Profiler: Java Flight Recorder profiler
+                    '-v', 'EXTRA', // Verbosity [SILENT, NORMAL, EXTRA]
+                    '-foe', 'true', // Fail on error
+                    '-rff', output,
+            ]
+            if (project.hasProperty('bench'))
+                args += project.property('bench')
+                
+            doFirst {
+                if (outputJfr.exists())
+                    outputJfr.deleteDir()
+                if (!output.parentFile.exists())
+                    output.parentFile.mkdirs() 
+                if (output.exists())
+                    output.delete()
             }
-            jmhAll.dependsOn(task)
+            javaLauncher.set(javaToolchains.launcherFor {
+                it.vendor.set(JvmVendorSpec."${javaVendor.toUpperCase(Locale.ROOT)}" as JvmVendorSpec)
+                it.languageVersion.set(JavaLanguageVersion.of(javaVersion))
+                it.implementation.set(JvmImplementation.VENDOR_SPECIFIC)
+            })
         }
+        aggregateJmh.dependsOn(task)
+        aggregateJmh.inputs.file(output)
+        archiveJfr.dependsOn(task)
+        archiveJfr.inputs.dir(outputJfr)
     }
-}
-
-// Hack eclipse to add the annotation processors in TODO: Upstream this to com.diffplug.eclipse.apt ?
-eclipse {
-    synchronizationTasks(eclipseFactorypath, eclipseJdt, eclipseJdtApt)
-    classpath {
-        file.beforeMerged {
-            file('.apt_generated').mkdirs()
-            def generated = new org.gradle.plugins.ide.eclipse.model.SourceFolder('.apt_generated', 'bin/.apt_generated')
-            generated.entryAttributes['ignore_optional_problems'] = true
-            entries << generated
-        }
-    }
-}
-
-// Hack eclipse into knowing that the gradle deps are modules
-eclipse.classpath {
-    containers 'org.eclipse.buildship.core.gradleclasspathcontainer'
-    file.whenMerged { entries.findAll { it.kind == 'lib' || it.path == 'org.eclipse.buildship.core.gradleclasspathcontainer' }.each { it.entryAttributes['module'] = 'true' } }
 }

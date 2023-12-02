@@ -15,21 +15,21 @@ dependencyResolutionManagement {
             // ModLauncher stack
             library('modlauncher', 'net.minecraftforge:modlauncher:10.1.1')
             library('securemodules', 'net.minecraftforge:securemodules:2.2.2')
-			library('unsafe', 'net.minecraftforge:unsafe:0.9.2')
-            
+            library('unsafe', 'net.minecraftforge:unsafe:0.9.2')
+
             // Generics from lambdas
             library('typetools', 'net.jodah:typetools:0.6.3')
-            
+
             library('nulls', 'org.jetbrains:annotations:23.0.0')
             library('jopt-simple', 'net.sf.jopt-simple:jopt-simple:5.0.4')
             library('log4j-api', 'org.apache.logging.log4j:log4j-api:2.17.1')
-            
-			version('junit', '5.10.0')
-			library('junit-api', 'org.junit.jupiter', 'junit-jupiter-api').versionRef('junit')
-			library('junit-engine', 'org.junit.jupiter', 'junit-jupiter-engine').versionRef('junit')
-			library('junit-platform-launcher', 'org.junit.platform:junit-platform-launcher:1.10.0')
-			bundle('junit-runtime', ['junit-engine', 'junit-platform-launcher'])
-            
+
+            version('junit', '5.10.1')
+            library('junit-api', 'org.junit.jupiter', 'junit-jupiter-api').versionRef('junit')
+            library('junit-engine', 'org.junit.jupiter', 'junit-jupiter-engine').versionRef('junit')
+            library('junit-platform-launcher', 'org.junit.platform:junit-platform-launcher:1.10.1')
+            bundle('junit-runtime', ['junit-engine', 'junit-platform-launcher'])
+
             version('asm', '9.6')
             library('asm',         'org.ow2.asm', 'asm'        ).versionRef('asm')
             library('asm-tree',    'org.ow2.asm', 'asm-tree'   ).versionRef('asm')
@@ -43,3 +43,5 @@ rootProject.name = 'EventBus'
 include 'eventbus-jmh'
 include 'eventbus-test'
 include 'eventbus-test-jar'
+if (file('eventbus-wrapper').exists())
+    include 'eventbus-wrapper'

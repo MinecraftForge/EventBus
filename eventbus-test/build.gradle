@@ -1,9 +1,10 @@
 plugins {
-    id 'org.cadixdev.licenser' version '0.6.1'
     id 'eclipse'
     id 'java-library'
-    id 'org.gradlex.extra-java-module-info' version '1.4.2'
-    id 'net.minecraftforge.gradleutils' version '[2.1.2,)'
+    id 'net.minecraftforge.gradleutils'
+    id 'net.minecraftforge.licenser'
+    id 'org.gradlex.extra-java-module-info'
+    id 'test-report-aggregation'
 }
 
 repositories {
@@ -17,12 +18,6 @@ java {
 
 license {
     header = rootProject.file("LICENSE-header.txt")
-}
-
-test {
-    useJUnitPlatform()
-    reports.html.destination = rootProject.file("build/reports/")
-    reports.junitXml.destination = rootProject.file("build/test-results/")
 }
 
 dependencies {
@@ -41,48 +36,31 @@ dependencies {
 
 extraJavaModuleInfo {
     failOnMissingModuleInfo = false
-    automaticModule('jopt-simple-5.0.4.jar', 'jopt.simple')
+    automaticModule('net.sf.jopt-simple:jopt-simple', 'jopt.simple')
 }
 
-// If we are being told a specific vendor then we are probably being run in parallel
-if (project.hasProperty('javaVendor') && project.hasProperty('javaVersion')) {
-    test.javaLauncher.set(javaToolchains.launcherFor {
-        it.vendor.set(JvmVendorSpec."${project.property('javaVendor').toUpperCase(Locale.ROOT)}" as JvmVendorSpec)
-        it.languageVersion.set(JavaLanguageVersion.of(project.property('javaVersion') as int))
-        it.implementation.set(JvmImplementation.VENDOR_SPECIFIC)
-    })
-} else if (project.hasProperty('enable_bulk_tests')) { // Some of the tests can take a long time, so opt-into bulk testing
-    configurations {
-        groovyScript
-    }
+tasks.register('testAll', AggregateTest) {
+    input = file('build/test-results/')
+    output = rootProject.file('test_results.html')
+}
 
-    dependencies {
-        groovyScript 'org.apache.ivy:ivy:2.4.0'
-        groovyScript 'org.codehaus.groovy:groovy-all:3.0.19'
-    }
-
-    tasks.register('collectTests', JavaExec) {
-        classpath = configurations.groovyScript
-        main = 'groovy.ui.GroovyMain'
-        args '.github/workflows/aggregate-junit-tests.groovy'
-        workingDir rootProject.projectDir
-    }
-
-    VALID_VMS.each { javaVendor, javaVersions ->
-        javaVersions.each { javaVersion ->
-            def task = tasks.register("test${javaVendor}${javaVersion}", Test) {
-                useJUnitPlatform()
-                javaLauncher.set(javaToolchains.launcherFor {
-                    it.vendor.set(JvmVendorSpec."${javaVendor.toUpperCase(Locale.ROOT)}" as JvmVendorSpec)
-                    it.languageVersion.set(JavaLanguageVersion.of(javaVersion))
-                    it.implementation.set(JvmImplementation.VENDOR_SPECIFIC)
-                })
-                reports.html.destination = rootProject.file("build/test_artifacts/test-reports-${javaVendor}-${javaVersion}/")
-                reports.junitXml.destination = rootProject.file("build/test_artifacts/test-results-${javaVendor}-${javaVersion}/")
-            }
-            test.dependsOn(task)
-            collectTests.mustRunAfter(task)
+VALID_VMS.each { javaVendor, javaVersions ->
+    javaVersions.each { javaVersion ->
+        def output = file("build/test-results/${javaVendor}-${javaVersion}/")
+        output.mkdirs()
+        def task = tasks.register("test${javaVendor}${javaVersion}", Test) {
+            useJUnitPlatform()
+            javaLauncher.set(javaToolchains.launcherFor {
+                it.vendor.set(JvmVendorSpec."${javaVendor.toUpperCase(Locale.ROOT)}" as JvmVendorSpec)
+                it.languageVersion.set(JavaLanguageVersion.of(javaVersion))
+                it.implementation.set(JvmImplementation.VENDOR_SPECIFIC)
+            })
+            reports.html.destination = file("build/test-reports/${javaVendor}-${javaVersion}/")
+            reports.junitXml.destination = output
         }
+        testAll.inputs.dir(output)
+        testAll.dependsOn(task)
+        testAll.mustRunAfter(task)
     }
 }
 

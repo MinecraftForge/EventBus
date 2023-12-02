@@ -22,3 +22,8 @@ out
 
 # occupational hazzards
 */logs/
+/jmh_data_input.json
+/jmh_data_output.json
+/jmh_results.md
+/test_results.html
+/eventbus-wrapper/

@@ -5,7 +5,11 @@
 
 open module net.minecraftforge.eventbus.testjars {
     requires transitive net.minecraftforge.eventbus;
+    requires org.objectweb.asm;
+    requires org.objectweb.asm.commons;
+	requires net.minecraftforge.unsafe;
 
     exports net.minecraftforge.eventbus.testjar;
-    exports net.minecraftforge.eventbus.benchmarks.compiled;
+    exports net.minecraftforge.eventbus.testjar.events;
+    exports net.minecraftforge.eventbus.testjar.benchmarks;
 }
