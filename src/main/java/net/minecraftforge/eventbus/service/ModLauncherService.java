@@ -42,11 +42,9 @@ public class ModLauncherService implements ILaunchPluginService {
 
     @Override
     public EnumSet<Phase> handlesClass(final Type classType, final boolean isEmpty) {
-        if (isEmpty) {
+        if (isEmpty)
             return getEventBusEngine().findASMEventDispatcher(classType) ? DOIT : NAY;
-        } else {
+        else
             return getEventBusEngine().handlesClass(classType) ? YAY : NAY;
-        }
-
     }
 }

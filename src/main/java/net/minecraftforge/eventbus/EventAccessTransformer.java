@@ -12,47 +12,45 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.lang.reflect.Modifier;
-import java.util.Collections;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import static net.minecraftforge.eventbus.LogMarkers.EVENTBUS;
 import static net.minecraftforge.eventbus.Names.SUBSCRIBE_EVENT;
 
-public class EventAccessTransformer
-{
-
+public class EventAccessTransformer {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    public boolean transform(final ClassNode classNode, final Type classType)
-    {
-        AtomicBoolean changes = new AtomicBoolean();
-        classNode.methods.stream().
-                filter(m-> Optional.ofNullable(m.visibleAnnotations).
-                        orElse(Collections.emptyList()).
-                        stream().anyMatch(a->Objects.equals(a.desc, SUBSCRIBE_EVENT))).
-                peek(m->{if (Modifier.isPrivate(m.access)) illegalPrivateAccess(m, classNode);}).
-                filter(m->!Modifier.isPrivate(m.access)).
-                peek(mn->LOGGER.debug(EVENTBUS, "Transforming @SubscribeEvent method to public {}.{}", classNode.name, mn.name)).
-                peek($ -> classNode.access = changeAccess(classNode.access, changes)).
-                forEach(mn1 -> toPublic(mn1, changes));
-        return changes.get();
+    public boolean transform(ClassNode classNode, Type classType) {
+        boolean changed = false;
+
+        for (var method : classNode.methods) {
+            if (!hasAnnotation(method)) continue;
+            if (Modifier.isPrivate(method.access)) {
+                LOGGER.error(EVENTBUS, "Illegal private member annotated as @SubscribeEvent : {}.{}", classNode.name, method.name);
+                throw new RuntimeException("Illegal private member with @SubscribeEvent annotation");
+            } else {
+                LOGGER.debug(EVENTBUS, "Transforming @SubscribeEvent method to public {}.{}", classNode.name, method.name);
+                int access = classNode.access & ~(Opcodes.ACC_PRIVATE | Opcodes.ACC_PROTECTED) | Opcodes.ACC_PUBLIC;
+                if (method.access != access) {
+                    method.access = access;
+                    changed = true;
+                }
+
+                access = method.access & ~(Opcodes.ACC_PRIVATE | Opcodes.ACC_PROTECTED) | Opcodes.ACC_PUBLIC;
+                if (method.access != access) {
+                    method.access = access;
+                    changed = true;
+                }
+            }
+        }
+        return changed;
     }
 
-    private void illegalPrivateAccess(final MethodNode mn, final ClassNode cn) {
-        LOGGER.error(EVENTBUS, "Illegal private member annotated as @SubscribeEvent : {}.{}", cn.name, mn.name);
-        throw new RuntimeException("Illegal private member with @SubscribeEvent annotation");
-    }
-
-    private static int changeAccess(final int access, AtomicBoolean changeTracking) {
-        int ax = access & ~(Opcodes.ACC_PRIVATE | Opcodes.ACC_PROTECTED) | Opcodes.ACC_PUBLIC;
-        changeTracking.compareAndSet(false, ax != access);
-        return ax;
-    }
-
-    private void toPublic(final MethodNode mn, AtomicBoolean changeTracking)
-    {
-        mn.access = changeAccess(mn.access, changeTracking);
+    private boolean hasAnnotation(MethodNode method) {
+        if (method.visibleAnnotations == null)
+            return false;
+        for (var ann : method.visibleAnnotations) {
+            if (SUBSCRIBE_EVENT.equals(ann.desc))
+                return true;
+        }
+        return false;
     }
 }

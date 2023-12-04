@@ -4,8 +4,7 @@
  */
 package net.minecraftforge.eventbus.api;
 
-public interface IEventExceptionHandler
-{
+public interface IEventExceptionHandler {
     /**
      * Fired when a EventListener throws an exception for the specified event on the event bus.
      * After this function returns, the original Throwable will be propagated upwards.

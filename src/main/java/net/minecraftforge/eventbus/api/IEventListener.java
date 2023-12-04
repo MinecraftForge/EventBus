@@ -8,8 +8,7 @@ package net.minecraftforge.eventbus.api;
 /**
  * Event listeners are wrapped with implementations of this interface
  */
-public interface IEventListener
-{
+public interface IEventListener {
     void invoke(Event event);
 
     default String listenerName() {

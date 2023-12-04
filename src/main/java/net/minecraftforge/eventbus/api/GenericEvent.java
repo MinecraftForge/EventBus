@@ -13,18 +13,15 @@ import java.lang.reflect.Type;
  *
  * @param <T> The type to filter this generic event for
  */
-public class GenericEvent<T> extends Event implements IGenericEvent<T>
-{
+public class GenericEvent<T> extends Event implements IGenericEvent<T> {
     private Class<T> type;
     public GenericEvent() {}
-    protected GenericEvent(Class<T> type)
-    {
+    protected GenericEvent(Class<T> type) {
         this.type = type;
     }
 
     @Override
-    public Type getGenericType()
-    {
+    public Type getGenericType() {
         return type;
     }
 }

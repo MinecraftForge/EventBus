@@ -23,8 +23,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  */
 @Retention(value = RUNTIME)
 @Target(value = METHOD)
-public @interface SubscribeEvent
-{
+public @interface SubscribeEvent {
     EventPriority priority() default EventPriority.NORMAL;
     boolean receiveCanceled() default false;
 }

@@ -13,10 +13,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.IdentityHashMap;
-import java.util.function.Function;
 
-public class EventListenerHelper
-{
+public class EventListenerHelper {
     private static final LockHelper<Class<?>, ListenerList> listeners = new LockHelper<>(new IdentityHashMap<>());
     private static final ListenerList EVENTS_LIST = new ListenerList();
     private static final LockHelper<Class<?>, Boolean> cancelable = new LockHelper<>(new IdentityHashMap<>());
@@ -30,40 +28,31 @@ public class EventListenerHelper
      * Note: this is much slower than the instance method {@link Event#getListenerList()}.
      * For performance when emitting events, always call that method instead.
      */
-    public static ListenerList getListenerList(Class<?> eventClass)
-    {
+    public static ListenerList getListenerList(Class<?> eventClass) {
         return getListenerListInternal(eventClass, false);
     }
 
-    static ListenerList getListenerListInternal(Class<?> eventClass, boolean fromInstanceCall)
-    {
+    static ListenerList getListenerListInternal(Class<?> eventClass, boolean fromInstanceCall) {
         if (eventClass == Event.class) return EVENTS_LIST; // Small optimization, bypasses all the locks/maps.
         return listeners.computeIfAbsent(eventClass, () -> computeListenerList(eventClass, fromInstanceCall));
     }
 
-    private static ListenerList computeListenerList(Class<?> eventClass, boolean fromInstanceCall)
-    {
+    private static ListenerList computeListenerList(Class<?> eventClass, boolean fromInstanceCall) {
         if (eventClass == Event.class)
-        {
             return new ListenerList();
-        }
 
-        if (fromInstanceCall || Modifier.isAbstract(eventClass.getModifiers()))
-        {
+        if (fromInstanceCall || Modifier.isAbstract(eventClass.getModifiers())) {
             Class<?> superclass = eventClass.getSuperclass();
             ListenerList parentList = getListenerList(superclass);
             return new ListenerList(parentList);
         }
 
-        try
-        {
+        try {
             Constructor<?> ctr = eventClass.getConstructor();
             ctr.setAccessible(true);
             Event event = (Event) ctr.newInstance();
             return event.getListenerList();
-        }
-        catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e)
-        {
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException("Error computing listener list for " + eventClass.getName(), e);
         }
     }

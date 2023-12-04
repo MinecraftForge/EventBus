@@ -11,7 +11,6 @@ import java.lang.reflect.Type;
  *
  * @param <T> The filtering type
  */
-public interface IGenericEvent<T>
-{
+public interface IGenericEvent<T> {
     Type getGenericType();
 }

@@ -19,14 +19,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 /**
  * Base Event class that all other events are derived from
  */
-public class Event
-{
+public class Event {
     @Retention(value = RUNTIME)
     @Target(value = TYPE)
     public @interface HasResult{}
 
-    public enum Result
-    {
+    public enum Result {
         DENY,
         DEFAULT,
         ALLOW
@@ -45,8 +43,7 @@ public class Event
      * Note:
      * Events with the Cancelable annotation will have this method automatically added to return true.
      */
-    public boolean isCancelable()
-    {
+    public boolean isCancelable() {
         return EventListenerHelper.isCancelable(this.getClass());
     }
 
@@ -54,8 +51,7 @@ public class Event
      * Determine if this event is canceled and should stop executing.
      * @return The current canceled state
      */
-    public boolean isCanceled()
-    {
+    public boolean isCanceled() {
         return isCanceled;
     }
 
@@ -72,8 +68,7 @@ public class Event
      *
      * @param cancel The new canceled value
      */
-    public void setCanceled(boolean cancel)
-    {
+    public void setCanceled(boolean cancel) {
         if (!isCancelable())
         {
             throw new UnsupportedOperationException(
@@ -94,16 +89,14 @@ public class Event
      * Note:
      * Events with the HasResult annotation will have this method automatically added to return true.
      */
-    public boolean hasResult()
-    {
+    public boolean hasResult() {
         return EventListenerHelper.hasResult(this.getClass());
     }
 
     /**
      * Returns the value set as the result of this event
      */
-    public Result getResult()
-    {
+    public Result getResult() {
         return result;
     }
 
@@ -115,8 +108,7 @@ public class Event
      *
      * @param value The new result
      */
-    public void setResult(Result value)
-    {
+    public void setResult(Result value) {
         result = value;
     }
 
@@ -130,26 +122,22 @@ public class Event
      *
      * @return Listener List
      */
-    public ListenerList getListenerList()
-    {
+    public ListenerList getListenerList() {
         return EventListenerHelper.getListenerListInternal(this.getClass(), true);
     }
 
     @Nullable
-    public EventPriority getPhase()
-    {
+    public EventPriority getPhase() {
         return this.phase;
     }
 
-    public void setPhase(@NotNull EventPriority value)
-    {
+    public void setPhase(@NotNull EventPriority value) {
         Objects.requireNonNull(value, "setPhase argument must not be null");
         if (seenPhase(value)) throw new IllegalArgumentException("Attempted to set event phase to "+ value +" when already "+ phase);
         phase = value;
     }
 
-    private boolean seenPhase(@NotNull EventPriority value)
-    {
+    private boolean seenPhase(@NotNull EventPriority value) {
         int prev = phase == null ? -1 : phase.ordinal();
         return prev >= value.ordinal();
     }

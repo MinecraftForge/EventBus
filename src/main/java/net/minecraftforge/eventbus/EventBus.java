@@ -27,7 +27,6 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     private static AtomicInteger maxID = new AtomicInteger(0);
     private final boolean trackPhases;
 
-
     private ConcurrentHashMap<Object, List<IEventListener>> listeners = new ConcurrentHashMap<>();
     private final int busID = maxID.getAndIncrement();
     private final IEventExceptionHandler exceptionHandler;
@@ -65,59 +64,74 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     private void registerClass(final Class<?> clazz) {
-        Arrays.stream(clazz.getMethods()).
-                filter(m->Modifier.isStatic(m.getModifiers())).
-                filter(m->m.isAnnotationPresent(SubscribeEvent.class)).
-                forEach(m->registerListener(clazz, m, m));
+        for (var method : clazz.getMethods()) {
+            if (!Modifier.isStatic(method.getModifiers()) || !method.isAnnotationPresent(SubscribeEvent.class))
+                continue;
+            registerListener(clazz, method, method);
+        }
     }
 
-    private Optional<Method> getDeclMethod(final Class<?> clz, final Method in) {
-        try {
-            return Optional.of(clz.getDeclaredMethod(in.getName(), in.getParameterTypes()));
-        } catch (NoSuchMethodException nse) {
-            return Optional.empty();
+    private void registerObject(Object obj) {
+        var methods = obj.getClass().getMethods();
+        record Key(String name, Class<?>[] args) {}
+        var unannotated = new HashMap<Key, Method>();
+        for (var method : methods) {
+            if (Modifier.isStatic(method.getModifiers()))
+                continue;
+            if (method.isAnnotationPresent(SubscribeEvent.class))
+                registerListener(obj, method, method);
+            else if (method.getDeclaringClass() != Object.class) // No need to check Object, it shouldn't have the annotations unless someone got really fucky
+                unannotated.put(new Key(method.getName(), method.getParameterTypes()), method);
         }
 
-    }
-    private void registerObject(final Object obj) {
-        final HashSet<Class<?>> classes = new HashSet<>();
-        typesFor(obj.getClass(), classes);
-        Arrays.stream(obj.getClass().getMethods()).
-                filter(m->!Modifier.isStatic(m.getModifiers())).
-                forEach(m -> classes.stream().
-                        map(c->getDeclMethod(c, m)).
-                        filter(rm -> rm.isPresent() && rm.get().isAnnotationPresent(SubscribeEvent.class)).
-                        findFirst().
-                        ifPresent(rm->registerListener(obj, m, rm.get())));
+        // Bit of a optimization for the most common use case. No need to search parents if there are no un-annotated methods
+        if (unannotated.isEmpty())
+            return;
+
+        var classes = new LinkedHashSet<Class<?>>();
+        var stack = new Stack<Class<?>>();
+        parentTypes(classes, stack, obj.getClass());
+
+        while (!stack.isEmpty()) {
+            var cls = stack.pop();
+            for (var method : cls.getDeclaredMethods()) {
+                if (Modifier.isStatic(method.getModifiers()) || !method.isAnnotationPresent(SubscribeEvent.class))
+                    continue;
+                var needed = unannotated.remove(new Key(method.getName(), method.getParameterTypes()));
+                if (needed != null)
+                    registerListener(obj, method, method);
+            }
+            if (!unannotated.isEmpty())
+                parentTypes(classes, stack, cls);
+        }
     }
 
-
-    private void typesFor(final Class<?> clz, final Set<Class<?>> visited) {
-        if (clz.getSuperclass() == null) return;
-        typesFor(clz.getSuperclass(),visited);
-        Arrays.stream(clz.getInterfaces()).forEach(i->typesFor(i, visited));
-        visited.add(clz);
+    private void parentTypes(Set<Class<?>> classes, Stack<Class<?>> stack, Class<?> cls) {
+        for (var inf : cls.getInterfaces()) {
+            if (classes.add(inf))
+                stack.push(inf);
+        }
+        var parent = cls.getSuperclass();
+        if (parent != null && parent != Object.class) {
+            if (classes.add(parent))
+                stack.push(parent);
+        }
     }
 
     @Override
-    public void register(final Object target)
-    {
+    public void register(final Object target) {
         if (listeners.containsKey(target))
-        {
             return;
-        }
 
-        if (target.getClass() == Class.class) {
+        if (target.getClass() == Class.class)
             registerClass((Class<?>) target);
-        } else {
+        else
             registerObject(target);
-        }
     }
 
     private void registerListener(final Object target, final Method method, final Method real) {
         Class<?>[] parameterTypes = method.getParameterTypes();
-        if (parameterTypes.length != 1)
-        {
+        if (parameterTypes.length != 1) {
             throw new IllegalArgumentException(
                     "Method " + method + " has @SubscribeEvent annotation. " +
                     "It has " + parameterTypes.length + " arguments, " +
@@ -127,33 +141,34 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
         Class<?> eventType = parameterTypes[0];
 
-        if (!Event.class.isAssignableFrom(eventType))
-        {
+        if (!Event.class.isAssignableFrom(eventType)) {
             throw new IllegalArgumentException(
                     "Method " + method + " has @SubscribeEvent annotation, " +
                             "but takes an argument that is not an Event subtype : " + eventType);
         }
-        if (baseType != Event.class && !baseType.isAssignableFrom(eventType))
-        {
+
+        if (baseType != Event.class && !baseType.isAssignableFrom(eventType)) {
             throw new IllegalArgumentException(
                     "Method " + method + " has @SubscribeEvent annotation, " +
                             "but takes an argument that is not a subtype of the base type " + baseType + ": " + eventType);
         }
 
         if (!Modifier.isPublic(method.getModifiers()))
-        {
             throw new IllegalArgumentException("Failed to create ASMEventHandler for " + target.getClass().getName() + "." + method.getName() + Type.getMethodDescriptor(method) + " it is not public and our transformer is disabled");
-        }
 
         register(eventType, target, real);
     }
 
-    private <T extends Event> Predicate<T> passCancelled(final boolean ignored) {
-        return e-> ignored || !e.isCancelable() || !e.isCanceled();
+    private static final Predicate<Event> checkCancelled = e -> !e.isCancelable() || !e.isCanceled();
+    @SuppressWarnings("unchecked")
+    private <T extends Event> Predicate<T> passCancelled(boolean ignored) {
+        return ignored ? null : (Predicate<T>)checkCancelled;
     }
 
-    private <T extends GenericEvent<? extends F>, F> Predicate<T> passGenericFilter(Class<F> type) {
-        return e->e.getGenericType() == type;
+    private <T extends GenericEvent<? extends F>, F> Predicate<T> passGenericFilter(Class<F> type, boolean ignored) {
+        if (ignored)
+            return e -> e.getGenericType() == type;
+        return e -> e.getGenericType() == type && (!e.isCancelable() || !e.isCanceled());
     }
 
     private void checkNotGeneric(final Consumer<? extends Event> consumer) {
@@ -161,9 +176,8 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     private void checkNotGeneric(final Class<? extends Event> eventType) {
-        if (GenericEvent.class.isAssignableFrom(eventType)) {
+        if (GenericEvent.class.isAssignableFrom(eventType))
             throw new IllegalArgumentException("Cannot register a generic event listener with addListener, use addGenericListener");
-        }
     }
 
     @Override
@@ -202,12 +216,12 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
     @Override
     public <T extends GenericEvent<? extends F>, F> void addGenericListener(final Class<F> genericClassFilter, final EventPriority priority, final boolean receiveCancelled, final Consumer<T> consumer) {
-        addListener(priority, passGenericFilter(genericClassFilter).and(passCancelled(receiveCancelled)), consumer);
+        addListener(priority, passGenericFilter(genericClassFilter, receiveCancelled), consumer);
     }
 
     @Override
     public <T extends GenericEvent<? extends F>, F> void addGenericListener(final Class<F> genericClassFilter, final EventPriority priority, final boolean receiveCancelled, final Class<T> eventType, final Consumer<T> consumer) {
-        addListener(priority, passGenericFilter(genericClassFilter).and(passCancelled(receiveCancelled)), eventType, consumer);
+        addListener(priority, passGenericFilter(genericClassFilter, receiveCancelled), eventType, consumer);
     }
 
     @SuppressWarnings("unchecked")
@@ -240,14 +254,11 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     @SuppressWarnings("unchecked")
     private <T extends Event> void doCastFilter(final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer, final Event e) {
         T cast = (T)e;
-        if (filter.test(cast))
-        {
+        if (filter == null || filter.test(cast))
             consumer.accept(cast);
-        }
     }
 
-    private void register(Class<?> eventType, Object target, Method method)
-    {
+    private void register(Class<?> eventType, Object target, Method method) {
         try {
             final ASMEventHandler asm = new ASMEventHandler(this.factory, target, method, IGenericEvent.class.isAssignableFrom(eventType));
 
@@ -265,15 +276,13 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     @Override
-    public void unregister(Object object)
-    {
+    public void unregister(Object object) {
         List<IEventListener> list = listeners.remove(object);
-        if(list == null)
+        if (list == null)
             return;
+
         for (IEventListener listener : list)
-        {
             ListenerList.unregisterAll(busID, listener);
-        }
     }
 
     @Override
@@ -282,26 +291,19 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     @Override
-    public boolean post(Event event, IEventBusInvokeDispatcher wrapper)
-    {
+    public boolean post(Event event, IEventBusInvokeDispatcher wrapper) {
         if (shutdown) return false;
         if (checkTypesOnDispatch && !baseType.isInstance(event))
-        {
             throw new IllegalArgumentException("Cannot post event of type " + event.getClass().getSimpleName() + " to this event. Must match type: " + baseType.getSimpleName());
-        }
 
         IEventListener[] listeners = event.getListenerList().getListeners(busID);
         int index = 0;
-        try
-        {
-            for (; index < listeners.length; index++)
-            {
+        try {
+            for (; index < listeners.length; index++) {
                 if (!trackPhases && Objects.equals(listeners[index].getClass(), EventPriority.class)) continue;
                 wrapper.invoke(listeners[index], event);
             }
-        }
-        catch (Throwable throwable)
-        {
+        } catch (Throwable throwable) {
             exceptionHandler.handleException(this, event, listeners, index, throwable);
             throw throwable;
         }
@@ -309,14 +311,12 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     @Override
-    public void handleException(IEventBus bus, Event event, IEventListener[] listeners, int index, Throwable throwable)
-    {
-        LOGGER.error(EVENTBUS, ()->new EventBusErrorMessage(event, index, listeners, throwable));
+    public void handleException(IEventBus bus, Event event, IEventListener[] listeners, int index, Throwable throwable) {
+        LOGGER.error(EVENTBUS, () -> new EventBusErrorMessage(event, index, listeners, throwable));
     }
 
     @Override
-    public void shutdown()
-    {
+    public void shutdown() {
         LOGGER.fatal(EVENTBUS, "EventBus {} shutting down - future events will not be posted.", busID, new Exception("stacktrace"));
         this.shutdown = true;
     }
