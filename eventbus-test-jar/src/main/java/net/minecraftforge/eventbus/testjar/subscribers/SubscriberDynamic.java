@@ -26,7 +26,7 @@ public class SubscriberDynamic {
     public void onSimpleEvent(EventWithData event) { }
 
     public static class Factory {
-        public static final ClassFactory<Consumer<IEventBus>> REGISTER = new ClassFactory<>(SubscriberDynamic.class, cls -> {
+        public static final ClassFactory<Consumer<IEventBus>> REGISTER = new ClassFactory<>("net.minecraftforge.eventbus.testjar.subscribers.SubscriberDynamic", cls -> {
             var inst = cls.getConstructor().newInstance();
             return bus -> bus.register(inst);
         });

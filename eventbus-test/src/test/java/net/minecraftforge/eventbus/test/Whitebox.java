@@ -5,20 +5,13 @@
 
 package net.minecraftforge.eventbus.test;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.function.Function;
+
+import net.minecraftforge.unsafe.UnsafeHacks;
 
 public class Whitebox {
-
-    @SuppressWarnings("unchecked")
-    public static <T> T invokeMethod(final Class<?> clazz, final String methodName) {
-        try {
-            return (T)Arrays.stream(clazz.getMethods()).filter(m->m.getName().equals(methodName)).findFirst().orElseThrow().invoke(null);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     @SuppressWarnings("unchecked")
     public static <T> T invokeMethod(final Object obj, final String methodName) {
@@ -30,22 +23,34 @@ public class Whitebox {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T getInternalState(final Object object, final String fieldName) {
+    public static <A, R> Function<A, R> getMethod(Object obj, String name, Class<A> arg) {
         try {
-            var f = object.getClass().getDeclaredField(fieldName);
-            f.setAccessible(true);
-            return (T)f.get(object);
-        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+            var mtd = obj.getClass().getDeclaredMethod(name, arg);
+            UnsafeHacks.setAccessible(mtd);
+            return a -> {
+                try {
+                    return (R)mtd.invoke(obj, a);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            };
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static Field getField(final Class<?> clazz, final String fieldName) {
+    @SuppressWarnings("unchecked")
+    public static <T> T getInternalState(final Object object, final String fieldName) {
         try {
-            var f = clazz.getDeclaredField(fieldName);
-            f.setAccessible(true);
-            return f;
-        } catch (NoSuchFieldException e) {
+            if (object instanceof Class<?> cls) {
+                var f = cls.getDeclaredField(fieldName);
+                UnsafeHacks.setAccessible(f);
+                return (T)f.get(null);
+            }
+            var f = object.getClass().getDeclaredField(fieldName);
+            UnsafeHacks.setAccessible(f);
+            return (T)f.get(object);
+        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }

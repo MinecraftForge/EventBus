@@ -45,14 +45,16 @@ tasks.register('aggregateJmh', AggregateJmh) {
     if (rootProject.file('jmh_data_input.json').exists())
         inputData = rootProject.file('jmh_data_input.json')
     timeUnit = 'ns'
-    collate = true
+    collate = !project.hasProperty('simpleBench')
     output = rootProject.file('jmh_results.md')
     outputData = rootProject.file('jmh_data_output.json')
+    outputCsv = rootProject.file('jmh_data_output.csv')
 }
 
 tasks.register('archiveJfr', ArchiveJfr) {
+    outputs.upToDateWhen { false }
     input = file("build/jmh_profile_results/last_run/")
-    output = file('build/jmh_profile_results/' + new Date().format('yyyMMdd.HHmmss') + '/')
+    output = file('build/jmh_profile_results/archive/')
 }
 
 tasks.register('jmh').configure {

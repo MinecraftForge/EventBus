@@ -42,13 +42,17 @@ public abstract class Register implements Benchmark {
     public void setupIteration() {
         while (stack.size() < BATCH_COUNT)
             stack.push(factory.create());
+
         if (bus != null) {
-            @SuppressWarnings("unchecked")
-            UnsafeFieldAccess<IEventBus, Map<?, ?>> listeners = UnsafeHacks.findField((Class<IEventBus>)bus.getClass(), "listeners");
-            var keys = new HashSet<>(listeners.get(bus).keySet());
-            for (var key : keys)
-                bus.unregister(key);
+            try {
+                var mtd = bus.getClass().getDeclaredMethod("clearInternalData");
+                mtd.setAccessible(true);
+                mtd.invoke(bus);
+            } catch (Exception e) {
+                sneak(e);
+            }
         }
+
         bus = busFactory.get();
         System.gc();
     }

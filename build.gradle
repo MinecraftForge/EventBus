@@ -99,5 +99,5 @@ allprojects {
     
     // Tests are expensive to run all variants, so only run if asked to
     if (!project.hasProperty('bulk_tests'))
-        ext.VALID_VMS = ['Adoptium':  [17] ]
+        ext.VALID_VMS = ['Adoptium':  [17]]//, 18, 19, 20, 21] ]
 }

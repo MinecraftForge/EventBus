@@ -159,7 +159,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
         register(eventType, target, real);
     }
 
-    private static final Predicate<Event> checkCancelled = e -> !e.isCancelable() || !e.isCanceled();
+    private static final Predicate<Event> checkCancelled = e -> !e.isCanceled();
     @SuppressWarnings("unchecked")
     private <T extends Event> Predicate<T> passCancelled(boolean ignored) {
         return ignored ? null : (Predicate<T>)checkCancelled;
@@ -168,7 +168,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     private <T extends GenericEvent<? extends F>, F> Predicate<T> passGenericFilter(Class<F> type, boolean ignored) {
         if (ignored)
             return e -> e.getGenericType() == type;
-        return e -> e.getGenericType() == type && (!e.isCancelable() || !e.isCanceled());
+        return e -> e.getGenericType() == type && !e.isCanceled();
     }
 
     private void checkNotGeneric(final Consumer<? extends Event> consumer) {
@@ -307,7 +307,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
             exceptionHandler.handleException(this, event, listeners, index, throwable);
             throw throwable;
         }
-        return event.isCancelable() && event.isCanceled();
+        return event.isCanceled();
     }
 
     @Override
@@ -324,5 +324,41 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     @Override
     public void start() {
         this.shutdown = false;
+    }
+
+    // Used for benchmarking to clear any caches so that each iteration starts from fresh
+    // Ideally i'd just nuke the entire instance and call it a day, but while we use ModLauncher that isn't viable.
+    @SuppressWarnings("unused")
+    private void clearInternalData() {
+         // Clean Listener Helper
+        clearCache(EventListenerHelper.class, "listeners");
+        clearCache(EventListenerHelper.class, "cancelable");
+        clearCache(EventListenerHelper.class, "hasResult");
+        clearCache(ModLauncherFactory.class, "PENDING");
+        clearCache(ClassLoaderFactory.class, "cache");
+        // Clear Listeners
+        //var tmp = new HashSet<>(this.listeners.keySet());
+        //for (var listener : tmp)
+        //    unregister(listener);
+    }
+
+    private void clearCache(Class<?> cls, String name) {
+        try {
+            var cfld = cls.getDeclaredField(name);
+            cfld.setAccessible(true);
+            var cache = cfld.get(null);
+            var mfld = cache.getClass().getDeclaredField("map");
+            mfld.setAccessible(true);
+            @SuppressWarnings("rawtypes")
+            Map map = (Map)mfld.get(cache);
+            map.clear();
+        } catch (Exception e) {
+            sneak(e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <E extends Throwable, R> R sneak(Throwable e) throws E {
+        throw (E)e;
     }
 }

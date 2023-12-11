@@ -29,6 +29,6 @@ public class SubscriberLambda {
 
     public static class Factory {
         @SuppressWarnings("unchecked")
-        public static final ClassFactory<Consumer<IEventBus>> REGISTER = new ClassFactory<>(SubscriberLambda.class, cls -> (Consumer<IEventBus>)cls.getDeclaredField("register").get(null));
+        public static final ClassFactory<Consumer<IEventBus>> REGISTER = new ClassFactory<>("net.minecraftforge.eventbus.testjar.subscribers.SubscriberLambda", cls -> (Consumer<IEventBus>)cls.getDeclaredField("register").get(null));
     }
 }

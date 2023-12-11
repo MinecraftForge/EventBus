@@ -9,6 +9,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
 import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 abstract class ArchiveJfr extends DefaultTask {
     @InputDirectory
@@ -19,16 +20,25 @@ abstract class ArchiveJfr extends DefaultTask {
 
     @TaskAction
     void exec() throws IOException {
+        def timestamp = new Date().format('yyyMMdd.HHmmss')
         for (def java : input.asFile.get().listFiles()) {
             for (def bench : java.listFiles()) {
+                logger.lifecycle(bench.toString())
                 def file = new File(bench, 'profile.jfr')
-                if (!file.exists())
-                    continue
-                def target = output.get().dir(java.name).file(bench.name.replace('net.minecraftforge.eventbus.benchmarks.', '') + '.jfr').getAsFile()
-                if (!target.parentFile.exists())
-                    target.parentFile.mkdirs()
-                file.renameTo(target)
+                if (file.exists()) {
+                    def target = output.get().dir(timestamp).dir(java.name).file(bench.name.replace('net.minecraftforge.eventbus.benchmarks.', '') + '.jfr').getAsFile()
+                    if (!target.parentFile.exists())
+                        target.parentFile.mkdirs()
+                    Files.copy(file.toPath(), target.toPath())
+                    file.delete()
+                }
+                if (bench.listFiles().size() == 0)
+                    bench.delete()
             }
+            if (java.listFiles().size() == 0)
+                java.delete()
         }
+        if (output.asFile.get().listFiles().size() == 0)
+            output.asFile.get().delete()
     }
 }

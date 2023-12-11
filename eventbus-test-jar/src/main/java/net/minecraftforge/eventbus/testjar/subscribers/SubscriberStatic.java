@@ -26,6 +26,6 @@ public class SubscriberStatic {
     public static void onSimpleEvent(EventWithData event) { }
 
     public static class Factory {
-        public static final ClassFactory<Consumer<IEventBus>> REGISTER = new ClassFactory<>(SubscriberStatic.class, cls -> bus -> bus.register(cls));
+        public static final ClassFactory<Consumer<IEventBus>> REGISTER = new ClassFactory<>("net.minecraftforge.eventbus.testjar.subscribers.SubscriberStatic", cls -> bus -> bus.register(cls));
     }
 }

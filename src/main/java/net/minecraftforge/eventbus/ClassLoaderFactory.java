@@ -7,7 +7,6 @@ package net.minecraftforge.eventbus;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.HashMap;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
@@ -22,7 +21,7 @@ public class ClassLoaderFactory implements IEventListenerFactory {
     private static final String HANDLER_DESC = Type.getInternalName(IEventListener.class);
     private static final String HANDLER_FUNC_DESC = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Event.class));
     private static final ASMClassLoader LOADER = new ASMClassLoader();
-    private static final LockHelper<Method, Class<?>> cache = new LockHelper<>(new HashMap<>());
+    private static final Cache<Method, Class<?>> cache = InternalUtils.cache();
 
     @Override
     public IEventListener create(Method method, Object target) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {

@@ -27,3 +27,4 @@ out
 /jmh_results.md
 /test_results.html
 /eventbus-wrapper/
+/jmh_data_output.csv

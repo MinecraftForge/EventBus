@@ -16,18 +16,18 @@ import org.objectweb.asm.commons.Remapper;
 import net.minecraftforge.unsafe.UnsafeHacks;
 
 public class ClassFactory<T> {
-    private final Class<?> cls;
     private final Mapper<T> mapper;
+    private final String binaryName;
     private final String name;
     private final byte[] data;
     private final Method define;
     private int count;
 
-    public ClassFactory(Class<?> cls, Mapper<T> mapper) {
-        this.cls = cls;
+    public ClassFactory(String name, Mapper<T> mapper) {
         this.mapper = mapper;
-        name = cls.getName().replace('.', '/');
-        data = readData(name);
+        this.name = name;
+        this.binaryName = name.replace('.', '/');
+        this.data = readData(this.binaryName);
         this.define = getAccess();
     }
 
@@ -52,23 +52,23 @@ public class ClassFactory<T> {
 
     public T create() {
         count++;
-        var newName = name + "$New" + count;
+        var newName = this.binaryName + "$New" + count;
 
         var renamer = new Remapper() {
             @Override
             public String map(String internalName) {
-                if (internalName.equals(name)) return newName;
+                if (internalName.equals(binaryName)) return newName;
                 return BenchmarkManager.rename(internalName);
             }
         };
 
         var reader = new ClassReader(data);
-        var writer = new ClassWriter(0);
+        var writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
         reader.accept(new ClassRemapper(writer, renamer), 0);
         try {
             var cl = Thread.currentThread().getContextClassLoader();
             var newData = writer.toByteArray();
-            var newCls = (Class<?>)define.invoke(cl, cls.getName() + "$New" + count, newData, 0, newData.length);
+            var newCls = (Class<?>)define.invoke(cl, this.name + "$New" + count, newData, 0, newData.length);
             return mapper.apply(newCls);
         } catch (Exception e) {
             return sneak(e);

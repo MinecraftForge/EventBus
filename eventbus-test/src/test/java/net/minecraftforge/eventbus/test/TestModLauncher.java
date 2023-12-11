@@ -8,7 +8,6 @@ package net.minecraftforge.eventbus.test;
 import org.junit.jupiter.api.Test;
 
 import net.minecraftforge.eventbus.test.general.AbstractEventListenerTest;
-import net.minecraftforge.eventbus.test.general.DeadlockingEventTest;
 import net.minecraftforge.eventbus.test.general.EventBusSubtypeFilterTest;
 import net.minecraftforge.eventbus.test.general.EventFiringEventTest;
 import net.minecraftforge.eventbus.test.general.EventHandlerExceptionTest;
@@ -20,7 +19,6 @@ import net.minecraftforge.eventbus.test.general.ParentHandlersGetInvokedTest;
 import net.minecraftforge.eventbus.test.general.ParentHandlersGetInvokedTestDummy;
 import net.minecraftforge.eventbus.test.general.ThreadedListenerExceptionTest;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.RepeatedTest;
 
 public class TestModLauncher extends TestModLauncherBase {
@@ -72,12 +70,6 @@ public class TestModLauncher extends TestModLauncherBase {
     @Test
     public void lambdaGenerics() {
         doTest(new LambdaHandlerTest.Generics() {});
-    }
-
-    @Disabled
-    @RepeatedTest(500)
-    public void deadlockTest() {
-        doTest(new DeadlockingEventTest() {});
     }
 
     @Test

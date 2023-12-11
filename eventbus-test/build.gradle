@@ -26,6 +26,7 @@ dependencies {
     testImplementation(libs.junit.api)
     testImplementation(libs.securemodules)
     testImplementation(libs.modlauncher)
+    testImplementation(libs.unsafe)
     testImplementation(libs.asm)
     testImplementation(libs.asm.tree)
     testImplementation(libs.jopt.simple)

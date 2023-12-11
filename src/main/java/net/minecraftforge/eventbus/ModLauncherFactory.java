@@ -13,7 +13,7 @@ import cpw.mods.modlauncher.Launcher;
 import cpw.mods.modlauncher.api.IModuleLayerManager;
 
 public class ModLauncherFactory extends ClassLoaderFactory {
-    private static final LockHelper<String, Method> PENDING = new LockHelper<>(new HashMap<>());
+    private static final Cache<String, Method> PENDING = InternalUtils.cache();
     private Optional<ClassLoader> gameClassLoader = null;
 
     @Override
@@ -29,7 +29,7 @@ public class ModLauncherFactory extends ClassLoaderFactory {
     }
 
     public static boolean hasPendingWrapperClass(final String className) {
-        return PENDING.containsKey(className);
+        return PENDING.get(className) != null;
     }
 
     public static void processWrapperClass(final String className, final ClassNode node) {

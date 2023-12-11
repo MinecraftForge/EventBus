@@ -11,10 +11,11 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /*
- *
  * Helper class that should be faster then ConcurrentHashMap,
  * yet still manages to properly deal with many threads.
  */
+// Only kept around for compatiblity reasons. None of our code should ever reference this.
+@Deprecated(forRemoval = true, since = "6.2")
 public class LockHelper<K,V> {
     private ReadWriteLock lock = new ReentrantReadWriteLock(true);
     private final Map<K, V> map;

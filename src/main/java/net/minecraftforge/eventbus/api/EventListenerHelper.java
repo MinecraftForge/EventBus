@@ -4,21 +4,22 @@
  */
 package net.minecraftforge.eventbus.api;
 
+import net.minecraftforge.eventbus.InternalUtils;
 import net.minecraftforge.eventbus.ListenerList;
-import net.minecraftforge.eventbus.LockHelper;
 import net.minecraftforge.eventbus.api.Event.HasResult;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.util.IdentityHashMap;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 public class EventListenerHelper {
-    private static final LockHelper<Class<?>, ListenerList> listeners = new LockHelper<>(new IdentityHashMap<>());
+    private static final BiFunction<Class<?>, Supplier<ListenerList>, ListenerList> listeners = InternalUtils.cachePublic();
     private static final ListenerList EVENTS_LIST = new ListenerList();
-    private static final LockHelper<Class<?>, Boolean> cancelable = new LockHelper<>(new IdentityHashMap<>());
-    private static final LockHelper<Class<?>, Boolean> hasResult = new LockHelper<>(new IdentityHashMap<>());
+    private static final BiFunction<Class<?>, Supplier<Boolean>, Boolean> cancelable = InternalUtils.cachePublic();
+    private static final BiFunction<Class<?>, Supplier<Boolean>, Boolean> hasResult = InternalUtils.cachePublic();
     /**
      * Returns a {@link ListenerList} object that contains all listeners
      * that are registered to this event class.
@@ -34,12 +35,12 @@ public class EventListenerHelper {
 
     static ListenerList getListenerListInternal(Class<?> eventClass, boolean fromInstanceCall) {
         if (eventClass == Event.class) return EVENTS_LIST; // Small optimization, bypasses all the locks/maps.
-        return listeners.computeIfAbsent(eventClass, () -> computeListenerList(eventClass, fromInstanceCall));
+        return listeners.apply(eventClass, () -> computeListenerList(eventClass, fromInstanceCall));
     }
 
     private static ListenerList computeListenerList(Class<?> eventClass, boolean fromInstanceCall) {
         if (eventClass == Event.class)
-            return new ListenerList();
+            return EVENTS_LIST;
 
         if (fromInstanceCall || Modifier.isAbstract(eventClass.getModifiers())) {
             Class<?> superclass = eventClass.getSuperclass();
@@ -57,11 +58,6 @@ public class EventListenerHelper {
         }
     }
 
-    @SuppressWarnings("unused") // Used in DeadlockingEventTest
-    private static void clearAll() {
-        listeners.clearAll();
-    }
-
     static boolean isCancelable(Class<?> eventClass) {
         return hasAnnotation(eventClass, Cancelable.class, cancelable);
     }
@@ -70,13 +66,15 @@ public class EventListenerHelper {
         return hasAnnotation(eventClass, HasResult.class, hasResult);
     }
 
-    private static boolean hasAnnotation(Class<?> eventClass, Class<? extends Annotation> annotation, LockHelper<Class<?>, Boolean> lock) {
-        if (eventClass == Event.class)
+    private static boolean hasAnnotation(Class<?> eventClass, Class<? extends Annotation> annotation, BiFunction<Class<?>, Supplier<Boolean>, Boolean> cache) {
+        if (eventClass == Event.class || eventClass == Object.class)
             return false;
 
-        return lock.computeIfAbsent(eventClass, () -> {
+        return cache.apply(eventClass, () -> {
+            if (eventClass.isAnnotationPresent(annotation))
+                return true;
             var parent = eventClass.getSuperclass();
-            return eventClass.isAnnotationPresent(annotation) || (parent != null && hasAnnotation(parent, annotation, lock));
+            return parent != null && hasAnnotation(parent, annotation, cache);
         });
     }
 }

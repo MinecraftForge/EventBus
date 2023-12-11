@@ -43,7 +43,7 @@ public class ASMEventHandler implements IEventListener {
     @Override
     public void invoke(Event event) {
         if (handler != null) {
-            if (!event.isCancelable() || !event.isCanceled() || subInfo.receiveCanceled()) {
+            if (!event.isCanceled() || subInfo.receiveCanceled()) {
                 if (filter == null || filter == ((IGenericEvent)event).getGenericType())
                     handler.invoke(event);
             }
