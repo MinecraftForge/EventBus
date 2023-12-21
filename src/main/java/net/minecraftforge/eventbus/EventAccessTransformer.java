@@ -29,8 +29,8 @@ public class EventAccessTransformer {
             } else {
                 LOGGER.debug(EVENTBUS, "Transforming @SubscribeEvent method to public {}.{}", classNode.name, method.name);
                 int access = classNode.access & ~(Opcodes.ACC_PRIVATE | Opcodes.ACC_PROTECTED) | Opcodes.ACC_PUBLIC;
-                if (method.access != access) {
-                    method.access = access;
+                if (classNode.access != access) {
+                    classNode.access = access;
                     changed = true;
                 }
 
