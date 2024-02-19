@@ -34,12 +34,12 @@ public class EventListenerHelper {
     }
 
     static ListenerList getListenerListInternal(Class<?> eventClass, boolean fromInstanceCall) {
-        if (eventClass == Event.class) return EVENTS_LIST; // Small optimization, bypasses all the locks/maps.
+        if (eventClass == Event.class || eventClass == IEvent.class || eventClass == Object.class) return EVENTS_LIST; // Small optimization, bypasses all the locks/maps.
         return listeners.apply(eventClass, () -> computeListenerList(eventClass, fromInstanceCall));
     }
 
     private static ListenerList computeListenerList(Class<?> eventClass, boolean fromInstanceCall) {
-        if (eventClass == Event.class)
+        if (eventClass == Event.class || eventClass == IEvent.class || eventClass == Object.class)
             return EVENTS_LIST;
 
         if (fromInstanceCall || Modifier.isAbstract(eventClass.getModifiers())) {
@@ -51,7 +51,7 @@ public class EventListenerHelper {
         try {
             Constructor<?> ctr = eventClass.getConstructor();
             ctr.setAccessible(true);
-            Event event = (Event) ctr.newInstance();
+            IEvent event = (IEvent) ctr.newInstance();
             return event.getListenerList();
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException("Error computing listener list for " + eventClass.getName(), e);
@@ -67,7 +67,7 @@ public class EventListenerHelper {
     }
 
     private static boolean hasAnnotation(Class<?> eventClass, Class<? extends Annotation> annotation, BiFunction<Class<?>, Supplier<Boolean>, Boolean> cache) {
-        if (eventClass == Event.class || eventClass == Object.class)
+        if (eventClass == Event.class || eventClass == Object.class || eventClass == IEvent.class)
             return false;
 
         return cache.apply(eventClass, () -> {

@@ -7,6 +7,8 @@ package net.minecraftforge.eventbus;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+
+import net.minecraftforge.eventbus.api.IEvent;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
@@ -19,7 +21,7 @@ import static org.objectweb.asm.Opcodes.*;
 
 public class ClassLoaderFactory implements IEventListenerFactory {
     private static final String HANDLER_DESC = Type.getInternalName(IEventListener.class);
-    private static final String HANDLER_FUNC_DESC = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Event.class));
+    private static final String HANDLER_FUNC_DESC = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(IEvent.class));
     private static final ASMClassLoader LOADER = new ASMClassLoader();
     private static final Cache<Method, Class<?>> cache = InternalUtils.cache();
 

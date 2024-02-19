@@ -41,7 +41,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
         ListenerList.resize(busID + 1);
         exceptionHandler = this;
         this.trackPhases = true;
-        this.baseType = Event.class;
+        this.baseType = IEvent.class;
         this.checkTypesOnDispatch = checkTypesOnDispatchProperty;
         this.factory = new ClassLoaderFactory();
     }
@@ -141,13 +141,13 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
         Class<?> eventType = parameterTypes[0];
 
-        if (!Event.class.isAssignableFrom(eventType)) {
+        if (!IEvent.class.isAssignableFrom(eventType)) {
             throw new IllegalArgumentException(
                     "Method " + method + " has @SubscribeEvent annotation, " +
                             "but takes an argument that is not an Event subtype : " + eventType);
         }
 
-        if (baseType != Event.class && !baseType.isAssignableFrom(eventType)) {
+        if (baseType != IEvent.class && !baseType.isAssignableFrom(eventType)) {
             throw new IllegalArgumentException(
                     "Method " + method + " has @SubscribeEvent annotation, " +
                             "but takes an argument that is not a subtype of the base type " + baseType + ": " + eventType);
@@ -161,7 +161,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
     private static final Predicate<Event> checkCancelled = e -> !e.isCanceled();
     @SuppressWarnings("unchecked")
-    private <T extends Event> Predicate<T> passCancelled(boolean ignored) {
+    private <T extends IEvent> Predicate<T> passCancelled(boolean ignored) {
         return ignored ? null : (Predicate<T>)checkCancelled;
     }
 
@@ -171,35 +171,35 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
         return e -> e.getGenericType() == type && !e.isCanceled();
     }
 
-    private void checkNotGeneric(final Consumer<? extends Event> consumer) {
+    private void checkNotGeneric(final Consumer<? extends IEvent> consumer) {
         checkNotGeneric(getEventClass(consumer));
     }
 
-    private void checkNotGeneric(final Class<? extends Event> eventType) {
+    private void checkNotGeneric(final Class<? extends IEvent> eventType) {
         if (GenericEvent.class.isAssignableFrom(eventType))
             throw new IllegalArgumentException("Cannot register a generic event listener with addListener, use addGenericListener");
     }
 
     @Override
-    public <T extends Event> void addListener(final Consumer<T> consumer) {
+    public <T extends IEvent> void addListener(final Consumer<T> consumer) {
         checkNotGeneric(consumer);
         addListener(EventPriority.NORMAL, consumer);
     }
 
     @Override
-    public <T extends Event> void addListener(final EventPriority priority, final Consumer<T> consumer) {
+    public <T extends IEvent> void addListener(final EventPriority priority, final Consumer<T> consumer) {
         checkNotGeneric(consumer);
         addListener(priority, false, consumer);
     }
 
     @Override
-    public <T extends Event> void addListener(final EventPriority priority, final boolean receiveCancelled, final Consumer<T> consumer) {
+    public <T extends IEvent> void addListener(final EventPriority priority, final boolean receiveCancelled, final Consumer<T> consumer) {
         checkNotGeneric(consumer);
         addListener(priority, passCancelled(receiveCancelled), consumer);
     }
 
     @Override
-    public <T extends Event> void addListener(final EventPriority priority, final boolean receiveCancelled, final Class<T> eventType, final Consumer<T> consumer) {
+    public <T extends IEvent> void addListener(final EventPriority priority, final boolean receiveCancelled, final Class<T> eventType, final Consumer<T> consumer) {
         checkNotGeneric(eventType);
         addListener(priority, passCancelled(receiveCancelled), eventType, consumer);
     }
@@ -225,7 +225,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Event> Class<T> getEventClass(Consumer<T> consumer) {
+    private <T extends IEvent> Class<T> getEventClass(Consumer<T> consumer) {
         final Class<T> eventClass = (Class<T>) TypeResolver.resolveRawArgument(Consumer.class, consumer.getClass());
         if ((Class<?>)eventClass == TypeResolver.Unknown.class) {
             LOGGER.error(EVENTBUS, "Failed to resolve handler for \"{}\"", consumer.toString());
@@ -234,17 +234,17 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
         return eventClass;
     }
 
-    private <T extends Event> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Consumer<T> consumer) {
+    private <T extends IEvent> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Consumer<T> consumer) {
         Class<T> eventClass = getEventClass(consumer);
-        if (Objects.equals(eventClass, Event.class))
+        if (Objects.equals(eventClass, IEvent.class))
             LOGGER.warn(EVENTBUS,"Attempting to add a Lambda listener with computed generic type of Event. " +
                     "Are you sure this is what you meant? NOTE : there are complex lambda forms where " +
                     "the generic type information is erased and cannot be recovered at runtime.");
         addListener(priority, filter, eventClass, consumer);
     }
 
-    private <T extends Event> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer) {
-        if (baseType != Event.class && !baseType.isAssignableFrom(eventClass)) {
+    private <T extends IEvent> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer) {
+        if (baseType != IEvent.class && !baseType.isAssignableFrom(eventClass)) {
             throw new IllegalArgumentException(
                     "Listener for event " + eventClass + " takes an argument that is not a subtype of the base type " + baseType);
         }
@@ -252,7 +252,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Event> void doCastFilter(final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer, final Event e) {
+    private <T extends IEvent> void doCastFilter(final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer, final IEvent e) {
         T cast = (T)e;
         if (filter == null || filter.test(cast))
             consumer.accept(cast);
@@ -286,12 +286,12 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     @Override
-    public boolean post(Event event) {
+    public boolean post(IEvent event) {
         return post(event, (IEventListener::invoke));
     }
 
     @Override
-    public boolean post(Event event, IEventBusInvokeDispatcher wrapper) {
+    public boolean post(IEvent event, IEventBusInvokeDispatcher wrapper) {
         if (shutdown) return false;
         if (checkTypesOnDispatch && !baseType.isInstance(event))
             throw new IllegalArgumentException("Cannot post event of type " + event.getClass().getSimpleName() + " to this event. Must match type: " + baseType.getSimpleName());
@@ -311,7 +311,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     @Override
-    public void handleException(IEventBus bus, Event event, IEventListener[] listeners, int index, Throwable throwable) {
+    public void handleException(IEventBus bus, IEvent event, IEventListener[] listeners, int index, Throwable throwable) {
         LOGGER.error(EVENTBUS, () -> new EventBusErrorMessage(event, index, listeners, throwable));
     }
 
