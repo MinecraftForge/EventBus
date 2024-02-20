@@ -86,15 +86,15 @@ publishing {
 
 allprojects {
     ext.VALID_VMS = [
-        'Adoptium':  [16, 17, 18, 19, 20, 21],
-        'Amazon':    [16, 17, 18, 19, 20, 21],
-        'Azul':      (16..21),
-        'BellSoft':  (16..21),
-        'Graal_VM':  [16, 17,     19, 20, 21],
-        'IBM':       [16, 17, 18, 19, 20    ],
-        'Microsoft': [16, 17,             21],
-        'Oracle':    (16..21),
-        'SAP':       (16..20)
+        'Adoptium':  [17, 18, 19, 20, 21],
+        'Amazon':    [17, 18, 19, 20, 21],
+        'Azul':      (17..21),
+        'BellSoft':  (17..21),
+        'Graal_VM':  [17,     19, 20, 21],
+        'IBM':       [17, 18, 19, 20    ],
+        'Microsoft': [17,             21],
+        'Oracle':    (17..21),
+        'SAP':       (17..20)
     ]
     
     // Tests are expensive to run all variants, so only run if asked to
