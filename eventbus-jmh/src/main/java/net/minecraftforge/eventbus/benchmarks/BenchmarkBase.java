@@ -126,8 +126,9 @@ public class BenchmarkBase {
     }
 
     protected void run() {
-        if (run != null);
+        if (run != null) {
             run.run();
+        }
     }
 
     private Runnable get(Class<?> cls, Object inst, String name) throws Exception {
