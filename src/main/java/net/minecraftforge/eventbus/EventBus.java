@@ -159,7 +159,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
         register(eventType, target, real);
     }
 
-    private static final Predicate<Event> checkCancelled = e -> !e.isCanceled();
+    private static final Predicate<IEvent> checkCancelled = e -> !e.isCanceled();
     @SuppressWarnings("unchecked")
     private <T extends IEvent> Predicate<T> passCancelled(boolean ignored) {
         return ignored ? null : (Predicate<T>)checkCancelled;
