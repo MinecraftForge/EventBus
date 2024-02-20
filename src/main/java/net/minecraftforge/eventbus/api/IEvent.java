@@ -92,10 +92,10 @@ public interface IEvent {
 
     @Nullable
     default EventPriority getPhase() {
-        return null;
+        throw new UnsupportedOperationException("Attempted to called Event#getPhase() on an event that does not support phase tracking");
     }
 
     default void setPhase(@NotNull EventPriority value) {
-        throw new UnsupportedOperationException("Attempted to call Event#setPhase() on an event that does not support phases");
+        // No-op because record based events do not support phase tracking
     }
 }
