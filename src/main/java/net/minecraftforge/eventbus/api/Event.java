@@ -60,7 +60,7 @@ public class Event {
      * invoke this method on an event that is not cancelable (as determined by {@link #isCancelable}
      * will result in an {@link UnsupportedOperationException}.
      * <br>
-     * The functionality of setting the canceled state is defined on a per-event bases.
+     * The functionality of setting the canceled state is defined on a per-event basis.
      * <br>
      * Throws a {@link IllegalStateException} if called during the {@link EventPriority#MINOTOR} phase.<br>
      * Note: If the event bus does not track the phases then this protection doesn't function. Most standard
@@ -104,7 +104,7 @@ public class Event {
      * Sets the result value for this event, not all events can have a result set, and any attempt to
      * set a result for a event that isn't expecting it will result in a IllegalArgumentException.
      *
-     * The functionality of setting the result is defined on a per-event bases.
+     * The functionality of setting the result is defined on a per-event basis.
      *
      * @param value The new result
      */
