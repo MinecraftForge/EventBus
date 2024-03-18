@@ -4,7 +4,7 @@
  */
 open module net.minecraftforge.eventbus {
     uses net.minecraftforge.eventbus.IEventBusEngine;
-    requires cpw.mods.modlauncher;
+    requires static cpw.mods.modlauncher;
 
     requires org.objectweb.asm;
     requires org.objectweb.asm.tree;

@@ -28,8 +28,9 @@ repositories {
 dependencies {
     api(libs.typetools)
     implementation(libs.log4j.api)
-    implementation(libs.modlauncher)
-    implementation(libs.securemodules)
+    implementation(libs.bundles.asm)
+    compileOnly(libs.modlauncher)
+    compileOnly(libs.securemodules)
     compileOnly(libs.nulls)
 }
 
@@ -96,7 +97,7 @@ allprojects {
         'Oracle':    (16..21),
         'SAP':       (16..20)
     ]
-    
+
     // Tests are expensive to run all variants, so only run if asked to
     if (!project.hasProperty('bulk_tests'))
         ext.VALID_VMS = ['Adoptium':  [17]]//, 18, 19, 20, 21] ]
