@@ -19,7 +19,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 /**
  * Base Event class that all other events are derived from
  */
-public class Event {
+public class Event implements IEvent {
     @Retention(value = RUNTIME)
     @Target(value = TYPE)
     public @interface HasResult{}
@@ -110,20 +110,6 @@ public class Event {
      */
     public void setResult(Result value) {
         result = value;
-    }
-
-    /**
-     * Returns a ListenerList object that contains all listeners
-     * that are registered to this event.
-     *
-     * Note: for better efficiency, this gets overridden automatically
-     * using a Transformer, there is no need to override it yourself.
-     * @see EventSubclassTransformer
-     *
-     * @return Listener List
-     */
-    public ListenerList getListenerList() {
-        return EventListenerHelper.getListenerListInternal(this.getClass(), true);
     }
 
     @Nullable

@@ -5,7 +5,7 @@
 package net.minecraftforge.eventbus;
 
 import net.minecraftforge.eventbus.api.BusBuilder;
-import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.eventbus.api.IEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.IEventExceptionHandler;
 
@@ -17,7 +17,7 @@ public final class BusBuilderImpl implements BusBuilder {
     boolean trackPhases = true;
     boolean startShutdown = false;
     boolean checkTypesOnDispatch = false;
-    Class<?> markerType = Event.class;
+    Class<?> markerType = IEvent.class;
     boolean modLauncher = false;
 
     @Override

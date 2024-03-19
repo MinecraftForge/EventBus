@@ -30,7 +30,7 @@ public enum EventPriority implements IEventListener {
     MONITOR; //Last to execute
 
     @Override
-    public void invoke(Event event) {
+    public void invoke(IEvent event) {
         event.setPhase(this);
     }
 }

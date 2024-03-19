@@ -25,6 +25,19 @@ public class BenchmarkCacheConcurrent extends BenchmarkBase {
     }
     @Setup(Level.Iteration) public void setupIteration() { super.setupIteration(); }
 
+    @Benchmark public void postDynamicRecord() { run(); }
+    @Benchmark public void postDynamicDozenRecord() { run(); }
+    @Benchmark public void postDynamicHundredRecord() { run(); }
+    @Benchmark public void postLambdaRecord() { run(); }
+    @Benchmark public void postLambdaDozenRecord() { run(); }
+    @Benchmark public void postLambdaHundredRecord() { run(); }
+    @Benchmark public void postStaticRecord() { run(); }
+    @Benchmark public void postStaticDozenRecord() { run(); }
+    @Benchmark public void postStaticHundredRecord() { run(); }
+    @Benchmark public void postMixedRecord() { run(); }
+    @Benchmark public void postMixedDozenRecord() { run(); }
+    @Benchmark public void postMixedHundredRecord() { run(); }
+
     @Benchmark public void postDynamic() { run(); }
     @Benchmark public void postDynamicDozen() { run(); }
     @Benchmark public void postDynamicHundred() { run(); }

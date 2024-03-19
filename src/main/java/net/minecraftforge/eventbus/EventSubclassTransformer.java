@@ -5,6 +5,7 @@
 package net.minecraftforge.eventbus;
 
 import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.eventbus.api.IEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.Type;
@@ -69,17 +70,11 @@ public class EventSubclassTransformer {
         // If they do not this a COREMOD issue NOT a Forge/LaunchWrapper issue.
         // well, we should at least use the context classloader - this is forcing all the game classes in through
         // the system classloader otherwise...
-        Class<?> parent = null;
-        ClassLoader loader = getClassLoader();
-        try {
-            parent = loader.loadClass(classNode.superName.replace('/', '.'));
-        } catch (ClassNotFoundException e) {
-            LOGGER.error(EVENTBUS, "Could not find parent {} for class {} in classloader {} on thread {}", classNode.superName, classNode.name, loader, Thread.currentThread());
-            throw e;
-        }
+        Class<?> parent = findParent(classNode);
 
-        if (!Event.class.isAssignableFrom(parent))
+        if (parent == null) {
             return false;
+        }
 
         LOGGER.debug(EVENTBUS, "Event transform begin: {}", classNode.name);
 
@@ -132,7 +127,7 @@ public class EventSubclassTransformer {
          * injected to change this value. This is done in case Event itself can't be
          * transformed to use the optimized system.
          */
-        if (parent == Event.class) {
+        if (parent == Event.class || parent == IEvent.class) {
             if (!hasResult) {
                 /* Add:
                  *      public boolean hasResult()
@@ -181,6 +176,40 @@ public class EventSubclassTransformer {
         }
 
         return addListenerList(classNode, true);
+    }
+
+    private Class<?> findParent(ClassNode classNode) throws Exception {
+        Class<?> parent = null;
+        ClassLoader loader = getClassLoader();
+
+        try {
+            parent = loader.loadClass(classNode.superName.replace('/', '.'));
+        } catch (ClassNotFoundException e) {
+            if (classNode.interfaces.isEmpty()) {
+                LOGGER.error(EVENTBUS, "Could not find parent {} for class {} in classloader {} on thread {}", classNode.superName, classNode.name, loader, Thread.currentThread());
+                throw e;
+            }
+        }
+
+        if (!IEvent.class.isAssignableFrom(parent)) {
+            if (classNode.interfaces.isEmpty()) {
+                LOGGER.error(EVENTBUS, "Could not find parent {} for class {} in classloader {} on thread {}", classNode.superName, classNode.name, loader, Thread.currentThread());
+                return null;
+            }
+
+            try {
+                parent = loader.loadClass(classNode.interfaces.get(0).replace('/', '.'));
+            } catch (ClassNotFoundException e2) {
+                LOGGER.error(EVENTBUS, "Could not find parent {} for class {} in classloader {} on thread {}", classNode.interfaces.get(0), classNode.name, loader, Thread.currentThread());
+                throw e2;
+            }
+
+            if (!IEvent.class.isAssignableFrom(parent)) {
+                return null;
+            }
+        }
+
+        return parent;
     }
 
     private boolean addListenerList(ClassNode classNode, boolean useSuper) {
