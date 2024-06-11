@@ -27,7 +27,11 @@ public class Event {
     public enum Result {
         DENY,
         DEFAULT,
-        ALLOW
+        ALLOW;
+
+        public boolean isDefault() { return this == Result.DEFAULT; }
+        public boolean isDenied() { return this == Result.DENY; }
+        public boolean isAllowed() { return this == Result.ALLOW; }
     }
 
     private boolean isCanceled = false;
