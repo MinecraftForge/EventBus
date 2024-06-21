@@ -161,6 +161,22 @@ public interface IEventBus {
     boolean post(Event event, IEventBusInvokeDispatcher wrapper);
 
     /**
+     * Submit the event for dispatch to appropriate listeners and return the (possibly mutated) event
+     *
+     * @param event The event to dispatch to listeners
+     * @return The event object that was dispatched
+     */
+    default <T extends Event> T fire(T event) {
+        post(event);
+        return event;
+    }
+
+    default <T extends Event> T fire(T event, IEventBusInvokeDispatcher wrapper) {
+        post(event, wrapper);
+        return event;
+    }
+
+    /**
      * Shuts down this event bus.
      *
      * No future events will be fired on this event bus, so any call to {@link #post(Event)} will be a no op after this method has been invoked
