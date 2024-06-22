@@ -5,7 +5,7 @@
 
 package net.minecraftforge.eventbus.testjar;
 
-import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.eventbus.api.IEvent;
 import net.minecraftforge.eventbus.api.IEventListener;
 
 public class TestListener implements IEventListener {
@@ -16,7 +16,7 @@ public class TestListener implements IEventListener {
     }
 
     @Override
-    public void invoke(final Event event) {
+    public void invoke(final IEvent event) {
         instance.equals(event);
     }
 }

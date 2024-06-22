@@ -68,6 +68,23 @@ public class BenchmarkManager {
             case "postStatic":        return new Post.Static.Single();
             case "postStaticDozen":   return new Post.Static.Dozen();
             case "postStaticHundred": return new Post.Static.Hundred();
+
+            case "postMixedRecord":        return new PostRecord.Mixed.Single();
+            case "postMixedDozenRecord":   return new PostRecord.Mixed.Dozen();
+            case "postMixedHundredRecord": return new PostRecord.Mixed.Hundred();
+
+            case "postDynamicRecord":        return new PostRecord.Dynamic.Single();
+            case "postDynamicDozenRecord":   return new PostRecord.Dynamic.Dozen();
+            case "postDynamicHundredRecord": return new PostRecord.Dynamic.Hundred();
+
+            case "postLambdaRecord":        return new PostRecord.Lambda.Single();
+            case "postLambdaDozenRecord":   return new PostRecord.Lambda.Dozen();
+            case "postLambdaHundredRecord": return new PostRecord.Lambda.Hundred();
+
+            case "postStaticRecord":        return new PostRecord.Static.Single();
+            case "postStaticDozenRecord":   return new PostRecord.Static.Dozen();
+            case "postStaticHundredRecord": return new PostRecord.Static.Hundred();
+
         }
         throw new IllegalArgumentException("Invalid benchmark: " + name);
     }

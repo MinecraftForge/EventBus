@@ -15,5 +15,5 @@ public interface IEventExceptionHandler {
      * @param index Index for the current listener being fired.
      * @param throwable The throwable being thrown
      */
-    void handleException(IEventBus bus, Event event, IEventListener[] listeners, int index, Throwable throwable);
+    void handleException(IEventBus bus, IEvent event, IEventListener[] listeners, int index, Throwable throwable);
 }
