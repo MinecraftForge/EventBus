@@ -6,6 +6,7 @@
 package net.minecraftforge.eventbus.testjar.subscribers;
 
 
+import java.lang.invoke.MethodHandles;
 import java.util.function.Consumer;
 
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -26,6 +27,10 @@ public class SubscriberStatic {
     public static void onSimpleEvent(EventWithData event) { }
 
     public static class Factory {
-        public static final ClassFactory<Consumer<IEventBus>> REGISTER = new ClassFactory<>("net.minecraftforge.eventbus.testjar.subscribers.SubscriberStatic", cls -> bus -> bus.register(cls));
+        public static final ClassFactory<Consumer<IEventBus>> REGISTER = new ClassFactory<>(
+                SubscriberStatic.class,
+                MethodHandles.lookup(),
+                cls -> bus -> bus.register(cls)
+        );
     }
 }

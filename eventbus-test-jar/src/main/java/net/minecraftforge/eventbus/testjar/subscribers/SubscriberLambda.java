@@ -5,6 +5,7 @@
 
 package net.minecraftforge.eventbus.testjar.subscribers;
 
+import java.lang.invoke.MethodHandles;
 import java.util.function.Consumer;
 
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -29,6 +30,10 @@ public class SubscriberLambda {
 
     public static class Factory {
         @SuppressWarnings("unchecked")
-        public static final ClassFactory<Consumer<IEventBus>> REGISTER = new ClassFactory<>("net.minecraftforge.eventbus.testjar.subscribers.SubscriberLambda", cls -> (Consumer<IEventBus>)cls.getDeclaredField("register").get(null));
+        public static final ClassFactory<Consumer<IEventBus>> REGISTER = new ClassFactory<>(
+                SubscriberLambda.class,
+                MethodHandles.lookup(),
+                cls -> (Consumer<IEventBus>) cls.getDeclaredField("register").get(null)
+        );
     }
 }
