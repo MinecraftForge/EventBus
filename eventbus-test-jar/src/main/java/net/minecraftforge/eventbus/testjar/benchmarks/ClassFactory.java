@@ -6,29 +6,30 @@
 package net.minecraftforge.eventbus.testjar.benchmarks;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
+import java.lang.invoke.MethodHandles;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.Remapper;
 
-import net.minecraftforge.unsafe.UnsafeHacks;
-
-public class ClassFactory<T> {
+public final class ClassFactory<T> {
     private final Mapper<T> mapper;
     private final String binaryName;
-    private final String name;
     private final byte[] data;
-    private final Method define;
+    private final MethodHandles.Lookup lookup;
     private int count;
 
-    public ClassFactory(String name, Mapper<T> mapper) {
+    /**
+     * @param clazz The class to create new derivations of
+     * @param lookup {@code MethodHandles.lookup()} for defining the new classes
+     * @param mapper A function to apply on newly defined classes
+     */
+    public ClassFactory(Class<?> clazz, MethodHandles.Lookup lookup, Mapper<T> mapper) {
         this.mapper = mapper;
-        this.name = name;
-        this.binaryName = name.replace('.', '/');
+        this.binaryName = clazz.getName().replace('.', '/');
         this.data = readData(this.binaryName);
-        this.define = getAccess();
+        this.lookup = lookup;
     }
 
     private static byte[] readData(String name) {
@@ -40,24 +41,13 @@ public class ClassFactory<T> {
         }
     }
 
-    private static Method getAccess() {
-        try {
-            var define = ClassLoader.class.getDeclaredMethod("defineClass", String.class, byte[].class, int.class, int.class);
-            UnsafeHacks.setAccessible(define);
-            return define;
-        } catch (Exception e) {
-            return sneak(e);
-        }
-    }
-
     public T create() {
         count++;
-        var newName = this.binaryName + "$New" + count;
 
         var renamer = new Remapper() {
             @Override
             public String map(String internalName) {
-                if (internalName.equals(binaryName)) return newName;
+                if (internalName.equals(binaryName)) return binaryName + "$New" + count;
                 return BenchmarkManager.rename(internalName);
             }
         };
@@ -66,9 +56,8 @@ public class ClassFactory<T> {
         var writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
         reader.accept(new ClassRemapper(writer, renamer), 0);
         try {
-            var cl = Thread.currentThread().getContextClassLoader();
             var newData = writer.toByteArray();
-            var newCls = (Class<?>)define.invoke(cl, this.name + "$New" + count, newData, 0, newData.length);
+            var newCls = (Class<?>) lookup.defineClass(newData);
             return mapper.apply(newCls);
         } catch (Exception e) {
             return sneak(e);
@@ -77,10 +66,11 @@ public class ClassFactory<T> {
 
     @SuppressWarnings("unchecked")
     private static <E extends Throwable, R> R sneak(Throwable e) throws E {
-        throw (E)e;
+        throw (E) e;
     }
 
-    public static interface Mapper<T> {
+    @FunctionalInterface
+    public interface Mapper<T> {
         T apply(Class<?> cls) throws Exception;
     }
 }
