@@ -83,7 +83,7 @@ public class BenchmarkBase {
     protected void setupWrapped(BenchmarkParams pars) {
         var wrapper = findWrapperJar();
         if (wrapper != null)
-            setupNormal(pars, true, findWrapperJar());
+            setupNormal(pars, true, wrapper);
     }
 
     protected void setupNormal(BenchmarkParams pars) {
@@ -126,7 +126,7 @@ public class BenchmarkBase {
     }
 
     protected void run() {
-        if (run != null);
+        if (run != null)
             run.run();
     }
 
