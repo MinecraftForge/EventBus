@@ -4,7 +4,7 @@
  */
 package net.minecraftforge.eventbus;
 
-import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.eventbus.api.IEvent;
 import net.minecraftforge.eventbus.api.IEventListener;
 
 import java.util.function.Supplier;
@@ -30,7 +30,7 @@ public class NamedEventListener implements IEventListener {
     }
 
     @Override
-    public void invoke(final Event event) {
+    public void invoke(final IEvent event) {
         this.wrap.invoke(event);
     }
 }
