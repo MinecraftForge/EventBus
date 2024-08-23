@@ -26,5 +26,8 @@ out
 /jmh_data_output.json
 /jmh_results.md
 /test_results.html
-/eventbus-wrapper/
 /jmh_data_output.csv
+
+# Lets not
+/eventbus-wrapper/
+/eventbus-jmh/src/main/java/net/minecraftforge/eventbus/benchmarks/BenchmarkWrapped.java
