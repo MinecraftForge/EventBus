@@ -17,11 +17,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 
 public class ListenerList {
-    private static List<ListenerList> allLists = new ArrayList<>();
+    private static final List<ListenerList> allLists = new ArrayList<>();
     private static int maxSize = 0;
 
     @Nullable
-    private ListenerList parent;
+    private final ListenerList parent;
     private ListenerListInst[] lists = new ListenerListInst[0];
 
     public ListenerList() {
@@ -97,13 +97,13 @@ public class ListenerList {
             list.unregister(id, listener);
     }
 
-    private class ListenerListInst {
+    private static class ListenerListInst {
         private boolean rebuild = true;
         private AtomicReference<IEventListener[]> listeners = new AtomicReference<>();
-        private ArrayList<ArrayList<IEventListener>> priorities;
+        private final ArrayList<ArrayList<IEventListener>> priorities;
         private ListenerListInst parent;
         private List<ListenerListInst> children;
-        private Semaphore writeLock = new Semaphore(1, true);
+        private final Semaphore writeLock = new Semaphore(1, true);
 
         private ListenerListInst() {
             int count = EventPriority.values().length;

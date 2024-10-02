@@ -13,7 +13,7 @@ public class ASMEventHandler implements IEventListener {
     private final IEventListenerFactory factory;
     private final IEventListener handler;
     private final SubscribeEvent subInfo;
-    private String readable;
+    private final String readable;
     private Type filter = null;
 
     public ASMEventHandler(IEventListenerFactory factory, Object target, Method method, boolean isGeneric) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException {
