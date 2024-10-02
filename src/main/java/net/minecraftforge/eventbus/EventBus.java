@@ -161,21 +161,21 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
     private static final Predicate<Event> checkCancelled = e -> !e.isCanceled();
     @SuppressWarnings("unchecked")
-    private <T extends Event> Predicate<T> passCancelled(boolean ignored) {
+    private static <T extends Event> Predicate<T> passCancelled(boolean ignored) {
         return ignored ? null : (Predicate<T>)checkCancelled;
     }
 
-    private <T extends GenericEvent<? extends F>, F> Predicate<T> passGenericFilter(Class<F> type, boolean ignored) {
+    private static <T extends GenericEvent<? extends F>, F> Predicate<T> passGenericFilter(Class<F> type, boolean ignored) {
         if (ignored)
             return e -> e.getGenericType() == type;
         return e -> e.getGenericType() == type && !e.isCanceled();
     }
 
-    private void checkNotGeneric(final Consumer<? extends Event> consumer) {
+    private static void checkNotGeneric(final Consumer<? extends Event> consumer) {
         checkNotGeneric(getEventClass(consumer));
     }
 
-    private void checkNotGeneric(final Class<? extends Event> eventType) {
+    private static void checkNotGeneric(final Class<? extends Event> eventType) {
         if (GenericEvent.class.isAssignableFrom(eventType))
             throw new IllegalArgumentException("Cannot register a generic event listener with addListener, use addGenericListener");
     }
@@ -223,7 +223,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Event> Class<T> getEventClass(Consumer<T> consumer) {
+    private static <T extends Event> Class<T> getEventClass(Consumer<T> consumer) {
         final Class<T> eventClass = (Class<T>) TypeResolver.resolveRawArgument(Consumer.class, consumer.getClass());
         if ((Class<?>)eventClass == TypeResolver.Unknown.class) {
             LOGGER.error(EVENTBUS, "Failed to resolve handler for \"{}\"", consumer.toString());
@@ -250,7 +250,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Event> void doCastFilter(final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer, final Event e) {
+    private static <T extends Event> void doCastFilter(final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer, final Event e) {
         T cast = (T)e;
         if (filter == null || filter.test(cast))
             consumer.accept(cast);
