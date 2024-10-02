@@ -182,13 +182,11 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
     @Override
     public <T extends Event> void addListener(final Consumer<T> consumer) {
-        checkNotGeneric(consumer);
         addListener(EventPriority.NORMAL, consumer);
     }
 
     @Override
     public <T extends Event> void addListener(final EventPriority priority, final Consumer<T> consumer) {
-        checkNotGeneric(consumer);
         addListener(priority, false, consumer);
     }
 
