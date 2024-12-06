@@ -35,7 +35,7 @@ public final class EventBusEngine implements IEventBusEngine {
     @Override
     public boolean handlesClass(final Type classType) {
         final String name = classType.getClassName();
-        return !(name.startsWith("net.minecraft.") || name.indexOf('.') == -1);
+        return !((name.startsWith("com.mojang.") || name.startsWith("net.minecraft.")) || name.indexOf('.') == -1);
     }
 
     @Override
