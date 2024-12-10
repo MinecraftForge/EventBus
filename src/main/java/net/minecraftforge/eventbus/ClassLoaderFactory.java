@@ -52,6 +52,7 @@ public class ClassLoaderFactory implements IEventListenerFactory {
         MethodVisitor mv;
 
         boolean isStatic = Modifier.isStatic(callback.getModifiers());
+        boolean isInterface = Modifier.isInterface(callback.getDeclaringClass().getModifiers());
         String desc = name.replace('.',  '/');
         String instType = Type.getInternalName(callback.getDeclaringClass());
         String eventType = Type.getInternalName(callback.getParameterTypes()[0]);
@@ -95,7 +96,14 @@ public class ClassLoaderFactory implements IEventListenerFactory {
             }
             mv.visitVarInsn(ALOAD, 1);
             mv.visitTypeInsn(CHECKCAST, eventType);
-            mv.visitMethodInsn(isStatic ? INVOKESTATIC : INVOKEVIRTUAL, instType, callback.getName(), Type.getMethodDescriptor(callback), false);
+
+            var opcode = INVOKEVIRTUAL;
+            if (isStatic)
+                opcode = INVOKESTATIC;
+            else if (isInterface)
+                opcode = INVOKEINTERFACE;
+
+            mv.visitMethodInsn(opcode, instType, callback.getName(), Type.getMethodDescriptor(callback), isInterface);
             mv.visitInsn(RETURN);
             mv.visitMaxs(2, 2);
             mv.visitEnd();
