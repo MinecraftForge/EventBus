@@ -203,6 +203,7 @@ public class ListenerList {
         }
 
         public void register(EventPriority priority, IEventListener listener) {
+            if (listener == null) return;
             writeLock.acquireUninterruptibly();
             priorities.get(priority.ordinal()).add(listener);
             writeLock.release();
