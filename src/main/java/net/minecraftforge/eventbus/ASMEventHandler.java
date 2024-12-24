@@ -42,11 +42,9 @@ public class ASMEventHandler implements IEventListener {
     @SuppressWarnings("rawtypes")
     @Override
     public void invoke(Event event) {
-        if (handler != null) {
-            if (!event.isCanceled() || subInfo.receiveCanceled()) {
-                if (filter == null || filter == ((IGenericEvent)event).getGenericType())
-                    handler.invoke(event);
-            }
+        if (!event.isCanceled() || subInfo.receiveCanceled()) {
+            if (filter == null || filter == ((IGenericEvent)event).getGenericType())
+                handler.invoke(event);
         }
     }
 
