@@ -298,7 +298,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
         int index = 0;
         try {
             for (; index < listeners.length; index++) {
-                if (!trackPhases && Objects.equals(listeners[index].getClass(), EventPriority.class)) continue;
+                if (!trackPhases && listeners[index].getClass() == EventPriority.class) continue;
                 wrapper.invoke(listeners[index], event);
             }
         } catch (Throwable throwable) {
