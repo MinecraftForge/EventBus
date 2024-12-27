@@ -8,8 +8,7 @@ package net.minecraftforge.eventbus.testjar.benchmarks;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.*;
 import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.Remapper;
 
@@ -52,13 +51,38 @@ public final class ClassFactory<T> {
             }
         };
 
+        var remapStaticAccess = new ClassVisitor(Opcodes.ASM9) {
+            @Override
+            public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+                return new MethodVisitor(Opcodes.ASM9) {
+                    @Override
+                    public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
+                        if (opcode == Opcodes.GETSTATIC || opcode == Opcodes.PUTSTATIC && owner.equals(binaryName))
+                            owner = binaryName + "$New" + count;
+
+                        super.visitFieldInsn(opcode, owner, name, descriptor);
+                    }
+
+                    @Override
+                    public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+                        if (opcode == Opcodes.INVOKESTATIC && owner.equals(binaryName))
+                            owner = binaryName + "$New" + count;
+
+                        super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+                    }
+                };
+            }
+        };
+
         var reader = new ClassReader(data);
         var writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+
+        reader.accept(remapStaticAccess, 0);
         reader.accept(new ClassRemapper(writer, renamer), 0);
         try {
             var newData = writer.toByteArray();
             var newCls = (Class<?>) lookup.defineClass(newData);
-            return mapper.apply(newCls);
+            return mapper.apply(lookup, newCls);
         } catch (Exception e) {
             return sneak(e);
         }
@@ -71,6 +95,6 @@ public final class ClassFactory<T> {
 
     @FunctionalInterface
     public interface Mapper<T> {
-        T apply(Class<?> cls) throws Exception;
+        T apply(MethodHandles.Lookup lookup, Class<?> cls) throws Exception;
     }
 }
