@@ -98,11 +98,11 @@ tasks.register('jmh') {
                 if (output.exists())
                     output.delete()
             }
-            javaLauncher.set(javaToolchains.launcherFor {
-                vendor.set(JvmVendorSpec."${javaVendor.toUpperCase(Locale.ROOT)}" as JvmVendorSpec)
-                languageVersion.set(JavaLanguageVersion.of(javaVersion))
-                implementation.set(JvmImplementation.VENDOR_SPECIFIC)
-            })
+            javaLauncher = javaToolchains.launcherFor {
+                vendor = JvmVendorSpec."${javaVendor.toUpperCase(Locale.ROOT)}" as JvmVendorSpec
+                languageVersion = JavaLanguageVersion.of(javaVersion)
+                implementation = JvmImplementation.VENDOR_SPECIFIC
+            }
         }
         tasks.named('aggregateJmh') {
             dependsOn task

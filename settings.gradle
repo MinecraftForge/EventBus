@@ -14,7 +14,7 @@ dependencyResolutionManagement {
         libs {
             // ModLauncher stack
             library('modlauncher', 'net.minecraftforge:modlauncher:10.1.1')
-            library('securemodules', 'net.minecraftforge:securemodules:2.2.2')
+            library('securemodules', 'net.minecraftforge:securemodules:2.2.21')
             library('unsafe', 'net.minecraftforge:unsafe:0.9.2')
 
             // Generics from lambdas

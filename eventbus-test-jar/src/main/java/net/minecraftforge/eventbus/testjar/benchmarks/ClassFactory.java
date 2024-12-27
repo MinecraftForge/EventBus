@@ -47,7 +47,7 @@ public final class ClassFactory<T> {
             @Override
             public String map(String internalName) {
                 if (internalName.equals(binaryName)) return binaryName + "$New" + count;
-                return BenchmarkManager.rename(internalName);
+                return internalName;
             }
         };
 
