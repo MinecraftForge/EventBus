@@ -61,12 +61,12 @@ tasks.register('jmh') {
     dependsOn('aggregateJmh', 'archiveJfr')
 }
 
-VALID_VMS.each { javaVendor, javaVersions ->
-    javaVersions.each { int javaVersion ->
-        def output = file("build/jmh_results/jmh-${javaVendor}-${javaVersion}.json")
-        def outputJfr = file("build/jmh_profile_results/last_run/${javaVendor}-${javaVersion}/")
+((Map<String, List<Integer>>) ext.VALID_VMS).forEach { javaVendor, javaVersions ->
+    for (Integer javaVersion in javaVersions) {
+        var output = file("build/jmh_results/jmh-${javaVendor}-${javaVersion}.json")
+        var outputJfr = file("build/jmh_profile_results/last_run/${javaVendor}-${javaVersion}/")
         outputJfr.mkdirs()
-        def task = tasks.register("jmh${javaVendor}${javaVersion}", JavaExec) {
+        var task = tasks.register("jmh${javaVendor}${javaVersion}", JavaExec) {
             classpath = sourceSets.main.runtimeClasspath
             mainModule = 'net.minecraftforge.eventbus.jmh'
             mainClass = 'net.minecraftforge.eventbus.benchmarks.Main'
@@ -90,24 +90,27 @@ VALID_VMS.each { javaVendor, javaVersions ->
             ]
             if (project.hasProperty('bench'))
                 args += project.property('bench')
-                
+
             doFirst {
-                if (outputJfr.exists())
-                    outputJfr.deleteDir()
+                outputJfr.deleteDir()
                 if (!output.parentFile.exists())
-                    output.parentFile.mkdirs() 
+                    output.parentFile.mkdirs()
                 if (output.exists())
                     output.delete()
             }
             javaLauncher.set(javaToolchains.launcherFor {
-                it.vendor.set(JvmVendorSpec."${javaVendor.toUpperCase(Locale.ROOT)}" as JvmVendorSpec)
-                it.languageVersion.set(JavaLanguageVersion.of(javaVersion))
-                it.implementation.set(JvmImplementation.VENDOR_SPECIFIC)
+                vendor.set(JvmVendorSpec."${javaVendor.toUpperCase(Locale.ROOT)}" as JvmVendorSpec)
+                languageVersion.set(JavaLanguageVersion.of(javaVersion))
+                implementation.set(JvmImplementation.VENDOR_SPECIFIC)
             })
         }
-        aggregateJmh.dependsOn(task)
-        aggregateJmh.inputs.file(output)
-        archiveJfr.dependsOn(task)
-        archiveJfr.inputs.dir(outputJfr)
+        tasks.named('aggregateJmh') {
+            dependsOn task
+            inputs.file output
+        }
+        tasks.named('archiveJfr') {
+            dependsOn task
+            inputs.dir outputJfr
+        }
     }
 }
