@@ -65,6 +65,7 @@ VALID_VMS.each { javaVendor, javaVersions ->
     javaVersions.each { int javaVersion ->
         def output = file("build/jmh_results/jmh-${javaVendor}-${javaVersion}.json")
         def outputJfr = file("build/jmh_profile_results/last_run/${javaVendor}-${javaVersion}/")
+        outputJfr.mkdirs()
         def task = tasks.register("jmh${javaVendor}${javaVersion}", JavaExec) {
             classpath = sourceSets.main.runtimeClasspath
             mainModule = 'net.minecraftforge.eventbus.jmh'
