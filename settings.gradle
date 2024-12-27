@@ -6,7 +6,7 @@ pluginManagement {
 }
 
 plugins {
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
 }
 
 dependencyResolutionManagement {
@@ -30,14 +30,20 @@ dependencyResolutionManagement {
             library('junit-platform-launcher', 'org.junit.platform:junit-platform-launcher:1.10.1')
             bundle('junit-runtime', ['junit-engine', 'junit-platform-launcher'])
 
-            version('asm', '9.6')
+            version('asm', '9.7.1')
             library('asm',         'org.ow2.asm', 'asm'        ).versionRef('asm')
             library('asm-tree',    'org.ow2.asm', 'asm-tree'   ).versionRef('asm')
             library('asm-commons', 'org.ow2.asm', 'asm-commons').versionRef('asm')
             bundle('asm', ['asm', 'asm-tree', 'asm-commons'])
+
+            version('jmh', '1.37')
+            library('jmh-core', 'org.openjdk.jmh', 'jmh-core') versionRef 'jmh'
+            library('jmh-annotationProcessor', 'org.openjdk.jmh', 'jmh-generator-annprocess') versionRef 'jmh'
         }
     }
 }
+
+enableFeaturePreview 'TYPESAFE_PROJECT_ACCESSORS'
 
 rootProject.name = 'EventBus'
 include 'eventbus-jmh'

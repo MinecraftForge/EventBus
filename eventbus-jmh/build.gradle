@@ -28,11 +28,11 @@ dependencies {
     implementation(libs.securemodules)
     implementation(libs.modlauncher)
     implementation(libs.unsafe)
-    implementation(project(':eventbus-test-jar'))
+    implementation(projects.eventbusTestJar)
 
-    implementation('org.openjdk.jmh:jmh-core:1.37')
-    runtimeOnly('org.openjdk.jmh:jmh-generator-annprocess:1.37')
-    annotationProcessor('org.openjdk.jmh:jmh-generator-annprocess:1.37')
+    implementation libs.jmh.core
+    runtimeOnly libs.jmh.annotationProcessor
+    annotationProcessor libs.jmh.annotationProcessor
 }
 
 extraJavaModuleInfo {
@@ -57,7 +57,7 @@ tasks.register('archiveJfr', ArchiveJfr) {
     output = file('build/jmh_profile_results/archive/')
 }
 
-tasks.register('jmh').configure {
+tasks.register('jmh') {
     dependsOn('aggregateJmh', 'archiveJfr')
 }
 
