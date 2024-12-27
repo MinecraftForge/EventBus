@@ -74,7 +74,7 @@ public class BenchmarkBase {
         }
     }
 
-    public static class TestCallback {
+    public static final class TestCallback {
         public static ServiceRunner supplier() {
             return ServiceRunner.NOOP;
         }
