@@ -16,6 +16,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
+import java.util.function.Supplier;
 
 public final class ModLauncherBenchmarks {
     private ModLauncherBenchmarks() {}
@@ -24,9 +25,9 @@ public final class ModLauncherBenchmarks {
         private Post() {}
         private static final IEventBus EVENT_BUS = BusBuilder.builder().useModLauncher().build();
 
-        public static void setup(int multiplier, Consumer<IEventBus> registrar) {
+        public static void setup(int multiplier, Supplier<Consumer<IEventBus>> registrar) {
             for (int i = 0; i < multiplier; i++)
-                registrar.accept(EVENT_BUS);
+                registrar.get().accept(EVENT_BUS);
         }
 
         public static void post(Blackhole bh) {
@@ -41,28 +42,28 @@ public final class ModLauncherBenchmarks {
                     Post.class,
                     MethodHandles.lookup(),
                     (lookup, cls) -> multiplier ->
-                            BenchmarkManager.setupPostingBenchmark(lookup, cls, multiplier, SubscriberMixed.Factory.create())
+                            BenchmarkManager.setupPostingBenchmark(lookup, cls, multiplier, SubscriberMixed.Factory.REGISTER)
             );
 
             public static final ClassFactory<IntFunction<Consumer<Blackhole>>> DYNAMIC = new ClassFactory<>(
                     Post.class,
                     MethodHandles.lookup(),
                     (lookup, cls) -> multiplier ->
-                            BenchmarkManager.setupPostingBenchmark(lookup, cls, multiplier, SubscriberDynamic.Factory.REGISTER.create())
+                            BenchmarkManager.setupPostingBenchmark(lookup, cls, multiplier, SubscriberDynamic.Factory.REGISTER)
             );
 
             public static final ClassFactory<IntFunction<Consumer<Blackhole>>> LAMBDA = new ClassFactory<>(
                     Post.class,
                     MethodHandles.lookup(),
                     (lookup, cls) -> multiplier ->
-                            BenchmarkManager.setupPostingBenchmark(lookup, cls, multiplier, SubscriberLambda.Factory.REGISTER.create())
+                            BenchmarkManager.setupPostingBenchmark(lookup, cls, multiplier, SubscriberLambda.Factory.REGISTER)
             );
 
             public static final ClassFactory<IntFunction<Consumer<Blackhole>>> STATIC = new ClassFactory<>(
                     Post.class,
                     MethodHandles.lookup(),
                     (lookup, cls) -> multiplier ->
-                            BenchmarkManager.setupPostingBenchmark(lookup, cls, multiplier, SubscriberStatic.Factory.REGISTER.create())
+                            BenchmarkManager.setupPostingBenchmark(lookup, cls, multiplier, SubscriberStatic.Factory.REGISTER)
             );
         }
     }

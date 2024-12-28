@@ -3,10 +3,13 @@ package net.minecraftforge.eventbus.testjar.subscribers;
 import net.minecraftforge.eventbus.api.IEventBus;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class SubscriberMixed {
     public static class Factory {
-        public static Consumer<IEventBus> create() {
+        public static final Supplier<Consumer<IEventBus>> REGISTER = Factory::create;
+
+        private static Consumer<IEventBus> create() {
             return new Consumer<>() {
                 private int idx = 0;
 

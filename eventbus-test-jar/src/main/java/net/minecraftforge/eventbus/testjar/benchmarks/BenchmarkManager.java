@@ -8,6 +8,7 @@ import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public final class BenchmarkManager {
     private BenchmarkManager() {}
@@ -74,10 +75,10 @@ public final class BenchmarkManager {
         };
     }
 
-    public static Consumer<Blackhole> setupPostingBenchmark(MethodHandles.Lookup lookup, Class<?> cls, int multiplier, Consumer<IEventBus> registrar) {
+    public static Consumer<Blackhole> setupPostingBenchmark(MethodHandles.Lookup lookup, Class<?> cls, int multiplier, Supplier<Consumer<IEventBus>> registrar) {
         try {
             // Register the requested multiplier of listeners
-            lookup.findStatic(cls, "setup", MethodType.methodType(void.class, int.class, Consumer.class))
+            lookup.findStatic(cls, "setup", MethodType.methodType(void.class, int.class, Supplier.class))
                     .invokeExact(multiplier, registrar);
 
             // Find the static `post(Blackhole)` method and return it as a `Consumer<Blackhole>` using LambdaMetaFactory

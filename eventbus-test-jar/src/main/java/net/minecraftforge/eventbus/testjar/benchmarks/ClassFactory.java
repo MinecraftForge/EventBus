@@ -7,12 +7,13 @@ package net.minecraftforge.eventbus.testjar.benchmarks;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.util.function.Supplier;
 
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.Remapper;
 
-public final class ClassFactory<T> {
+public final class ClassFactory<T> implements Supplier<T> {
     private final Mapper<T> mapper;
     private final String binaryName;
     private final byte[] data;
@@ -57,7 +58,7 @@ public final class ClassFactory<T> {
                 return new MethodVisitor(Opcodes.ASM9) {
                     @Override
                     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
-                        if (opcode == Opcodes.GETSTATIC || opcode == Opcodes.PUTSTATIC && owner.equals(binaryName))
+                        if ((opcode == Opcodes.GETSTATIC || opcode == Opcodes.PUTSTATIC) && owner.equals(binaryName))
                             owner = binaryName + "$New" + count;
 
                         super.visitFieldInsn(opcode, owner, name, descriptor);
@@ -86,6 +87,11 @@ public final class ClassFactory<T> {
         } catch (Exception e) {
             return sneak(e);
         }
+    }
+
+    @Override
+    public T get() {
+        return create();
     }
 
     @SuppressWarnings("unchecked")
