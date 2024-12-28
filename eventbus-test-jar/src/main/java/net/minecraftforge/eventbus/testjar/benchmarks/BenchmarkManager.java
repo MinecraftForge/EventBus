@@ -1,12 +1,19 @@
 package net.minecraftforge.eventbus.testjar.benchmarks;
 
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.testjar.events.CancelableEvent;
 import org.openjdk.jmh.infra.Blackhole;
 
+import java.lang.invoke.LambdaMetafactory;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.function.Consumer;
 
 public final class BenchmarkManager {
     private BenchmarkManager() {}
+
+    private static final MethodType RETURNS_CONSUMER = MethodType.methodType(Consumer.class);
+    private static final MethodType CONSUMER_FI_TYPE = MethodType.methodType(void.class, Object.class);
 
     public static void validate(boolean shouldBeTransformed) {
         try {
@@ -21,55 +28,15 @@ public final class BenchmarkManager {
 
     public static Consumer<Blackhole> getPostingBenchmark(String name, int multiplier) {
         return switch (name) {
-            case "modLauncherMixed" -> switch (multiplier) {
-                case 1 -> ModLauncherBenchmarks.Post.Mixed.Single::post;
-                case 12 -> ModLauncherBenchmarks.Post.Mixed.Dozen::post;
-                case 100 -> ModLauncherBenchmarks.Post.Mixed.Hundred::post;
-                default -> throw unsupportedMultiplier(multiplier);
-            };
-            case "modLauncherDynamic" -> switch (multiplier) {
-                case 1 -> ModLauncherBenchmarks.Post.Dynamic.Single::post;
-                case 12 -> ModLauncherBenchmarks.Post.Dynamic.Dozen::post;
-                case 100 -> ModLauncherBenchmarks.Post.Dynamic.Hundred::post;
-                default -> throw unsupportedMultiplier(multiplier);
-            };
-            case "modLauncherLambda" -> switch (multiplier) {
-                case 1 -> ModLauncherBenchmarks.Post.Lambda.Single::post;
-                case 12 -> ModLauncherBenchmarks.Post.Lambda.Dozen::post;
-                case 100 -> ModLauncherBenchmarks.Post.Lambda.Hundred::post;
-                default -> throw unsupportedMultiplier(multiplier);
-            };
-            case "modLauncherStatic" -> switch (multiplier) {
-                case 1 -> ModLauncherBenchmarks.Post.Static.Single::post;
-                case 12 -> ModLauncherBenchmarks.Post.Static.Dozen::post;
-                case 100 -> ModLauncherBenchmarks.Post.Static.Hundred::post;
-                default -> throw unsupportedMultiplier(multiplier);
-            };
+            case "modLauncherMixed" -> ModLauncherBenchmarks.Post.Factory.MIXED.create().apply(multiplier);
+            case "modLauncherDynamic" -> ModLauncherBenchmarks.Post.Factory.DYNAMIC.create().apply(multiplier);
+            case "modLauncherLambda" -> ModLauncherBenchmarks.Post.Factory.LAMBDA.create().apply(multiplier);
+            case "modLauncherStatic" -> ModLauncherBenchmarks.Post.Factory.STATIC.create().apply(multiplier);
 
-            case "noLoaderMixed" -> switch (multiplier) {
-                case 1 -> NoLoaderBenchmarks.Post.Mixed.Single::post;
-                case 12 -> NoLoaderBenchmarks.Post.Mixed.Dozen::post;
-                case 100 -> NoLoaderBenchmarks.Post.Mixed.Hundred::post;
-                default -> throw unsupportedMultiplier(multiplier);
-            };
-            case "noLoaderDynamic" -> switch (multiplier) {
-                case 1 -> NoLoaderBenchmarks.Post.Dynamic.Single::post;
-                case 12 -> NoLoaderBenchmarks.Post.Dynamic.Dozen::post;
-                case 100 -> NoLoaderBenchmarks.Post.Dynamic.Hundred::post;
-                default -> throw unsupportedMultiplier(multiplier);
-            };
-            case "noLoaderLambda" -> switch (multiplier) {
-                case 1 -> NoLoaderBenchmarks.Post.Lambda.Single::post;
-                case 12 -> NoLoaderBenchmarks.Post.Lambda.Dozen::post;
-                case 100 -> NoLoaderBenchmarks.Post.Lambda.Hundred::post;
-                default -> throw unsupportedMultiplier(multiplier);
-            };
-            case "noLoaderStatic" -> switch (multiplier) {
-                case 1 -> NoLoaderBenchmarks.Post.Static.Single::post;
-                case 12 -> NoLoaderBenchmarks.Post.Static.Dozen::post;
-                case 100 -> NoLoaderBenchmarks.Post.Static.Hundred::post;
-                default -> throw unsupportedMultiplier(multiplier);
-            };
+            case "noLoaderMixed" -> NoLoaderBenchmarks.Post.Factory.MIXED.create().apply(multiplier);
+            case "noLoaderDynamic" -> NoLoaderBenchmarks.Post.Factory.DYNAMIC.create().apply(multiplier);
+            case "noLoaderLambda" -> NoLoaderBenchmarks.Post.Factory.LAMBDA.create().apply(multiplier);
+            case "noLoaderStatic" -> NoLoaderBenchmarks.Post.Factory.STATIC.create().apply(multiplier);
 
             default -> throw new IllegalArgumentException("Unknown benchmark: " + name);
         };
@@ -107,7 +74,21 @@ public final class BenchmarkManager {
         };
     }
 
-    private static UnsupportedOperationException unsupportedMultiplier(int multiplier) {
-        return new UnsupportedOperationException("Unsupported multiplier: " + multiplier + ". Supported: 1, 12, 100");
+    public static Consumer<Blackhole> setupPostingBenchmark(MethodHandles.Lookup lookup, Class<?> cls, int multiplier, Consumer<IEventBus> registrar) {
+        try {
+            // Register the requested multiplier of listeners
+            lookup.findStatic(cls, "setup", MethodType.methodType(void.class, int.class, Consumer.class))
+                    .invokeExact(multiplier, registrar);
+
+            // Find the static `post(Blackhole)` method and return it as a `Consumer<Blackhole>` using LambdaMetaFactory
+            var postMethod = lookup.findStatic(cls, "post", MethodType.methodType(void.class, Blackhole.class));
+            var lmf = LambdaMetafactory.metafactory(lookup, "accept", RETURNS_CONSUMER, CONSUMER_FI_TYPE, postMethod, postMethod.type());
+
+            @SuppressWarnings("unchecked")
+            var consumer = (Consumer<Blackhole>) lmf.getTarget().invokeExact();
+            return consumer;
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 }

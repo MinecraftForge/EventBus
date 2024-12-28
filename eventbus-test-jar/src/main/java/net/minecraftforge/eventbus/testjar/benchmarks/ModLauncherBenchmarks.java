@@ -2,135 +2,68 @@ package net.minecraftforge.eventbus.testjar.benchmarks;
 
 import net.minecraftforge.eventbus.api.BusBuilder;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.testjar.events.CancelableEvent;
+import net.minecraftforge.eventbus.testjar.events.EventWithData;
+import net.minecraftforge.eventbus.testjar.events.ResultEvent;
 import net.minecraftforge.eventbus.testjar.subscribers.SubscriberDynamic;
 import net.minecraftforge.eventbus.testjar.subscribers.SubscriberLambda;
 import net.minecraftforge.eventbus.testjar.subscribers.SubscriberMixed;
 import net.minecraftforge.eventbus.testjar.subscribers.SubscriberStatic;
 import org.openjdk.jmh.infra.Blackhole;
 
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.function.Consumer;
+import java.util.function.IntFunction;
 
 public final class ModLauncherBenchmarks {
     private ModLauncherBenchmarks() {}
 
-    public static abstract class Post extends PostingBenchmark {
-        protected static IEventBus createEventBus(int numberOfListeners, Consumer<IEventBus> registrar) {
-            return createEventBus(true, numberOfListeners, registrar);
+    public static final class Post {
+        private Post() {}
+        private static final IEventBus EVENT_BUS = BusBuilder.builder().useModLauncher().build();
+
+        public static void setup(int multiplier, Consumer<IEventBus> registrar) {
+            for (int i = 0; i < multiplier; i++)
+                registrar.accept(EVENT_BUS);
         }
 
-        public static abstract class Mixed {
-            public static final class Single extends Post {
-                private static final IEventBus EVENT_BUS = createEventBus(1, SubscriberMixed.Factory.create());
-
-                public static void post(Blackhole bh) {
-                    post(EVENT_BUS, bh);
-                }
-            }
-
-            public static final class Dozen extends Post {
-                private static final IEventBus EVENT_BUS = createEventBus(12, SubscriberMixed.Factory.create());
-
-                public static void post(Blackhole bh) {
-                    post(EVENT_BUS, bh);
-                }
-            }
-
-            public static final class Hundred extends Post {
-                private static final IEventBus EVENT_BUS = createEventBus(100, SubscriberMixed.Factory.create());
-
-                public static void post(Blackhole bh) {
-                    post(EVENT_BUS, bh);
-                }
-            }
+        public static void post(Blackhole bh) {
+            EVENT_BUS.post(new CancelableEvent());
+            EVENT_BUS.post(new ResultEvent());
+            EVENT_BUS.post(new EventWithData("Foo", 5, true));
         }
 
-        public static abstract class Dynamic {
-            protected static final Consumer<IEventBus> DYNAMIC_REGISTRAR =
-                    bus -> SubscriberDynamic.Factory.REGISTER.create().accept(bus);
+        public static final class Factory {
+            private Factory() {}
+            public static final ClassFactory<IntFunction<Consumer<Blackhole>>> MIXED = new ClassFactory<>(
+                    Post.class,
+                    MethodHandles.lookup(),
+                    (lookup, cls) -> multiplier ->
+                            BenchmarkManager.setupPostingBenchmark(lookup, cls, multiplier, SubscriberMixed.Factory.create())
+            );
 
-            public static final class Single extends Post {
-                private static final IEventBus EVENT_BUS = createEventBus(1, DYNAMIC_REGISTRAR);
+            public static final ClassFactory<IntFunction<Consumer<Blackhole>>> DYNAMIC = new ClassFactory<>(
+                    Post.class,
+                    MethodHandles.lookup(),
+                    (lookup, cls) -> multiplier ->
+                            BenchmarkManager.setupPostingBenchmark(lookup, cls, multiplier, SubscriberDynamic.Factory.REGISTER.create())
+            );
 
-                public static void post(Blackhole bh) {
-                    post(EVENT_BUS, bh);
-                }
-            }
+            public static final ClassFactory<IntFunction<Consumer<Blackhole>>> LAMBDA = new ClassFactory<>(
+                    Post.class,
+                    MethodHandles.lookup(),
+                    (lookup, cls) -> multiplier ->
+                            BenchmarkManager.setupPostingBenchmark(lookup, cls, multiplier, SubscriberLambda.Factory.REGISTER.create())
+            );
 
-            public static final class Dozen extends Post {
-                private static final IEventBus EVENT_BUS = createEventBus(12, DYNAMIC_REGISTRAR);
-
-                public static void post(Blackhole bh) {
-                    post(EVENT_BUS, bh);
-                }
-            }
-
-            public static final class Hundred extends Post {
-                private static final IEventBus EVENT_BUS = createEventBus(100, DYNAMIC_REGISTRAR);
-
-                public static void post(Blackhole bh) {
-                    post(EVENT_BUS, bh);
-                }
-            }
-        }
-
-        public static abstract class Lambda {
-            protected static final Consumer<IEventBus> LAMBDA_REGISTRAR =
-                    bus -> SubscriberLambda.Factory.REGISTER.create().accept(bus);
-
-            public static final class Single extends Post {
-                private static final IEventBus EVENT_BUS = createEventBus(1, LAMBDA_REGISTRAR);
-
-                public static void post(Blackhole bh) {
-                    post(EVENT_BUS, bh);
-                }
-            }
-
-            public static final class Dozen extends Post {
-                private static final IEventBus EVENT_BUS = createEventBus(12, LAMBDA_REGISTRAR);
-
-                public static void post(Blackhole bh) {
-                    post(EVENT_BUS, bh);
-                }
-            }
-
-            public static final class Hundred extends Post {
-                private static final IEventBus EVENT_BUS = createEventBus(100, LAMBDA_REGISTRAR);
-
-                public static void post(Blackhole bh) {
-                    post(EVENT_BUS, bh);
-                }
-            }
-        }
-
-        public static abstract class Static {
-            protected static final Consumer<IEventBus> STATIC_REGISTRAR =
-                    bus -> SubscriberStatic.Factory.REGISTER.create().accept(bus);
-
-            public static final class Single extends Post {
-                private static final IEventBus EVENT_BUS = createEventBus(1, STATIC_REGISTRAR);
-
-                public static void post(Blackhole bh) {
-                    post(EVENT_BUS, bh);
-                }
-            }
-
-            public static final class Dozen extends Post {
-                private static final IEventBus EVENT_BUS = createEventBus(12, STATIC_REGISTRAR);
-
-                public static void post(Blackhole bh) {
-                    post(EVENT_BUS, bh);
-                }
-            }
-
-            public static final class Hundred extends Post {
-                private static final IEventBus EVENT_BUS = createEventBus(100, STATIC_REGISTRAR);
-
-                public static void post(Blackhole bh) {
-                    post(EVENT_BUS, bh);
-                }
-            }
+            public static final ClassFactory<IntFunction<Consumer<Blackhole>>> STATIC = new ClassFactory<>(
+                    Post.class,
+                    MethodHandles.lookup(),
+                    (lookup, cls) -> multiplier ->
+                            BenchmarkManager.setupPostingBenchmark(lookup, cls, multiplier, SubscriberStatic.Factory.REGISTER.create())
+            );
         }
     }
 
