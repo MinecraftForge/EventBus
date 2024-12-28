@@ -67,8 +67,10 @@ public final class NoLoaderBenchmarks {
         }
     }
 
-    public static abstract class Register extends RegistrationBenchmark {
-        public static final class Dynamic extends Register {
+    public static final class Register {
+        private Register() {}
+
+        public static final class Dynamic extends RegistrationBenchmark {
             private static final IEventBus EVENT_BUS = BusBuilder.builder().build();
             private static final Deque<Consumer<IEventBus>> REGISTRARS = new ArrayDeque<>(BATCH_COUNT);
 
@@ -81,7 +83,7 @@ public final class NoLoaderBenchmarks {
             }
         }
 
-        public static final class Lambda extends Register {
+        public static final class Lambda extends RegistrationBenchmark {
             private static final IEventBus EVENT_BUS = BusBuilder.builder().build();
             private static final Deque<Consumer<IEventBus>> REGISTRARS = new ArrayDeque<>(BATCH_COUNT);
 
@@ -94,7 +96,7 @@ public final class NoLoaderBenchmarks {
             }
         }
 
-        public static final class Static extends Register {
+        public static final class Static extends RegistrationBenchmark {
             private static final IEventBus EVENT_BUS = BusBuilder.builder().build();
             private static final Deque<Consumer<IEventBus>> REGISTRARS = new ArrayDeque<>(BATCH_COUNT);
 
