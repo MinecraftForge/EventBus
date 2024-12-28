@@ -82,8 +82,8 @@ tasks.register('jmh') {
                     '-tu', 'ns',  // Time unit: [m, s, ms, us, ns]
                     '-f',  '1',   // Forks per benchmark
                     '-rf', 'json', // Results File Format
-                    '-prof', 'stack', // Profiler: Simple and naive Java stack profiler
-                    '-prof', "jfr:dir=${outputJfr}", // Profiler: Java Flight Recorder profiler
+//                    '-prof', 'stack', // Profiler: Simple and naive Java stack profiler
+//                    '-prof', "jfr:dir=${outputJfr}", // Profiler: Java Flight Recorder profiler
                     '-v', 'EXTRA', // Verbosity [SILENT, NORMAL, EXTRA]
                     '-foe', 'true', // Fail on error
                     '-rff', output,
