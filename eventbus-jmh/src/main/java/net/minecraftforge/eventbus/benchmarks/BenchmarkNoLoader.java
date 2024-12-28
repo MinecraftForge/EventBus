@@ -13,9 +13,9 @@ public class BenchmarkNoLoader {
     public static class Posting {
         @State(Scope.Benchmark)
         public static class Mixed {
-            private static final Consumer<Blackhole> POST_MIXED;
-            private static final Consumer<Blackhole> POST_MIXED_DOZEN;
-            private static final Consumer<Blackhole> POST_MIXED_HUNDRED;
+            public static final Consumer<Blackhole> POST_MIXED;
+            public static final Consumer<Blackhole> POST_MIXED_DOZEN;
+            public static final Consumer<Blackhole> POST_MIXED_HUNDRED;
 
             static {
                 BenchmarkUtils.setupNormalEnvironment();
@@ -42,9 +42,9 @@ public class BenchmarkNoLoader {
 
         @State(Scope.Benchmark)
         public static class Dynamic {
-            private static final Consumer<Blackhole> POST_DYNAMIC;
-            private static final Consumer<Blackhole> POST_DYNAMIC_DOZEN;
-            private static final Consumer<Blackhole> POST_DYNAMIC_HUNDRED;
+            public static final Consumer<Blackhole> POST_DYNAMIC;
+            public static final Consumer<Blackhole> POST_DYNAMIC_DOZEN;
+            public static final Consumer<Blackhole> POST_DYNAMIC_HUNDRED;
 
             static {
                 BenchmarkUtils.setupNormalEnvironment();
@@ -71,9 +71,9 @@ public class BenchmarkNoLoader {
 
         @State(Scope.Benchmark)
         public static class Lambda {
-            private static final Consumer<Blackhole> POST_LAMBDA;
-            private static final Consumer<Blackhole> POST_LAMBDA_DOZEN;
-            private static final Consumer<Blackhole> POST_LAMBDA_HUNDRED;
+            public static final Consumer<Blackhole> POST_LAMBDA;
+            public static final Consumer<Blackhole> POST_LAMBDA_DOZEN;
+            public static final Consumer<Blackhole> POST_LAMBDA_HUNDRED;
 
             static {
                 BenchmarkUtils.setupNormalEnvironment();
@@ -100,9 +100,9 @@ public class BenchmarkNoLoader {
 
         @State(Scope.Benchmark)
         public static class Static {
-            private static final Consumer<Blackhole> POST_STATIC;
-            private static final Consumer<Blackhole> POST_STATIC_DOZEN;
-            private static final Consumer<Blackhole> POST_STATIC_HUNDRED;
+            public static final Consumer<Blackhole> POST_STATIC;
+            public static final Consumer<Blackhole> POST_STATIC_DOZEN;
+            public static final Consumer<Blackhole> POST_STATIC_HUNDRED;
 
             static {
                 BenchmarkUtils.setupNormalEnvironment();
@@ -131,8 +131,8 @@ public class BenchmarkNoLoader {
     public static class Registering {
         @State(Scope.Benchmark)
         public static class Dynamic {
-            private static final Runnable SETUP_REGISTER_DYNAMIC;
-            private static final Runnable REGISTER_DYNAMIC;
+            public static final Runnable SETUP_REGISTER_DYNAMIC;
+            public static final Runnable REGISTER_DYNAMIC;
 
             static {
                 BenchmarkUtils.setupTransformedEnvironment();
@@ -154,8 +154,8 @@ public class BenchmarkNoLoader {
 
         @State(Scope.Benchmark)
         public static class Lambda {
-            private static final Runnable SETUP_REGISTER_LAMBDA;
-            private static final Runnable REGISTER_LAMBDA;
+            public static final Runnable SETUP_REGISTER_LAMBDA;
+            public static final Runnable REGISTER_LAMBDA;
 
             static {
                 BenchmarkUtils.setupTransformedEnvironment();
@@ -177,8 +177,8 @@ public class BenchmarkNoLoader {
 
         @State(Scope.Benchmark)
         public static class Static {
-            private static final Runnable SETUP_REGISTER_STATIC;
-            private static final Runnable REGISTER_STATIC;
+            public static final Runnable SETUP_REGISTER_STATIC;
+            public static final Runnable REGISTER_STATIC;
 
             static {
                 BenchmarkUtils.setupTransformedEnvironment();
