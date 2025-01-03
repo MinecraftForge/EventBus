@@ -30,7 +30,7 @@ public class SubscriberDynamic {
         public static final ClassFactory<Consumer<IEventBus>> REGISTER = new ClassFactory<>(
                 SubscriberDynamic.class,
                 MethodHandles.lookup(),
-                cls -> {
+                (lookup, cls) -> {
                     var inst = cls.getConstructor().newInstance();
                     return bus -> bus.register(inst);
                 }

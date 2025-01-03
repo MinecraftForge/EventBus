@@ -33,7 +33,7 @@ public class SubscriberLambda {
         public static final ClassFactory<Consumer<IEventBus>> REGISTER = new ClassFactory<>(
                 SubscriberLambda.class,
                 MethodHandles.lookup(),
-                cls -> (Consumer<IEventBus>) cls.getDeclaredField("register").get(null)
+                (lookup, cls) -> (Consumer<IEventBus>) cls.getDeclaredField("register").get(null)
         );
     }
 }

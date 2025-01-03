@@ -4,7 +4,9 @@
  */
 package net.minecraftforge.eventbus.benchmarks;
 
-public class Main {
+public final class Main {
+    private Main() {}
+
     public static void main(String[] args) throws Exception {
         org.openjdk.jmh.Main.main(args);
     }
