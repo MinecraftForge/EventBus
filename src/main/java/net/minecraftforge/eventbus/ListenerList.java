@@ -192,17 +192,16 @@ public class ListenerList {
          * Rebuild the local Array of listeners, returns early if there is no work to do.
          */
         private void buildCache() {
-            if(parent != null && parent.shouldRebuild())
+            if (parent != null && parent.shouldRebuild())
                 parent.buildCache();
 
             ArrayList<IEventListener> ret = new ArrayList<>();
-            Arrays.stream(EVENT_PRIORITY_VALUES).forEach(value -> {
+            for (EventPriority value : EVENT_PRIORITY_VALUES) {
                 List<IEventListener> listeners = getListeners(value);
-                if (!listeners.isEmpty()) {
-                    ret.add(value); //Add the priority to notify the event of it's current phase.
-                    ret.addAll(listeners);
-                }
-            });
+                if (listeners.isEmpty()) continue;
+                ret.add(value); // Add the priority to notify the event of its current phase.
+                ret.addAll(listeners);
+            }
             this.listeners.set(ret.toArray(new IEventListener[0]));
             rebuild = false;
         }
