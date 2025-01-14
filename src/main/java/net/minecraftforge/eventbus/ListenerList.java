@@ -99,7 +99,7 @@ public class ListenerList {
 
     private static class ListenerListInst {
         // Enum#values() performs a defensive copy for each call.
-        // As we never modify the returned values array in this class, we can safely reuse the returned values array.
+        // As we never modify the returned values array in this class, we can safely reuse it.
         private static final EventPriority[] EVENT_PRIORITY_VALUES = EventPriority.values();
 
         private boolean rebuild = true;
