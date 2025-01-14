@@ -98,6 +98,10 @@ public class ListenerList {
     }
 
     private static class ListenerListInst {
+        // Enum#values() performs a defensive copy for each call.
+        // As we never modify the returned values array in this class, we can safely reuse the returned values array.
+        private static final EventPriority[] EVENT_PRIORITY_VALUES = EventPriority.values();
+
         private boolean rebuild = true;
         private AtomicReference<IEventListener[]> listeners = new AtomicReference<>();
         private final @Nullable ArrayList<IEventListener>[] priorities;
@@ -108,7 +112,7 @@ public class ListenerList {
         @SuppressWarnings("unchecked")
         private ListenerListInst() {
             // Make a lazy-loaded array of lists containing listeners for each priority level.
-            priorities = (ArrayList<IEventListener>[]) new ArrayList[EventPriority.values().length];
+            priorities = (ArrayList<IEventListener>[]) new ArrayList[EVENT_PRIORITY_VALUES.length];
         }
 
         public void dispose() {
@@ -192,7 +196,7 @@ public class ListenerList {
                 parent.buildCache();
 
             ArrayList<IEventListener> ret = new ArrayList<>();
-            Arrays.stream(EventPriority.values()).forEach(value -> {
+            Arrays.stream(EVENT_PRIORITY_VALUES).forEach(value -> {
                 List<IEventListener> listeners = getListeners(value);
                 if (!listeners.isEmpty()) {
                     ret.add(value); //Add the priority to notify the event of it's current phase.
