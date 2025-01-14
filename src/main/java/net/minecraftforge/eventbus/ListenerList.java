@@ -218,10 +218,12 @@ public class ListenerList {
 
         public void unregister(IEventListener listener) {
             writeLock.acquireUninterruptibly();
-            Arrays.stream(priorities)
-                    .filter(Objects::nonNull)
-                    .filter(list -> list.remove(listener))
-                    .forEach(list -> this.forceRebuild());
+            boolean needsRebuild = false;
+            for (var list : priorities) {
+                if (list == null) continue;
+                needsRebuild |= list.remove(listener);
+            }
+            if (needsRebuild) this.forceRebuild();
             writeLock.release();
         }
 
