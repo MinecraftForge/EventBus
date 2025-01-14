@@ -58,7 +58,7 @@ tasks.register('archiveJfr', ArchiveJfr) {
 }
 
 tasks.register('jmh') {
-    dependsOn('aggregateJmh', 'archiveJfr')
+    dependsOn 'aggregateJmh'
 }
 
 ((Map<String, List<Integer>>) ext.VALID_VMS).forEach { javaVendor, javaVersions ->
