@@ -117,11 +117,13 @@ public class ListenerList {
 
         public void dispose() {
             writeLock.acquireUninterruptibly();
-            for (@Nullable ArrayList<IEventListener> priority : priorities) {
-                if (priority != null)
+            for (int i = 0; i < priorities.length; i++) {
+                @Nullable ArrayList<IEventListener> priority = priorities[i];
+                if (priority != null) {
                     priority.clear();
+                    priorities[i] = null;
+                }
             }
-            Arrays.fill(priorities, null);
             writeLock.release();
             parent = null;
             listeners = null;
