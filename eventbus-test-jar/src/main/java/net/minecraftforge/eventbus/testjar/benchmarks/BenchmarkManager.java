@@ -23,6 +23,7 @@ public final class BenchmarkManager {
 
     public static void validate(boolean shouldBeTransformed) {
         try {
+            //noinspection JavaReflectionMemberAccess
             CancelableEvent.class.getDeclaredField("LISTENER_LIST");
             if (!shouldBeTransformed)
                 throw new RuntimeException("LISTENER_LIST field exists!");
