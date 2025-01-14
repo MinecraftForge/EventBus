@@ -104,15 +104,21 @@ public class ListenerList {
 
         private boolean rebuild = true;
         private AtomicReference<IEventListener[]> listeners = new AtomicReference<>();
-        private final @Nullable ArrayList<IEventListener>[] priorities;
+
+        /** A lazy-loaded array of lists containing listeners for each priority level. */
+        @SuppressWarnings("unchecked")
+        private final @Nullable ArrayList<IEventListener>[] priorities =
+                (ArrayList<IEventListener>[]) new ArrayList[EVENT_PRIORITY_VALUES.length];
+
         private ListenerListInst parent;
         private List<ListenerListInst> children;
         private final Semaphore writeLock = new Semaphore(1, true);
 
-        @SuppressWarnings("unchecked")
-        private ListenerListInst() {
-            // Make a lazy-loaded array of lists containing listeners for each priority level.
-            priorities = (ArrayList<IEventListener>[]) new ArrayList[EVENT_PRIORITY_VALUES.length];
+        private ListenerListInst() {}
+
+        private ListenerListInst(ListenerListInst parent) {
+            this.parent = parent;
+            this.parent.addChild(this);
         }
 
         public void dispose() {
@@ -129,12 +135,6 @@ public class ListenerList {
             listeners = null;
             if (children != null)
                 children.clear();
-        }
-
-        private ListenerListInst(ListenerListInst parent) {
-            this();
-            this.parent = parent;
-            this.parent.addChild(this);
         }
 
         /**
