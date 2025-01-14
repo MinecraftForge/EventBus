@@ -12,9 +12,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
-
 
 public class ListenerList {
     private static final List<ListenerList> allLists = new ArrayList<>();
@@ -100,23 +100,24 @@ public class ListenerList {
     private static class ListenerListInst {
         private boolean rebuild = true;
         private AtomicReference<IEventListener[]> listeners = new AtomicReference<>();
-        private final ArrayList<ArrayList<IEventListener>> priorities;
+        private final @Nullable ArrayList<IEventListener>[] priorities;
         private ListenerListInst parent;
         private List<ListenerListInst> children;
         private final Semaphore writeLock = new Semaphore(1, true);
 
+        @SuppressWarnings("unchecked")
         private ListenerListInst() {
-            int count = EventPriority.values().length;
-            priorities = new ArrayList<>(count);
-
-            for (int x = 0; x < count; x++)
-                priorities.add(new ArrayList<>());
+            // Make a lazy-loaded array of lists containing listeners for each priority level.
+            priorities = (ArrayList<IEventListener>[]) new ArrayList[EventPriority.values().length];
         }
 
         public void dispose() {
             writeLock.acquireUninterruptibly();
-            priorities.forEach(ArrayList::clear);
-            priorities.clear();
+            for (@Nullable ArrayList<IEventListener> priority : priorities) {
+                if (priority != null)
+                    priority.clear();
+            }
+            Arrays.fill(priorities, null);
             writeLock.release();
             parent = null;
             listeners = null;
@@ -141,7 +142,7 @@ public class ListenerList {
          */
         public ArrayList<IEventListener> getListeners(EventPriority priority) {
             writeLock.acquireUninterruptibly();
-            ArrayList<IEventListener> ret = new ArrayList<>(priorities.get(priority.ordinal()));
+            ArrayList<IEventListener> ret = new ArrayList<>(getListenersForPriority(priority));
             writeLock.release();
             if (parent != null)
                 ret.addAll(parent.getListeners(priority));
@@ -193,7 +194,7 @@ public class ListenerList {
             ArrayList<IEventListener> ret = new ArrayList<>();
             Arrays.stream(EventPriority.values()).forEach(value -> {
                 List<IEventListener> listeners = getListeners(value);
-                if (listeners.size() > 0) {
+                if (!listeners.isEmpty()) {
                     ret.add(value); //Add the priority to notify the event of it's current phase.
                     ret.addAll(listeners);
                 }
@@ -205,15 +206,26 @@ public class ListenerList {
         public void register(EventPriority priority, IEventListener listener) {
             if (listener == null) return;
             writeLock.acquireUninterruptibly();
-            priorities.get(priority.ordinal()).add(listener);
+            getListenersForPriority(priority).add(listener);
             writeLock.release();
             this.forceRebuild();
         }
 
         public void unregister(IEventListener listener) {
             writeLock.acquireUninterruptibly();
-            priorities.stream().filter(list -> list.remove(listener)).forEach(list -> this.forceRebuild());
+            Arrays.stream(priorities)
+                    .filter(Objects::nonNull)
+                    .filter(list -> list.remove(listener))
+                    .forEach(list -> this.forceRebuild());
             writeLock.release();
+        }
+
+        private ArrayList<IEventListener> getListenersForPriority(EventPriority priority) {
+            var listenersForPriority = priorities[priority.ordinal()];
+            if (listenersForPriority == null)
+                listenersForPriority = priorities[priority.ordinal()] = new ArrayList<>();
+
+            return listenersForPriority;
         }
     }
 }
