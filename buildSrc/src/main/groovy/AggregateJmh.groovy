@@ -38,7 +38,7 @@ abstract class AggregateJmh extends DefaultTask {
 
         int javaCount = 0
         for (def file : this.inputs.files) {
-            if (file.equals(pastFile))
+            if (file == pastFile)
                 continue
             def (javaName,javaVersion) = file.name.substring('jmh-'.length(), file.name.length() - 5).split('-')
 
@@ -61,8 +61,8 @@ abstract class AggregateJmh extends DefaultTask {
             }
         }
 
-        def onlyOneSuite = results.keySet().size() == 1 && results.values().iterator().next().keySet().size() == 1
-        def loadOld = collate.isPresent() && collate.get()
+        boolean onlyOneSuite = results.keySet().size() == 1 && results.values().iterator().next().keySet().size() == 1
+        boolean loadOld = collate.isPresent() && collate.get()
 
         def markdown,csv = 'Something went fucky'
         if (javaCount == 1) {
@@ -85,7 +85,7 @@ abstract class AggregateJmh extends DefaultTask {
         outputCsv.asFile.get().text = csv
     }
 
-    static def rsplit(def str, def del, int limit = -1) {
+    static def rsplit(def str, String del, int limit = -1) {
         def lst = []
         def x = 0, idx
         def tmp = str
@@ -97,7 +97,7 @@ abstract class AggregateJmh extends DefaultTask {
         return lst
     }
 
-    static def mergePast(def to, def from) {
+    static void mergePast(def to, def from) {
         def pkg = to.keySet().iterator().next()
         if (!from.containsKey(pkg))
             return
@@ -135,7 +135,7 @@ abstract class AggregateJmh extends DefaultTask {
      *
      * This allows for comparison between multiple environments and implementations
      */
-    static def formatCollated(def results, def resultsPast, def timeUnit) {
+    static def formatCollated(def results, def resultsPast, String timeUnit) {
         def columns = [' ']
         def rows = []
         def base = [:]
@@ -213,7 +213,7 @@ abstract class AggregateJmh extends DefaultTask {
         return markdown
     }
 
-    static def buildCsv(def columns, def rows, def headers = true, def prefix = '') {
+    static String buildCsv(def columns, def rows, boolean headers = true, String prefix = '') {
         columns = [] + columns
         rows = [] + rows
         for (int x = 0; x < rows.size(); x++)
@@ -226,7 +226,7 @@ abstract class AggregateJmh extends DefaultTask {
                 x--
             }
         }
-        def csv = ''
+        String csv = ''
         if (headers)
             csv += columns.join('\t') + '\n'
         for (def row : rows)
@@ -252,9 +252,9 @@ abstract class AggregateJmh extends DefaultTask {
      * | postStaticHundred  |   5878.851 |   5325.055 |      -9% |
      * Relative - Percentage change vs first suite
      */
-    static def formatBulk(def results, def resultsPast, def timeUnit, def javas, def versions) {
-        def markdown = ''
-        def onlyOneSuite = results.keySet().size() == 1 && results.values().iterator().next().keySet().size() == 1
+    static def formatBulk(def results, def resultsPast, String timeUnit, def javas, def versions) {
+        String markdown = ''
+        boolean onlyOneSuite = results.keySet().size() == 1 && results.values().iterator().next().keySet().size() == 1
         def columns = [' ']
         def csvTable = [:]
         versions.forEach { version ->  columns += [version, 'Change', 'Relative'] }
@@ -330,7 +330,7 @@ abstract class AggregateJmh extends DefaultTask {
                 }
             }
         }
-        def csvData = ''
+        String csvData = ''
         for (def line : csv)
             csvData += line.join('\t') + '\n'
 
