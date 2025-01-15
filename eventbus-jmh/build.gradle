@@ -82,8 +82,13 @@ tasks.register('jmh') {
                     '-tu', 'ns',  // Time unit: [m, s, ms, us, ns]
                     '-f',  '1',   // Forks per benchmark
                     '-rf', 'json', // Results File Format
+
+                    // Todo: Conditionally enable these when given a debug flag. Log a warning if they are enabled
+                    //       saying that they should only be used for identifying hotspots and to not trust the
+                    //       results of the benchmarks when they are enabled.
 //                    '-prof', 'stack', // Profiler: Simple and naive Java stack profiler
 //                    '-prof', "jfr:dir=${outputJfr}", // Profiler: Java Flight Recorder profiler
+
                     '-v', 'EXTRA', // Verbosity [SILENT, NORMAL, EXTRA]
                     '-foe', 'true', // Fail on error
                     '-rff', output,
