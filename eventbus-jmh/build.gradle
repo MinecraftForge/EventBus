@@ -89,6 +89,10 @@ tasks.register('jmh') {
 //                    '-prof', 'stack', // Profiler: Simple and naive Java stack profiler
 //                    '-prof', "jfr:dir=${outputJfr}", // Profiler: Java Flight Recorder profiler
 
+                    // Comment out the line below to enable BenchmarkClassLoader. This sets up a transformed environment
+                    // with ModLauncher but *doesn't* call useModLauncher() in BusBuilder.
+                    '-e', 'BenchmarkClassLoader.*',
+
                     '-v', 'EXTRA', // Verbosity [SILENT, NORMAL, EXTRA]
                     '-foe', 'true', // Fail on error
                     '-rff', output,
