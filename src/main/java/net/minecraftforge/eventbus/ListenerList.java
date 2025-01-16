@@ -9,12 +9,10 @@ import net.minecraftforge.eventbus.api.IEventListener;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
-
 
 public class ListenerList {
     private static final List<ListenerList> allLists = new ArrayList<>();
@@ -98,36 +96,43 @@ public class ListenerList {
     }
 
     private static class ListenerListInst {
+        // Enum#values() performs a defensive copy for each call.
+        // As we never modify the returned values array in this class, we can safely reuse it.
+        private static final EventPriority[] EVENT_PRIORITY_VALUES = EventPriority.values();
+
         private boolean rebuild = true;
         private AtomicReference<IEventListener[]> listeners = new AtomicReference<>();
-        private final ArrayList<ArrayList<IEventListener>> priorities;
+
+        /** A lazy-loaded array of lists containing listeners for each priority level. */
+        @SuppressWarnings("unchecked")
+        private final @Nullable ArrayList<IEventListener>[] priorities =
+                (ArrayList<IEventListener>[]) new ArrayList[EVENT_PRIORITY_VALUES.length];
+
         private ListenerListInst parent;
         private List<ListenerListInst> children;
         private final Semaphore writeLock = new Semaphore(1, true);
 
-        private ListenerListInst() {
-            int count = EventPriority.values().length;
-            priorities = new ArrayList<>(count);
+        private ListenerListInst() {}
 
-            for (int x = 0; x < count; x++)
-                priorities.add(new ArrayList<>());
+        private ListenerListInst(ListenerListInst parent) {
+            this.parent = parent;
+            this.parent.addChild(this);
         }
 
         public void dispose() {
             writeLock.acquireUninterruptibly();
-            priorities.forEach(ArrayList::clear);
-            priorities.clear();
+            for (int i = 0; i < priorities.length; i++) {
+                @Nullable ArrayList<IEventListener> priority = priorities[i];
+                if (priority != null) {
+                    priority.clear();
+                    priorities[i] = null;
+                }
+            }
             writeLock.release();
             parent = null;
             listeners = null;
             if (children != null)
                 children.clear();
-        }
-
-        private ListenerListInst(ListenerListInst parent) {
-            this();
-            this.parent = parent;
-            this.parent.addChild(this);
         }
 
         /**
@@ -141,7 +146,7 @@ public class ListenerList {
          */
         public ArrayList<IEventListener> getListeners(EventPriority priority) {
             writeLock.acquireUninterruptibly();
-            ArrayList<IEventListener> ret = new ArrayList<>(priorities.get(priority.ordinal()));
+            ArrayList<IEventListener> ret = new ArrayList<>(getListenersForPriority(priority));
             writeLock.release();
             if (parent != null)
                 ret.addAll(parent.getListeners(priority));
@@ -187,17 +192,16 @@ public class ListenerList {
          * Rebuild the local Array of listeners, returns early if there is no work to do.
          */
         private void buildCache() {
-            if(parent != null && parent.shouldRebuild())
+            if (parent != null && parent.shouldRebuild())
                 parent.buildCache();
 
             ArrayList<IEventListener> ret = new ArrayList<>();
-            Arrays.stream(EventPriority.values()).forEach(value -> {
+            for (EventPriority value : EVENT_PRIORITY_VALUES) {
                 List<IEventListener> listeners = getListeners(value);
-                if (listeners.size() > 0) {
-                    ret.add(value); //Add the priority to notify the event of it's current phase.
-                    ret.addAll(listeners);
-                }
-            });
+                if (listeners.isEmpty()) continue;
+                ret.add(value); // Add the priority to notify the event of its current phase.
+                ret.addAll(listeners);
+            }
             this.listeners.set(ret.toArray(new IEventListener[0]));
             rebuild = false;
         }
@@ -205,15 +209,28 @@ public class ListenerList {
         public void register(EventPriority priority, IEventListener listener) {
             if (listener == null) return;
             writeLock.acquireUninterruptibly();
-            priorities.get(priority.ordinal()).add(listener);
+            getListenersForPriority(priority).add(listener);
             writeLock.release();
             this.forceRebuild();
         }
 
         public void unregister(IEventListener listener) {
             writeLock.acquireUninterruptibly();
-            priorities.stream().filter(list -> list.remove(listener)).forEach(list -> this.forceRebuild());
+            boolean needsRebuild = false;
+            for (var list : priorities) {
+                if (list == null) continue;
+                needsRebuild |= list.remove(listener);
+            }
+            if (needsRebuild) this.forceRebuild();
             writeLock.release();
+        }
+
+        private ArrayList<IEventListener> getListenersForPriority(EventPriority priority) {
+            var listenersForPriority = priorities[priority.ordinal()];
+            if (listenersForPriority == null)
+                listenersForPriority = priorities[priority.ordinal()] = new ArrayList<>();
+
+            return listenersForPriority;
         }
     }
 }
