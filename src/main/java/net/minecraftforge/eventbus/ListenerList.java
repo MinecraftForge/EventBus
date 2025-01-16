@@ -99,9 +99,14 @@ public class ListenerList {
         // Enum#values() performs a defensive copy for each call.
         // As we never modify the returned values array in this class, we can safely reuse it.
         private static final EventPriority[] EVENT_PRIORITY_VALUES = EventPriority.values();
+        private static final IEventListener[] NO_LISTENERS = new IEventListener[0];
 
-        private boolean rebuild = true;
-        private AtomicReference<IEventListener[]> listeners = new AtomicReference<>();
+        /**
+         * A lazy-loaded cache of listeners for all priority levels and any phase tracking notifiers.
+         * <p><code>null</code> indicates that the cache needs to be rebuilt.</p>
+         * @see #getListeners()
+         */
+        private volatile @Nullable IEventListener[] listeners = NO_LISTENERS;
 
         /** A lazy-loaded array of lists containing listeners for each priority level. */
         @SuppressWarnings("unchecked")
@@ -130,7 +135,7 @@ public class ListenerList {
             }
             writeLock.release();
             parent = null;
-            listeners = null;
+            listeners = NO_LISTENERS;
             if (children != null)
                 children.clear();
         }
@@ -164,16 +169,19 @@ public class ListenerList {
          * @return Array containing listeners
          */
         public IEventListener[] getListeners() {
-            if (shouldRebuild()) buildCache();
-            return listeners.get();
+            var listeners = this.listeners;
+            if (listeners != null)
+                return listeners;
+
+            return buildCache();
         }
 
         protected boolean shouldRebuild() {
-            return rebuild;// || (parent != null && parent.shouldRebuild());
+            return this.listeners == null;
         }
 
         protected void forceRebuild() {
-            this.rebuild = true;
+            this.listeners = null;
             if (this.children != null) {
                 synchronized (this.children) {
                     for (ListenerListInst child : this.children)
@@ -191,7 +199,7 @@ public class ListenerList {
         /**
          * Rebuild the local Array of listeners, returns early if there is no work to do.
          */
-        private void buildCache() {
+        private IEventListener[] buildCache() {
             if (parent != null && parent.shouldRebuild())
                 parent.buildCache();
 
@@ -202,8 +210,8 @@ public class ListenerList {
                 ret.add(value); // Add the priority to notify the event of its current phase.
                 ret.addAll(listeners);
             }
-            this.listeners.set(ret.toArray(new IEventListener[0]));
-            rebuild = false;
+
+            return this.listeners = ret.isEmpty() ? NO_LISTENERS : ret.toArray(new IEventListener[0]);
         }
 
         public void register(EventPriority priority, IEventListener listener) {
