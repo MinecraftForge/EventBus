@@ -63,8 +63,7 @@ public final class BenchmarkUtils {
     @SuppressWarnings("unchecked")
     public static Consumer<Blackhole> getPostingBenchmark(String name, int multiplier) {
         try {
-            var benchmarkManager = getBenchmarkManager();
-            return (Consumer<Blackhole>) benchmarkManager
+            return (Consumer<Blackhole>) getBenchmarkManager()
                     .getDeclaredMethod("getPostingBenchmark", String.class, int.class)
                     .invoke(null, name, multiplier);
         } catch (Exception e) {
@@ -75,8 +74,7 @@ public final class BenchmarkUtils {
 
     public static Runnable[] getRegistrationBenchmark(String name) {
         try {
-            var benchmarkManager = getBenchmarkManager();
-            return (Runnable[]) benchmarkManager
+            return (Runnable[]) getBenchmarkManager()
                     .getDeclaredMethod("getRegistrationBenchmark", String.class)
                     .invoke(null, name);
         } catch (Exception e) {
