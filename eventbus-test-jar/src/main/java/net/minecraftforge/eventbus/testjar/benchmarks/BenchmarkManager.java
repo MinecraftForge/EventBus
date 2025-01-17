@@ -5,90 +5,97 @@
 
 package net.minecraftforge.eventbus.testjar.benchmarks;
 
-import java.util.function.Function;
-import java.util.function.Supplier;
-
-import net.minecraftforge.eventbus.api.BusBuilder;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.testjar.events.CancelableEvent;
+import org.openjdk.jmh.infra.Blackhole;
 
-public class BenchmarkManager {
-    private final Supplier<IEventBus> bus;
-    private final Benchmark benchmark;
-    public final Runnable setupIteration;
-    public final Runnable run;
-    private static Function<String, String> renamer;
+import java.lang.invoke.LambdaMetafactory;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
-    public BenchmarkManager(String benchmark, boolean shouldTransform, boolean ml, boolean wrapped) {
-        this.validate(shouldTransform);
-        if (ml) bus = () -> BusBuilder.builder().useModLauncher().build();
-        else    bus = () -> BusBuilder.builder().build();
-        renamer = getRenamer(wrapped);
-        this.benchmark = getBenchmark(benchmark);
-        this.benchmark.setup(bus);
-        setupIteration = this.benchmark::setupIteration;
-        run = this.benchmark::run;
-    }
+public final class BenchmarkManager {
+    private BenchmarkManager() {}
 
-    private static Function<String, String> getRenamer(boolean wrapped) {
-        if (!wrapped)
-            return null;
+    private static final MethodType RETURNS_CONSUMER = MethodType.methodType(Consumer.class);
+    private static final MethodType CONSUMER_FI_TYPE = MethodType.methodType(void.class, Object.class);
+
+    public static void validate(boolean shouldBeTransformed) {
         try {
-            var mtd = IEventBus.class.getDeclaredMethod("rename", String.class);
-            return name -> {
-                try {
-                    return (String)mtd.invoke(null, name);
-                } catch (Exception e) {
-                    return sneak(e);
-                }
-            };
-        } catch (Exception e) {
-            return sneak(e);
-        }
-    }
-
-    private static Benchmark getBenchmark(String name) {
-        switch (name) {
-            case "registerDynamic": return new Register.Dynamic();
-            case "registerLambda":  return new Register.Lambda();
-            case "registerStatic":  return new Register.Static();
-
-            case "postMixed":        return new Post.Mixed.Single();
-            case "postMixedDozen":   return new Post.Mixed.Dozen();
-            case "postMixedHundred": return new Post.Mixed.Hundred();
-
-            case "postDynamic":        return new Post.Dynamic.Single();
-            case "postDynamicDozen":   return new Post.Dynamic.Dozen();
-            case "postDynamicHundred": return new Post.Dynamic.Hundred();
-
-            case "postLambda":        return new Post.Lambda.Single();
-            case "postLambdaDozen":   return new Post.Lambda.Dozen();
-            case "postLambdaHundred": return new Post.Lambda.Hundred();
-
-            case "postStatic":        return new Post.Static.Single();
-            case "postStaticDozen":   return new Post.Static.Dozen();
-            case "postStaticHundred": return new Post.Static.Hundred();
-        }
-        throw new IllegalArgumentException("Invalid benchmark: " + name);
-    }
-
-    private void validate(boolean shouldTransform) {
-        try {
+            //noinspection JavaReflectionMemberAccess
             CancelableEvent.class.getDeclaredField("LISTENER_LIST");
-            if (!shouldTransform)
+            if (!shouldBeTransformed)
                 throw new RuntimeException("LISTENER_LIST field exists!");
         } catch (Exception e) {
-            if (shouldTransform)
+            if (shouldBeTransformed)
                 throw new RuntimeException("Transformer did not apply!", e);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private static <E extends Throwable, R> R sneak(Throwable e) throws E {
-        throw (E)e;
+    public static Consumer<Blackhole> getPostingBenchmark(String name, int multiplier) {
+        return switch (name) {
+            case "modLauncherMixed" -> ModLauncherBenchmarks.Post.Factory.MIXED.create().apply(multiplier);
+            case "modLauncherDynamic" -> ModLauncherBenchmarks.Post.Factory.DYNAMIC.create().apply(multiplier);
+            case "modLauncherLambda" -> ModLauncherBenchmarks.Post.Factory.LAMBDA.create().apply(multiplier);
+            case "modLauncherStatic" -> ModLauncherBenchmarks.Post.Factory.STATIC.create().apply(multiplier);
+
+            case "noLoaderMixed" -> NoLoaderBenchmarks.Post.Factory.MIXED.create().apply(multiplier);
+            case "noLoaderDynamic" -> NoLoaderBenchmarks.Post.Factory.DYNAMIC.create().apply(multiplier);
+            case "noLoaderLambda" -> NoLoaderBenchmarks.Post.Factory.LAMBDA.create().apply(multiplier);
+            case "noLoaderStatic" -> NoLoaderBenchmarks.Post.Factory.STATIC.create().apply(multiplier);
+
+            default -> throw new IllegalArgumentException("Unknown benchmark: " + name);
+        };
     }
 
-    public static String rename(String name) {
-        return renamer == null ? name : renamer.apply(name);
+    public static Runnable[] getRegistrationBenchmark(String name) {
+        return switch (name) {
+            case "modLauncherDynamic" -> new Runnable[] {
+                    ModLauncherBenchmarks.Register.Dynamic::setupIteration,
+                    ModLauncherBenchmarks.Register.Dynamic::run
+            };
+            case "modLauncherLambda" -> new Runnable[] {
+                    ModLauncherBenchmarks.Register.Lambda::setupIteration,
+                    ModLauncherBenchmarks.Register.Lambda::run
+            };
+            case "modLauncherStatic" -> new Runnable[] {
+                    ModLauncherBenchmarks.Register.Static::setupIteration,
+                    ModLauncherBenchmarks.Register.Static::run
+            };
+
+            case "noLoaderDynamic" -> new Runnable[] {
+                    NoLoaderBenchmarks.Register.Dynamic::setupIteration,
+                    NoLoaderBenchmarks.Register.Dynamic::run
+            };
+            case "noLoaderLambda" -> new Runnable[] {
+                    NoLoaderBenchmarks.Register.Lambda::setupIteration,
+                    NoLoaderBenchmarks.Register.Lambda::run
+            };
+            case "noLoaderStatic" -> new Runnable[] {
+                    NoLoaderBenchmarks.Register.Static::setupIteration,
+                    NoLoaderBenchmarks.Register.Static::run
+            };
+
+            default -> throw new IllegalArgumentException("Unknown benchmark: " + name);
+        };
+    }
+
+    public static Consumer<Blackhole> setupPostingBenchmark(MethodHandles.Lookup lookup, Class<?> cls, int multiplier, Supplier<Consumer<IEventBus>> registrar) {
+        try {
+            // Register the requested multiplier of listeners
+            lookup.findStatic(cls, "setup", MethodType.methodType(void.class, int.class, Supplier.class))
+                    .invokeExact(multiplier, registrar);
+
+            // Find the static `post(Blackhole)` method and return it as a `Consumer<Blackhole>` using LambdaMetaFactory
+            var postMethod = lookup.findStatic(cls, "post", MethodType.methodType(void.class, Blackhole.class));
+            var lmf = LambdaMetafactory.metafactory(lookup, "accept", RETURNS_CONSUMER, CONSUMER_FI_TYPE, postMethod, postMethod.type());
+
+            @SuppressWarnings("unchecked")
+            var consumer = (Consumer<Blackhole>) lmf.getTarget().invokeExact();
+            return consumer;
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 }
