@@ -196,7 +196,13 @@ public class ListenerList {
         }
 
         /**
-         * Rebuild the local Array of listeners, returns early if there is no work to do.
+         * Rebuilds the cache of listeners, setting the {@link #listeners} field to the new array.
+         *
+         * <p>
+         *     Important: To avoid a race condition, you must use the return value of this method as the source of truth.
+         *     Attempting to read the {@link #listeners} field immediately after calling this method may observe
+         *     unexpected results caused by concurrent calls to this method and/or {@link #forceRebuild()}.
+         * </p>
          */
         private IEventListener[] buildCache() {
             if (parent != null && parent.shouldRebuild())
@@ -210,7 +216,9 @@ public class ListenerList {
                 ret.addAll(listeners);
             }
 
-            return this.listeners = ret.isEmpty() ? NO_LISTENERS : ret.toArray(new IEventListener[0]);
+            var retArray = ret.isEmpty() ? NO_LISTENERS : ret.toArray(new IEventListener[0]);
+            this.listeners = retArray;
+            return retArray;
         }
 
         public void register(EventPriority priority, IEventListener listener) {
