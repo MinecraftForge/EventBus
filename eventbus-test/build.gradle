@@ -22,7 +22,7 @@ license {
 
 dependencies {
     testImplementation(rootProject)
-    testImplementation(project(':eventbus-test-jar'))
+    testImplementation(projects.eventbusTestJar)
     testImplementation(libs.junit.api)
     testImplementation(libs.securemodules)
     testImplementation(libs.modlauncher)
