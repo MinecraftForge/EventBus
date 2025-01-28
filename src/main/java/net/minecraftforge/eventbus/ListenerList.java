@@ -105,7 +105,7 @@ public class ListenerList {
          * <p><code>null</code> indicates that the cache needs to be rebuilt.</p>
          * @see #getListeners()
          */
-        private volatile @Nullable IEventListener[] listeners = NO_LISTENERS;
+        private volatile @Nullable IEventListener[] listeners = null;
 
         /** A lazy-loaded array of lists containing listeners for each priority level. */
         @SuppressWarnings("unchecked")
@@ -134,7 +134,7 @@ public class ListenerList {
             }
             writeLock.release();
             parent = null;
-            listeners = NO_LISTENERS;
+            listeners = null;
             if (children != null)
                 children.clear();
         }
