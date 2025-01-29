@@ -121,6 +121,10 @@ public class ListenerList {
         private ListenerListInst(ListenerListInst parent) {
             this.parent = parent;
             this.parent.addChild(this);
+            // We set the NO_LISTENERS so we don't have to rebuild the listener list if nobody registers
+            // However the parent can have a listener registered before we know about the sub-class
+            if (this.parent.listeners != NO_LISTENERS)
+                this.listeners = null;
         }
 
         public void dispose() {
