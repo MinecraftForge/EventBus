@@ -1,4 +1,5 @@
 plugins {
+    id 'eclipse'
     id 'java-library'
     id 'org.gradlex.extra-java-module-info'
     id 'net.minecraftforge.gradleutils'
