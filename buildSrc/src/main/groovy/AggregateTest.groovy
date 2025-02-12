@@ -24,7 +24,8 @@ abstract class AggregateTest extends DefaultTask {
                 if (!test.name.startsWith('TEST-') || !test.name.endsWith('.xml'))
                     continue
 
-                def dirName = test.parentFile.name
+                String dirName = test.parentFile.name
+                if (!dirName.contains('-')) continue
                 def (javaName, javaVersion) = dirName.split('-')
                 javas.computeIfAbsent(javaName, { [] as SortedSet }).add(javaVersion)
 
@@ -44,7 +45,7 @@ abstract class AggregateTest extends DefaultTask {
                 }
                 test.delete()
             }
-            if (java.listFiles().length == 0)
+            if (java.listFiles().length === 0)
                 java.deleteDir()
         }
 

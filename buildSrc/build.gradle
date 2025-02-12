@@ -4,10 +4,10 @@ plugins {
 
 repositories {
     mavenCentral()
-    maven { url 'https://jitpack.io' }
+    maven { url = 'https://jitpack.io' }
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 dependencies {
     implementation 'com.github.Steppschuh:Java-Markdown-Generator:1.3.2'

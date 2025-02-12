@@ -12,6 +12,15 @@ plugins {
 dependencyResolutionManagement {
     versionCatalogs {
         libs {
+            // https://mvnrepository.com/artifact/org.jspecify/jspecify
+            library('jspecify-annotations', 'org.jspecify', 'jspecify') version '1.0.0'
+
+            // https://mvnrepository.com/artifact/com.google.errorprone/error_prone_core
+            library('errorprone-core', 'com.google.errorprone', 'error_prone_core') version '2.36.0'
+
+            // https://mvnrepository.com/artifact/com.uber.nullaway/nullaway
+            library('nullaway', 'com.uber.nullaway', 'nullaway') version '0.12.4'
+
             // ModLauncher stack
             library('modlauncher', 'net.minecraftforge:modlauncher:10.1.1')
             library('securemodules', 'net.minecraftforge:securemodules:2.2.21')

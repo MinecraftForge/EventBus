@@ -11,7 +11,7 @@ repositories {
 }
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(16)
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
 }
 
 license {
@@ -20,19 +20,14 @@ license {
 }
 
 dependencies {
-    compileOnly(libs.nulls)
-
-    implementation(rootProject)
-    implementation(libs.bundles.asm) // Needed by ModLauncher
-    implementation(libs.junit.api)
-    implementation(libs.securemodules)
-    implementation(libs.modlauncher)
-    implementation(libs.unsafe)
-    implementation(projects.eventbusTestJar)
+    implementation rootProject
+    implementation projects.eventbusTestJar
 
     implementation libs.jmh.core
     runtimeOnly libs.jmh.annotationProcessor
     annotationProcessor libs.jmh.annotationProcessor
+
+    implementation libs.jspecify.annotations
 }
 
 extraJavaModuleInfo {
@@ -57,21 +52,19 @@ tasks.register('archiveJfr', ArchiveJfr) {
     output = file('build/jmh_profile_results/archive/')
 }
 
-tasks.register('jmh') {
-    dependsOn 'aggregateJmh'
-}
+tasks.register('jmh')
 
 ((Map<String, List<Integer>>) ext.VALID_VMS).forEach { javaVendor, javaVersions ->
     for (Integer javaVersion in javaVersions) {
         var output = file("build/jmh_results/jmh-${javaVendor}-${javaVersion}.json")
-        var outputJfr = file("build/jmh_profile_results/last_run/${javaVendor}-${javaVersion}/")
-        outputJfr.mkdirs()
+        output.mkdirs()
+//        var outputJfr = file("build/jmh_profile_results/last_run/${javaVendor}-${javaVersion}/")
+//        outputJfr.mkdirs()
         var task = tasks.register("jmh${javaVendor}${javaVersion}", JavaExec) {
             classpath = sourceSets.main.runtimeClasspath
             mainModule = 'net.minecraftforge.eventbus.jmh'
             mainClass = 'net.minecraftforge.eventbus.benchmarks.Main'
             modularity.inferModulePath = true
-            systemProperty 'jmh.ignoreLock', 'true'
             jvmArgs += '-Xmx8g' // Some tests are fast enough that they generate millions of class files, so, give more memory
             args = [
                     '-bm', 'AverageTime',  // Benchmark mode. Available modes are: [Throughput, AverageTime, SampleTime, SingleShotTime, All]
@@ -83,9 +76,9 @@ tasks.register('jmh') {
                     '-f',  '1',   // Forks per benchmark
                     '-rf', 'json', // Results File Format
 
-                    // Todo: Conditionally enable these when given a debug flag. Log a warning if they are enabled
-                    //       saying that they should only be used for identifying hotspots and to not trust the
-                    //       results of the benchmarks when they are enabled.
+                    // Todo: [EB][Benchmarks] Conditionally enable these when given a debug flag. Log a warning if they
+                    //       are enabled saying that they should only be used for identifying hotspots and to not trust
+                    //       the results of the benchmarks when they are enabled.
 //                    '-prof', 'stack', // Profiler: Simple and naive Java stack profiler
 //                    '-prof', "jfr:dir=${outputJfr}", // Profiler: Java Flight Recorder profiler
 
@@ -101,7 +94,7 @@ tasks.register('jmh') {
                 args += project.property('bench')
 
             doFirst {
-                outputJfr.deleteDir()
+//                outputJfr.deleteDir()
                 if (!output.parentFile.exists())
                     output.parentFile.mkdirs()
                 if (output.exists())
@@ -113,13 +106,16 @@ tasks.register('jmh') {
                 implementation = JvmImplementation.VENDOR_SPECIFIC
             }
         }
-        tasks.named('aggregateJmh') {
+        tasks.named('jmh') {
             dependsOn task
-            inputs.file output
         }
-        tasks.named('archiveJfr') {
-            dependsOn task
-            inputs.dir outputJfr
-        }
+//        tasks.named('aggregateJmh') {
+//            dependsOn task
+//            inputs.file output
+//        }
+//        tasks.named('archiveJfr') {
+//            dependsOn task
+//            inputs.dir outputJfr
+//        }
     }
 }

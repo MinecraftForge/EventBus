@@ -1,21 +1,25 @@
 import net.minecraftforge.gradleutils.PomUtils
+import net.ltgt.gradle.errorprone.ErrorProneOptions
+import net.ltgt.gradle.nullaway.NullAwayOptions
 
 plugins {
-    id 'eclipse'
     id 'java-library'
     id 'maven-publish'
-    id 'com.github.ben-manes.versions' version '0.50.0'
-    id 'org.gradlex.extra-java-module-info' version '1.8'
-    id 'net.minecraftforge.gradleutils' version '2.3.3'
-    id 'net.minecraftforge.licenser' version '1.0.1'
+    id 'org.gradlex.extra-java-module-info' version '1.11'
+    id 'net.minecraftforge.gradleutils' version '2.4.13'
+    id 'net.minecraftforge.licenser' version '1.1.1'
+
+    // Enforce jSpecify annotations at compile-time
+    id 'net.ltgt.errorprone' version '4.1.0'
+    id 'net.ltgt.nullaway' version '2.2.0'
 }
 
 group = 'net.minecraftforge'
-version = gradleutils.tagOffsetVersion
-print("Version: $version")
+version = gitversion.version.tagOffset
+print "Version: $version"
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(16)
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
     modularity.inferModulePath = true
     withSourcesJar()
 }
@@ -26,12 +30,9 @@ repositories {
 }
 
 dependencies {
-    api(libs.typetools)
-    implementation(libs.log4j.api)
-    implementation(libs.bundles.asm)
-    compileOnly(libs.modlauncher)
-    compileOnly(libs.securemodules)
-    compileOnly(libs.nulls)
+    api libs.jspecify.annotations
+    errorprone libs.errorprone.core
+    errorprone libs.nullaway
 }
 
 extraJavaModuleInfo {
@@ -42,17 +43,37 @@ changelog {
     from '1.0.0'
 }
 
-jar {
+tasks.withType(JavaCompile).configureEach {
+    // Set up compile-time enforcement of the jSpecify spec via ErrorProne and NullAway
+    options.errorprone { ErrorProneOptions errorProne ->
+        errorProne.disableAllChecks = true // Opt-into only the checks we care about
+
+        // Enforce the jSpecify spec
+        errorProne.nullaway { NullAwayOptions nullAway ->
+            nullAway.jspecifyMode = true
+            nullaway.onlyNullMarked = true // Only enforce nullability checks on @NullMarked classes and packages
+            nullAway.error() // Throw a compile error on jSpecify spec violations
+        }
+
+        // Enforce the ErrorProne checks we care about
+        errorProne.error("FieldCanBeFinal", "MethodCanBeStatic", "LambdaFunctionalInterface")
+    }
+}
+
+tasks.named('jar', Jar) {
     manifest {
         attributes([
             'Specification-Title':   'EventBus',
-            'Specification-Version':  gradleutils.gitInfo.tag,
+            'Specification-Version':  gitversion.version.info.tag,
             'Specification-Vendor':   'Forge Development LLC',
             'Implementation-Title':   'EventBus',
             'Implementation-Version': project.version,
             'Implementation-Vendor':  'Forge Development LLC'
-        ] as LinkedHashMap, 'net/minecraftforge/eventbus/service/')
+        ])
     }
+
+    reproducibleFileOrder = true
+    preserveFileTimestamps = false
 }
 
 license {
@@ -65,17 +86,15 @@ publishing {
         from components.java
         artifactId = 'eventbus'
         pom {
-            name = 'Event Bus'
+            name = 'EventBus'
             description = 'High performance Event Bus library'
-            url = 'https://github.com/MinecraftForge/EventBus'
 
-            PomUtils.setGitHubDetails(pom, 'EventBus')
+            gradleutils.pom.gitHubDetails = pom
 
             license PomUtils.Licenses.LGPLv2_1
 
             developers {
-                developer PomUtils.Developers.LexManos
-                developer PomUtils.Developers.cpw
+                developer PomUtils.Developers.Paint_Ninja
             }
         }
     }
@@ -87,18 +106,16 @@ publishing {
 
 allprojects {
     ext.VALID_VMS = [
-        'Adoptium':  [16, 17, 18, 19, 20, 21],
-        'Amazon':    [16, 17, 18, 19, 20, 21],
-        'Azul':      (16..21),
-        'BellSoft':  (16..21),
-        'Graal_VM':  [16, 17,     19, 20, 21],
-        'IBM':       [16, 17, 18, 19, 20    ],
-        'Microsoft': [16, 17,             21],
-        'Oracle':    (16..21),
-        'SAP':       (16..20)
+        'Adoptium':  [21],
+        'Amazon':    [21],
+        'Azul':      (21),
+        'BellSoft':  (21),
+        'Graal_VM':  [21],
+        'Microsoft': [21],
+        'Oracle':    (21),
     ]
 
     // Tests are expensive to run all variants, so only run if asked to
     if (!project.hasProperty('bulk_tests'))
-        ext.VALID_VMS = ['Adoptium':  [17]]//, 18, 19, 20, 21] ]
+        ext.VALID_VMS = ['Adoptium':  [21]]
 }

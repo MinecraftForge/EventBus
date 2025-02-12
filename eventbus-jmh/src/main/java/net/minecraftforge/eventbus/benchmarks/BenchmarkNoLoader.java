@@ -4,126 +4,118 @@
  */
 package net.minecraftforge.eventbus.benchmarks;
 
+import net.minecraftforge.eventbus.api.bus.BusGroup;
+import net.minecraftforge.eventbus.testjar.subscribers.SubscriberDynamic;
+import net.minecraftforge.eventbus.testjar.subscribers.SubscriberLambda;
+import net.minecraftforge.eventbus.testjar.subscribers.SubscriberMixed;
+import net.minecraftforge.eventbus.testjar.subscribers.SubscriberStatic;
+import net.minecraftforge.eventbus.testjar.events.CancelableEvent;
+import net.minecraftforge.eventbus.testjar.events.EventWithData;
+import net.minecraftforge.eventbus.testjar.events.ResultEvent;
 import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.infra.BenchmarkParams;
 import org.openjdk.jmh.infra.Blackhole;
 
-import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class BenchmarkNoLoader {
-    public static class Posting {
+    protected static void validateEnvironment(BenchmarkParams params) {
+        System.clearProperty("eventbus.internal.dedupeListeners");
+
+        // EventBus' optimisations rely heavily on static final state, which can only be reset by restarting the JVM.
+        // If no forks are used, the number of listeners will be higher than expected.
+        if (params.getForks() == 0)
+            throw new IllegalStateException("The number of forks must be greater than 0");
+
+        if (!params.getBenchmark().contains("Registering"))
+            return;
+
+        // To get accurate registration results without code generation, we need to disable deduplication of listeners.
+        System.setProperty("eventbus.internal.dedupeListeners", "false");
+    }
+
+    protected static void register(Supplier<Runnable> registrar, int multiplier) {
+        for (int i = 0; i < multiplier; i++) {
+            registrar.get().run();
+        }
+    }
+
+    public static abstract class Posting {
+        protected static void post(Blackhole bh) {
+            new CancelableEvent().post();
+            new ResultEvent().post();
+            new EventWithData("Foo", 5, true).post();
+        }
+
         @State(Scope.Benchmark)
         public static class Mixed {
-            public static final Consumer<Blackhole> POST_MIXED;
-            public static final Consumer<Blackhole> POST_MIXED_DOZEN;
-            public static final Consumer<Blackhole> POST_MIXED_HUNDRED;
+//            @Param({"12", "100"}) // 1 is not included because that wouldn't be a mix of subscriber types
+            @Param({"1", "2", "3", "4", "5", "10", "20", "30", "40", "50"})
+            private int multiplier;
 
-            static {
-                BenchmarkUtils.setupNormalEnvironment();
-                POST_MIXED = BenchmarkUtils.getPostingBenchmark("noLoaderMixed", 1);
-                POST_MIXED_DOZEN = BenchmarkUtils.getPostingBenchmark("noLoaderMixed", 12);
-                POST_MIXED_HUNDRED = BenchmarkUtils.getPostingBenchmark("noLoaderMixed", 100);
+            @Setup(Level.Trial)
+            public void setup(BenchmarkParams params) {
+                BenchmarkNoLoader.validateEnvironment(params);
+                BenchmarkNoLoader.register(SubscriberMixed.Factory.REGISTER, multiplier);
             }
 
             @Benchmark
-            public static void postMixed(Blackhole bh) {
-                POST_MIXED.accept(bh);
-            }
-
-            @Benchmark
-            public static void postMixedDozen(Blackhole bh) {
-                POST_MIXED_DOZEN.accept(bh);
-            }
-
-            @Benchmark
-            public static void postMixedHundred(Blackhole bh) {
-                POST_MIXED_HUNDRED.accept(bh);
+            public void postMixed(Blackhole bh) {
+                Posting.post(bh);
             }
         }
 
         @State(Scope.Benchmark)
         public static class Dynamic {
-            public static final Consumer<Blackhole> POST_DYNAMIC;
-            public static final Consumer<Blackhole> POST_DYNAMIC_DOZEN;
-            public static final Consumer<Blackhole> POST_DYNAMIC_HUNDRED;
+//            @Param({"1", "12", "100"})
+            @Param({"1", "2", "3", "4", "5", "10", "20", "30", "40", "50"})
+            private int multiplier;
 
-            static {
-                BenchmarkUtils.setupNormalEnvironment();
-                POST_DYNAMIC = BenchmarkUtils.getPostingBenchmark("noLoaderDynamic", 1);
-                POST_DYNAMIC_DOZEN = BenchmarkUtils.getPostingBenchmark("noLoaderDynamic", 12);
-                POST_DYNAMIC_HUNDRED = BenchmarkUtils.getPostingBenchmark("noLoaderDynamic", 100);
+            @Setup(Level.Trial)
+            public void setup(BenchmarkParams params) {
+                BenchmarkNoLoader.validateEnvironment(params);
+                BenchmarkNoLoader.register(SubscriberDynamic.Factory.REGISTER, multiplier);
             }
 
             @Benchmark
             public static void postDynamic(Blackhole bh) {
-                POST_DYNAMIC.accept(bh);
-            }
-
-            @Benchmark
-            public static void postDynamicDozen(Blackhole bh) {
-                POST_DYNAMIC_DOZEN.accept(bh);
-            }
-
-            @Benchmark
-            public static void postDynamicHundred(Blackhole bh) {
-                POST_DYNAMIC_HUNDRED.accept(bh);
+                Posting.post(bh);
             }
         }
 
         @State(Scope.Benchmark)
         public static class Lambda {
-            public static final Consumer<Blackhole> POST_LAMBDA;
-            public static final Consumer<Blackhole> POST_LAMBDA_DOZEN;
-            public static final Consumer<Blackhole> POST_LAMBDA_HUNDRED;
+//            @Param({"1", "12", "100"})
+            @Param({"1", "2", "3", "4", "5", "10", "20", "30", "40", "50"})
+            private int multiplier;
 
-            static {
-                BenchmarkUtils.setupNormalEnvironment();
-                POST_LAMBDA = BenchmarkUtils.getPostingBenchmark("noLoaderLambda", 1);
-                POST_LAMBDA_DOZEN = BenchmarkUtils.getPostingBenchmark("noLoaderLambda", 12);
-                POST_LAMBDA_HUNDRED = BenchmarkUtils.getPostingBenchmark("noLoaderLambda", 100);
+            @Setup(Level.Trial)
+            public void setup(BenchmarkParams params) {
+                BenchmarkNoLoader.validateEnvironment(params);
+                BenchmarkNoLoader.register(SubscriberLambda.Factory.REGISTER, multiplier);
             }
 
             @Benchmark
             public static void postLambda(Blackhole bh) {
-                POST_LAMBDA.accept(bh);
-            }
-
-            @Benchmark
-            public static void postLambdaDozen(Blackhole bh) {
-                POST_LAMBDA_DOZEN.accept(bh);
-            }
-
-            @Benchmark
-            public static void postLambdaHundred(Blackhole bh) {
-                POST_LAMBDA_HUNDRED.accept(bh);
+                Posting.post(bh);
             }
         }
 
         @State(Scope.Benchmark)
         public static class Static {
-            public static final Consumer<Blackhole> POST_STATIC;
-            public static final Consumer<Blackhole> POST_STATIC_DOZEN;
-            public static final Consumer<Blackhole> POST_STATIC_HUNDRED;
+//            @Param({"1", "12", "100"})
+            @Param({"1", "2", "3", "4", "5", "10", "20", "30", "40", "50"})
+            private int multiplier;
 
-            static {
-                BenchmarkUtils.setupNormalEnvironment();
-                POST_STATIC = BenchmarkUtils.getPostingBenchmark("noLoaderStatic", 1);
-                POST_STATIC_DOZEN = BenchmarkUtils.getPostingBenchmark("noLoaderStatic", 12);
-                POST_STATIC_HUNDRED = BenchmarkUtils.getPostingBenchmark("noLoaderStatic", 100);
+            @Setup(Level.Trial)
+            public void setup(BenchmarkParams params) {
+                BenchmarkNoLoader.validateEnvironment(params);
+                BenchmarkNoLoader.register(SubscriberStatic.Factory.REGISTER, multiplier);
             }
 
             @Benchmark
-            public static void postStatic(Blackhole bh) {
-                POST_STATIC.accept(bh);
-            }
-
-            @Benchmark
-            public static void postStaticDozen(Blackhole bh) {
-                POST_STATIC_DOZEN.accept(bh);
-            }
-
-            @Benchmark
-            public static void postStaticHundred(Blackhole bh) {
-                POST_STATIC_HUNDRED.accept(bh);
+            public void postStatic(Blackhole bh) {
+                Posting.post(bh);
             }
         }
     }
@@ -131,70 +123,42 @@ public class BenchmarkNoLoader {
     public static class Registering {
         @State(Scope.Benchmark)
         public static class Dynamic {
-            public static final Runnable SETUP_REGISTER_DYNAMIC;
-            public static final Runnable REGISTER_DYNAMIC;
-
-            static {
-                BenchmarkUtils.setupTransformedEnvironment();
-                Runnable[] results = BenchmarkUtils.getRegistrationBenchmark("noLoaderDynamic");
-                SETUP_REGISTER_DYNAMIC = results[0];
-                REGISTER_DYNAMIC = results[1];
-            }
-
-            @Setup(Level.Iteration)
-            public void setupIteration() {
-                SETUP_REGISTER_DYNAMIC.run();
+            @Setup(Level.Trial)
+            public void setup(BenchmarkParams params) {
+                BenchmarkNoLoader.validateEnvironment(params);
             }
 
             @Benchmark
             public void registerDynamic() {
-                REGISTER_DYNAMIC.run();
+                BusGroup.DEFAULT.register(SubscriberDynamic.LOOKUP, new SubscriberDynamic());
             }
         }
 
-        @State(Scope.Benchmark)
-        public static class Lambda {
-            public static final Runnable SETUP_REGISTER_LAMBDA;
-            public static final Runnable REGISTER_LAMBDA;
-
-            static {
-                BenchmarkUtils.setupTransformedEnvironment();
-                Runnable[] results = BenchmarkUtils.getRegistrationBenchmark("noLoaderLambda");
-                SETUP_REGISTER_LAMBDA = results[0];
-                REGISTER_LAMBDA = results[1];
-            }
-
-            @Setup(Level.Iteration)
-            public void setupIteration() {
-                SETUP_REGISTER_LAMBDA.run();
-            }
-
-            @Benchmark
-            public void registerLambda() {
-                REGISTER_LAMBDA.run();
-            }
-        }
+        // Todo: [EB][Benchmarks] Need to consider ClassFactory for this... it's allowing the JVM to cache the created
+        //       lambda CallSite, while the other two benchmarks are creating a new CallSite every time.
+//        @State(Scope.Benchmark)
+//        public static class Lambda {
+//            @Setup(Level.Trial)
+//            public void setup(BenchmarkParams params) {
+//                BenchmarkNoLoader.validateEnvironment(params);
+//            }
+//
+//            @Benchmark
+//            public void registerLambda() {
+//                SubscriberLambda.register();
+//            }
+//        }
 
         @State(Scope.Benchmark)
         public static class Static {
-            public static final Runnable SETUP_REGISTER_STATIC;
-            public static final Runnable REGISTER_STATIC;
-
-            static {
-                BenchmarkUtils.setupTransformedEnvironment();
-                Runnable[] results = BenchmarkUtils.getRegistrationBenchmark("noLoaderStatic");
-                SETUP_REGISTER_STATIC = results[0];
-                REGISTER_STATIC = results[1];
-            }
-
-            @Setup(Level.Iteration)
-            public void setupIteration() {
-                SETUP_REGISTER_STATIC.run();
+            @Setup(Level.Trial)
+            public void setup(BenchmarkParams params) {
+                BenchmarkNoLoader.validateEnvironment(params);
             }
 
             @Benchmark
             public void registerStatic() {
-                REGISTER_STATIC.run();
+                BusGroup.DEFAULT.register(SubscriberStatic.LOOKUP, SubscriberStatic.class);
             }
         }
     }

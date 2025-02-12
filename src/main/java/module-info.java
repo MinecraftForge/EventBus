@@ -2,18 +2,18 @@
  * Copyright (c) Forge Development LLC
  * SPDX-License-Identifier: LGPL-2.1-only
  */
-open module net.minecraftforge.eventbus {
-    uses net.minecraftforge.eventbus.IEventBusEngine;
-    requires static cpw.mods.modlauncher;
+import org.jspecify.annotations.NullMarked;
 
-    requires org.objectweb.asm;
-    requires org.objectweb.asm.tree;
-    requires org.apache.logging.log4j;
-    requires static org.jetbrains.annotations;
-    requires net.jodah.typetools;
+@NullMarked
+module net.minecraftforge.eventbus {
+    requires java.logging;
+    requires org.jspecify;
 
-    exports net.minecraftforge.eventbus;
-    exports net.minecraftforge.eventbus.api;
-    provides cpw.mods.modlauncher.serviceapi.ILaunchPluginService with net.minecraftforge.eventbus.service.ModLauncherService;
-    provides net.minecraftforge.eventbus.IEventBusEngine with net.minecraftforge.eventbus.EventBusEngine;
+    exports net.minecraftforge.eventbus.api.bus;
+    exports net.minecraftforge.eventbus.api.event;
+    exports net.minecraftforge.eventbus.api.event.characteristic;
+    exports net.minecraftforge.eventbus.api.listener;
+
+    exports net.minecraftforge.eventbus.internal to net.minecraftforge.eventbus.test;
+    opens net.minecraftforge.eventbus.internal to net.minecraftforge.eventbus.test;
 }
