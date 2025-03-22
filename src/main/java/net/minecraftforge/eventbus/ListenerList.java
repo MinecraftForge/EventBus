@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -85,6 +86,12 @@ public class ListenerList {
         lists[id].register(priority, listener);
     }
 
+    public void register(int id, EventBus eventBus, EventPriority priority, IEventListener listener) {
+        var list = lists[id];
+        list.phasesToTrack = eventBus.phasesToTrack;
+        list.register(priority, listener);
+    }
+
     public void unregister(int id, IEventListener listener) {
         lists[id].unregister(listener);
     }
@@ -115,6 +122,7 @@ public class ListenerList {
         private ListenerListInst parent;
         private List<ListenerListInst> children;
         private final Semaphore writeLock = new Semaphore(1, true);
+        private EnumSet<EventPriority> phasesToTrack = BusBuilderImpl.ALL_PHASES;
 
         private ListenerListInst() {}
 
@@ -216,7 +224,8 @@ public class ListenerList {
             for (EventPriority value : EVENT_PRIORITY_VALUES) {
                 List<IEventListener> listeners = getListeners(value);
                 if (listeners.isEmpty()) continue;
-                ret.add(value); // Add the priority to notify the event of its current phase.
+                if (phasesToTrack.contains(value))
+                    ret.add(value); // Add the priority to notify the event of its current phase.
                 ret.addAll(listeners);
             }
 
