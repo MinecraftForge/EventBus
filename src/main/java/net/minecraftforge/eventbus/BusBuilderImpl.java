@@ -4,17 +4,21 @@
  */
 package net.minecraftforge.eventbus;
 
-import net.minecraftforge.eventbus.api.BusBuilder;
-import net.minecraftforge.eventbus.api.Event;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.IEventExceptionHandler;
+import net.minecraftforge.eventbus.api.*;
+
+import java.util.EnumSet;
 
 /**
  * BusBuilder Implementation, public for BusBuilder.builder() only, don't use this directly.
  */
 public final class BusBuilderImpl implements BusBuilder {
+    static final EnumSet<EventPriority> ALL_PHASES = EnumSet.allOf(EventPriority.class);
+    static final EnumSet<EventPriority> NO_PHASES = EnumSet.noneOf(EventPriority.class);
+    private static final EnumSet<EventPriority> MONITOR_ONLY = EnumSet.of(EventPriority.MONITOR);
+
     IEventExceptionHandler exceptionHandler;
     boolean trackPhases = true;
+    EnumSet<EventPriority> phasesToTrack = ALL_PHASES;
     boolean startShutdown = false;
     boolean checkTypesOnDispatch = false;
     Class<?> markerType = Event.class;
@@ -23,7 +27,27 @@ public final class BusBuilderImpl implements BusBuilder {
     @Override
     public BusBuilder setTrackPhases(boolean trackPhases) {
         this.trackPhases = trackPhases;
+        this.phasesToTrack = trackPhases ? ALL_PHASES : NO_PHASES;
         return this;
+    }
+
+    @Override
+    public BusBuilder setPhasesToTrack(EnumSet<EventPriority> phases) {
+        if (phases.isEmpty()) {
+            this.trackPhases = false;
+            this.phasesToTrack = NO_PHASES;
+        } else {
+            this.trackPhases = true;
+            this.phasesToTrack = phases;
+        }
+        return this;
+    }
+
+    @Override
+    public BusBuilder setPhasesToTrack(EventPriority phase) {
+        return phase == EventPriority.MONITOR
+                ? setPhasesToTrack(BusBuilderImpl.MONITOR_ONLY)
+                : setPhasesToTrack(EnumSet.of(phase));
     }
 
     @Override

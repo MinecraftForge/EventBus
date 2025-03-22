@@ -6,6 +6,8 @@ package net.minecraftforge.eventbus.api;
 
 import net.minecraftforge.eventbus.BusBuilderImpl;
 
+import java.util.EnumSet;
+
 /**
  * Build a bus
  */
@@ -16,6 +18,15 @@ public interface BusBuilder {
 
     /* true by default */
     BusBuilder setTrackPhases(boolean trackPhases);
+    default BusBuilder setPhasesToTrack(EnumSet<EventPriority> phases) {
+        throw new UnsupportedOperationException();
+    }
+    default BusBuilder setPhasesToTrack(EventPriority... phases) {
+        return setPhasesToTrack(EnumSet.of(phases[0], phases));
+    }
+    default BusBuilder setPhasesToTrack(EventPriority phase) {
+        return setPhasesToTrack(EnumSet.of(phase));
+    }
     BusBuilder setExceptionHandler(IEventExceptionHandler handler);
     BusBuilder startShutdown();
     BusBuilder checkTypesOnDispatch();
