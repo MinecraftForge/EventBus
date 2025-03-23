@@ -125,7 +125,16 @@ public record BusGroupImpl(
 
     @SuppressWarnings("unchecked")
     public <T extends Event> EventBus<T> getOrCreateEventBus(Class<T> eventType) {
-        return (EventBus<T>) eventBuses.computeIfAbsent(eventType, event -> createEventBus(eventType));
+        var eventBus = eventBuses.get(eventType);
+        if (eventBus != null)
+            return (EventBus<T>) eventBus;
+
+        var computedEventBus = createEventBus(eventType);
+
+        synchronized (eventBuses) {
+            eventBuses.putIfAbsent(eventType, computedEventBus);
+            return computedEventBus;
+        }
     }
     //endregion
 
