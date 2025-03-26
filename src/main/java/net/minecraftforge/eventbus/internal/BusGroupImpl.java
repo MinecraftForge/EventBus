@@ -73,7 +73,6 @@ public record BusGroupImpl(
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public void unregister(Collection<EventListener> listeners) {
         if (listeners.isEmpty())
             throw new IllegalArgumentException("Listeners cannot be empty! You should be getting the collection from" +
@@ -96,10 +95,10 @@ public record BusGroupImpl(
         if (RecordEvent.class.isAssignableFrom(eventType) && !eventType.isRecord())
             throw new IllegalArgumentException("Event type " + eventType + " is not a record class but implements RecordEvent");
 
-        if (MonitorAware.class.isAssignableFrom(eventType) && !MutableEvent.class.isAssignableFrom(eventType))
-            throw new IllegalArgumentException("Event type " + eventType + " implements MonitorAware but is not a MutableEvent");
-
         int characteristics = AbstractEventBusImpl.computeEventCharacteristics(eventType);
+
+        if (Constants.isMonitorAware(characteristics) && !MutableEvent.class.isAssignableFrom(eventType))
+            throw new IllegalArgumentException("Event type " + eventType + " implements MonitorAware but is not a MutableEvent");
 
         var backingList = new ArrayList<EventListener>();
         List<EventBus<?>> parents = Collections.emptyList();
@@ -126,7 +125,16 @@ public record BusGroupImpl(
 
     @SuppressWarnings("unchecked")
     public <T extends Event> EventBus<T> getOrCreateEventBus(Class<T> eventType) {
-        return (EventBus<T>) eventBuses.computeIfAbsent(eventType, event -> createEventBus(eventType));
+        var eventBus = eventBuses.get(eventType);
+        if (eventBus != null)
+            return (EventBus<T>) eventBus;
+
+        var computedEventBus = createEventBus(eventType);
+
+        synchronized (eventBuses) {
+            eventBuses.putIfAbsent(eventType, computedEventBus);
+            return computedEventBus;
+        }
     }
     //endregion
 
