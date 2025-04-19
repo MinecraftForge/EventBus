@@ -25,7 +25,9 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final boolean checkTypesOnDispatchProperty = Boolean.parseBoolean(System.getProperty("eventbus.checkTypesOnDispatch", "false"));
     private static final AtomicInteger maxID = new AtomicInteger(0);
+
     private final boolean trackPhases;
+    final EnumSet<EventPriority> phasesToTrack;
 
     private final ConcurrentHashMap<Object, List<IEventListener>> listeners = new ConcurrentHashMap<>();
     private final int busID = maxID.getAndIncrement();
@@ -41,16 +43,18 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
         ListenerList.resize(busID + 1);
         exceptionHandler = this;
         this.trackPhases = true;
+        this.phasesToTrack = BusBuilderImpl.ALL_PHASES;
         this.baseType = Event.class;
         this.checkTypesOnDispatch = checkTypesOnDispatchProperty;
         this.factory = new ClassLoaderFactory();
     }
 
-    private EventBus(final IEventExceptionHandler handler, boolean trackPhase, boolean startShutdown, Class<?> baseType, boolean checkTypesOnDispatch, IEventListenerFactory factory) {
+    private EventBus(final IEventExceptionHandler handler, boolean trackPhase, EnumSet<EventPriority> phasesToTrack, boolean startShutdown, Class<?> baseType, boolean checkTypesOnDispatch, IEventListenerFactory factory) {
         ListenerList.resize(busID + 1);
         if (handler == null) exceptionHandler = this;
         else exceptionHandler = handler;
         this.trackPhases = trackPhase;
+        this.phasesToTrack = trackPhase ? phasesToTrack : BusBuilderImpl.NO_PHASES;
         this.shutdown = startShutdown;
         this.baseType = baseType;
         this.checkTypesOnDispatch = checkTypesOnDispatch || checkTypesOnDispatchProperty;
@@ -58,7 +62,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     }
 
     public EventBus(final BusBuilderImpl busBuilder) {
-        this(busBuilder.exceptionHandler, busBuilder.trackPhases, busBuilder.startShutdown,
+        this(busBuilder.exceptionHandler, busBuilder.trackPhases, busBuilder.phasesToTrack, busBuilder.startShutdown,
              busBuilder.markerType, busBuilder.checkTypesOnDispatch,
              busBuilder.modLauncher ? new ModLauncherFactory() : new ClassLoaderFactory());
     }
@@ -268,7 +272,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
     private void addToListeners(final Object target, final Class<?> eventType, final IEventListener listener, final EventPriority priority) {
         ListenerList listenerList = EventListenerHelper.getListenerList(eventType);
-        listenerList.register(busID, priority, listener);
+        listenerList.register(busID, this, priority, listener);
         List<IEventListener> others = listeners.computeIfAbsent(target, k -> Collections.synchronizedList(new ArrayList<>()));
         others.add(listener);
     }

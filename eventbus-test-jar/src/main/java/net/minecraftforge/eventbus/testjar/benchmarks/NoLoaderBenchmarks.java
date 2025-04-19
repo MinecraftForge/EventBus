@@ -6,6 +6,7 @@
 package net.minecraftforge.eventbus.testjar.benchmarks;
 
 import net.minecraftforge.eventbus.api.BusBuilder;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.testjar.events.CancelableEvent;
 import net.minecraftforge.eventbus.testjar.events.EventWithData;
@@ -28,7 +29,7 @@ public final class NoLoaderBenchmarks {
 
     public static final class Post {
         private Post() {}
-        private static final IEventBus EVENT_BUS = BusBuilder.builder().build();
+        private static final IEventBus EVENT_BUS = BusBuilder.builder().setPhasesToTrack(EventPriority.MONITOR).build();
 
         public static void setup(int multiplier, Supplier<Consumer<IEventBus>> registrar) {
             for (int i = 0; i < multiplier; i++)
