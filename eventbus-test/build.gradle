@@ -33,14 +33,13 @@ tasks.named('test', Test) {
 }
 
 tasks.register('testAll', AggregateTest) {
-    input = file('build/test-results/')
-    output = rootProject.file('test_results.html')
+    input = project.layout.buildDirectory.dir('test-results')
+    output = rootProject.layout.projectDirectory.file('test_results.html')
 }
 
 ((Map<String, List<Integer>>) ext.VALID_VMS).forEach { javaVendor, javaVersions ->
     for (Integer javaVersion in javaVersions) {
-        var output = file("build/test-results/${javaVendor}-${javaVersion}/")
-        output.mkdirs()
+        var output = project.layout.buildDirectory.dir("test-results/${javaVendor}-${javaVersion}").map { it.asFile.mkdirs(); it }
         var task = tasks.register("test${javaVendor}${javaVersion}", Test) {
             useJUnitPlatform()
             javaLauncher = javaToolchains.launcherFor {
@@ -48,8 +47,8 @@ tasks.register('testAll', AggregateTest) {
                 languageVersion = JavaLanguageVersion.of(javaVersion)
                 implementation = JvmImplementation.VENDOR_SPECIFIC
             }
-            reports.html.destination = file("build/test-reports/${javaVendor}-${javaVersion}/")
-            reports.junitXml.destination = output
+            reports.html.outputLocation = project.layout.buildDirectory.dir("test-reports/${javaVendor}-${javaVersion}")
+            reports.junitXml.outputLocation = output
         }
         tasks.named('testAll') {
             inputs.dir(output)
