@@ -82,7 +82,7 @@ license {
 publishing {
     publications.register('mavenJava', MavenPublication) {
         from components.java
-        artifactId = 'eventbus'
+        artifactId = project.name
         pom {
             name = projectDisplayName
             description = project.description

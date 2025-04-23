@@ -59,7 +59,7 @@ dependencyResolutionManagement {
 
 enableFeaturePreview 'TYPESAFE_PROJECT_ACCESSORS'
 
-rootProject.name = 'EventBus'
+rootProject.name = 'eventbus'
 include 'eventbus-jmh'
 include 'eventbus-test'
 include 'eventbus-test-jar'
