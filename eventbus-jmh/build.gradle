@@ -36,6 +36,10 @@ extraJavaModuleInfo {
     automaticModule('net.sf.jopt-simple:jopt-simple', 'jopt.simple')
 }
 
+tasks.named('javadoc', Javadoc) {
+    enabled = false
+}
+
 tasks.register('aggregateJmh', AggregateJmh) {
     if (rootProject.file('jmh_data_input.json').exists())
         inputData = rootProject.file('jmh_data_input.json')

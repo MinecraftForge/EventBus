@@ -22,6 +22,7 @@ java {
     toolchain.languageVersion = JavaLanguageVersion.of(21)
     modularity.inferModulePath = true
     withSourcesJar()
+    withJavadocJar()
 }
 
 repositories {

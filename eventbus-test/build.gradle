@@ -33,6 +33,10 @@ extraJavaModuleInfo {
     failOnMissingModuleInfo = false
 }
 
+tasks.named('javadoc', Javadoc) {
+    enabled = false
+}
+
 tasks.named('test', Test) {
     useJUnitPlatform()
 }
