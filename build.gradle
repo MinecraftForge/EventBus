@@ -43,6 +43,13 @@ changelog {
     from '1.0.0'
 }
 
+tasks.withType(Javadoc).configureEach {
+    options { StandardJavadocDocletOptions options ->
+        options.windowTitle = 'EventBus ' + project.version
+        options.tags 'apiNote:a:API Note:', 'implNote:a:Implementation Note:', 'implSpec:a:Implementation Specification:'
+    }
+}
+
 tasks.withType(JavaCompile).configureEach {
     // Set up compile-time enforcement of the jSpecify spec via ErrorProne and NullAway
     options.errorprone { ErrorProneOptions errorProne ->
