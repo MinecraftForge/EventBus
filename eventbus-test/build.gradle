@@ -42,6 +42,8 @@ tasks.register('testAll', AggregateTest) {
         var output = project.layout.buildDirectory.dir("test-results/${javaVendor}-${javaVersion}").map { it.asFile.mkdirs(); it }
         var task = tasks.register("test${javaVendor}${javaVersion}", Test) {
             useJUnitPlatform()
+            classpath = configurations.runtimeClasspath
+            testClassesDirs = sourceSets.main.output.classesDirs
             javaLauncher = javaToolchains.launcherFor {
                 vendor = JvmVendorSpec."${javaVendor.toUpperCase(Locale.ROOT)}" as JvmVendorSpec
                 languageVersion = JavaLanguageVersion.of(javaVersion)
