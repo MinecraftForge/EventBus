@@ -12,6 +12,8 @@ plugins {
 dependencyResolutionManagement {
     versionCatalogs {
         libs {
+            plugin 'javadoc-links', 'io.freefair.javadoc-links' version '8.13.1'
+
             // https://mvnrepository.com/artifact/org.jspecify/jspecify
             library('jspecify-annotations', 'org.jspecify', 'jspecify') version '1.0.0'
 
