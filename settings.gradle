@@ -19,7 +19,7 @@ dependencyResolutionManagement {
     //@formatter:off
     versionCatalogs.register('libs') {
         plugin 'modules',     'org.gradlex.extra-java-module-info' version '1.11'
-        plugin 'gradleutils', 'net.minecraftforge.gradleutils'     version '2.4.13'
+        plugin 'gradleutils', 'net.minecraftforge.gradleutils'     version '2.5.1'
         plugin 'licenser',    'net.minecraftforge.licenser'        version '1.2.0'
 
         plugin 'errorprone', 'net.ltgt.errorprone' version '4.1.0'

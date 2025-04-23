@@ -1,4 +1,3 @@
-import net.minecraftforge.gradleutils.PomUtils
 import net.ltgt.gradle.errorprone.ErrorProneOptions
 import net.ltgt.gradle.nullaway.NullAwayOptions
 
@@ -14,8 +13,12 @@ plugins {
     alias libs.plugins.nullaway
 }
 
+final projectDisplayName = 'EventBus'
+final projectVendor = 'Forge Development LLC'
+description = 'High performance Event Bus library'
 group = 'net.minecraftforge'
-version = gitversion.version.tagOffset
+version = gitversion.tagOffset
+
 print "Version: $version"
 
 java {
@@ -58,12 +61,12 @@ tasks.withType(JavaCompile).configureEach {
 tasks.named('jar', Jar) {
     manifest {
         attributes([
-            'Specification-Title':   'EventBus',
-            'Specification-Version':  gitversion.version.info.tag,
-            'Specification-Vendor':   'Forge Development LLC',
-            'Implementation-Title':   'EventBus',
+            'Specification-Title'   : projectDisplayName,
+            'Specification-Version' : gitversion.info.tag,
+            'Specification-Vendor'  : projectVendor,
+            'Implementation-Title'  : projectDisplayName,
             'Implementation-Version': project.version,
-            'Implementation-Vendor':  'Forge Development LLC'
+            'Implementation-Vendor' : projectVendor
         ])
     }
 
@@ -81,15 +84,17 @@ publishing {
         from components.java
         artifactId = 'eventbus'
         pom {
-            name = 'EventBus'
-            description = 'High performance Event Bus library'
+            name = projectDisplayName
+            description = project.description
 
             gradleutils.pom.gitHubDetails = pom
 
-            license PomUtils.Licenses.LGPLv2_1
+            licenses {
+                license gradleutils.pom.licenses.LGPLv2_1
+            }
 
             developers {
-                developer PomUtils.Developers.Paint_Ninja
+                developer gradleutils.pom.developers.Paint_Ninja
             }
         }
     }
