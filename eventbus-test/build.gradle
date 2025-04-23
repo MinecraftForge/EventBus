@@ -12,7 +12,7 @@ java {
 }
 
 license {
-    header = rootProject.file("LICENSE-header.txt")
+    header = rootProject.file('LICENSE-header.txt')
     newLine = false
 }
 

@@ -54,7 +54,7 @@ tasks.withType(JavaCompile).configureEach {
         }
 
         // Enforce the ErrorProne checks we care about
-        errorProne.error("FieldCanBeFinal", "MethodCanBeStatic", "LambdaFunctionalInterface")
+        errorProne.error 'FieldCanBeFinal', 'MethodCanBeStatic', 'LambdaFunctionalInterface'
     }
 }
 
@@ -75,7 +75,7 @@ tasks.named('jar', Jar) {
 }
 
 license {
-    header = file("LICENSE-header.txt")
+    header = file('LICENSE-header.txt')
     newLine = false
 }
 
@@ -105,17 +105,17 @@ publishing {
 }
 
 allprojects {
-    ext.VALID_VMS = [
-        'Adoptium':  [21],
-        'Amazon':    [21],
-        'Azul':      (21),
-        'BellSoft':  (21),
-        'Graal_VM':  [21],
-        'Microsoft': [21],
-        'Oracle':    (21),
-    ]
-
     // Tests are expensive to run all variants, so only run if asked to
     if (!project.hasProperty('bulk_tests'))
         ext.VALID_VMS = ['Adoptium':  [21]]
+    else
+        ext.VALID_VMS = [
+            'Adoptium':  [21],
+            'Amazon':    [21],
+            'Azul':      (21),
+            'BellSoft':  (21),
+            'Graal_VM':  [21],
+            'Microsoft': [21],
+            'Oracle':    (21),
+        ]
 }
