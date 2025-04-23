@@ -5,13 +5,13 @@ import net.ltgt.gradle.nullaway.NullAwayOptions
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'org.gradlex.extra-java-module-info' version '1.11'
-    id 'net.minecraftforge.gradleutils' version '2.4.13'
-    id 'net.minecraftforge.licenser' version '1.1.1'
+    alias libs.plugins.modules
+    alias libs.plugins.gradleutils
+    alias libs.plugins.licenser
 
     // Enforce jSpecify annotations at compile-time
-    id 'net.ltgt.errorprone' version '4.1.0'
-    id 'net.ltgt.nullaway' version '2.2.0'
+    alias libs.plugins.errorprone
+    alias libs.plugins.nullaway
 }
 
 group = 'net.minecraftforge'
@@ -22,11 +22,6 @@ java {
     toolchain.languageVersion = JavaLanguageVersion.of(21)
     modularity.inferModulePath = true
     withSourcesJar()
-}
-
-repositories {
-    mavenCentral()
-    maven gradleutils.forgeMaven
 }
 
 dependencies {

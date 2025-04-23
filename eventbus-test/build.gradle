@@ -1,15 +1,10 @@
 plugins {
     id 'eclipse'
     id 'java-library'
-    id 'net.minecraftforge.gradleutils'
-    id 'net.minecraftforge.licenser'
-    id 'org.gradlex.extra-java-module-info'
+    alias libs.plugins.gradleutils
+    alias libs.plugins.licenser
+    alias libs.plugins.modules
     id 'test-report-aggregation'
-}
-
-repositories {
-    mavenCentral()
-    maven gradleutils.forgeMaven
 }
 
 java {
