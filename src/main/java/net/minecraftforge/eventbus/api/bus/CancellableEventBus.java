@@ -29,6 +29,12 @@ import java.util.function.Predicate;
  * {@linkplain EventListener#alwaysCancelling() always cancel} the event. The specialized
  * {@link #addListener(Predicate)} method, along with its sisters in this class, are designed to give event listeners
  * that characteristic.</p>
+ * <p>When a listener is registered, it is not invoked if the event has been cancelled. The only exception to this is
+ * for {@linkplain Priority#MONITOR monitoring} listeners, which are always invoked at the end of the event posting even
+ * if the event was cancelled. Monitoring listeners can be added using either the {@link Priority#MONITOR} priority or
+ * by registering an {@link ObjBooleanBiConsumer} in {@link #addListener(ObjBooleanBiConsumer)}. <strong>Monitoring
+ * listeners are forbidden from mutating events.</strong> This contract can be strengthened by the event author using
+ * the {@link net.minecraftforge.eventbus.api.event.characteristic.MonitorAware} characteristic.</p>
  *
  * <h2>Example</h2>
  * <p>Here is a small example that showcases the different listeners this type of event bus can have.</p>
