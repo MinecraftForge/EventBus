@@ -6,6 +6,7 @@ package net.minecraftforge.eventbus.api.event.characteristic;
 
 import net.minecraftforge.eventbus.api.bus.EventBus;
 import net.minecraftforge.eventbus.internal.AbstractEventBusImpl;
+import net.minecraftforge.eventbus.internal.EventCharacteristic;
 
 /**
  * A self-destructing event will {@link AbstractEventBusImpl#dispose() dispose} of its associated {@link EventBus}
