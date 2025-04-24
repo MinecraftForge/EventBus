@@ -89,4 +89,11 @@ public sealed interface BusGroup permits BusGroupImpl {
      *                  {@link #register(MethodHandles.Lookup, Class)} or {@link #register(MethodHandles.Lookup, Object)}
      */
     void unregister(Collection<EventListener> listeners);
+
+    /**
+     * Unregisters the given listener from this BusGroup.
+     * @param listeners The listeners to unregister, contained from the collection obtained from
+     *                  {@link #register(MethodHandles.Lookup, Class)} or {@link #register(MethodHandles.Lookup, Object)}
+     */
+    void unregister(EventListener listeners);
 }
