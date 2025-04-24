@@ -16,6 +16,7 @@ dependencyResolutionManagement {
 
             // https://mvnrepository.com/artifact/org.jspecify/jspecify
             library('jspecify-annotations', 'org.jspecify', 'jspecify') version '1.0.0'
+            library 'jetbrains-annotations', 'org.jetbrains', 'annotations' version '26.0.2'
 
             // https://mvnrepository.com/artifact/com.google.errorprone/error_prone_core
             library('errorprone-core', 'com.google.errorprone', 'error_prone_core') version '2.36.0'

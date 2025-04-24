@@ -48,8 +48,9 @@ import org.jspecify.annotations.NullMarked;
  */
 @NullMarked
 module net.minecraftforge.eventbus {
-    requires java.logging;
-    requires org.jspecify;
+    requires java.logging;                     // Logging
+    requires org.jspecify;                     // Nullability
+    requires static org.jetbrains.annotations; // Other Static Analysis
 
     exports net.minecraftforge.eventbus.api.bus;
     exports net.minecraftforge.eventbus.api.event;

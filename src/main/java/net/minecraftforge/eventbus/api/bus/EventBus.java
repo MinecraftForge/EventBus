@@ -11,6 +11,7 @@ import net.minecraftforge.eventbus.internal.AbstractEventBusImpl;
 import net.minecraftforge.eventbus.internal.BusGroupImpl;
 import net.minecraftforge.eventbus.internal.Event;
 import net.minecraftforge.eventbus.internal.EventBusImpl;
+import org.jetbrains.annotations.Contract;
 
 import java.util.function.Consumer;
 
@@ -90,6 +91,7 @@ public sealed interface EventBus<T extends Event> permits CancellableEventBus, A
      * @apiNote Using this over re-adding the listener with {@link #addListener(Consumer)} is recommended for
      * performance, as it removes the need to create another {@link EventListener} state.
      */
+    @Contract("_ -> param1")
     EventListener addListener(EventListener listener);
 
     /**
@@ -109,6 +111,7 @@ public sealed interface EventBus<T extends Event> permits CancellableEventBus, A
      * {@linkplain CancellableEventBus cancellable event bus}.
      * @see CancellableEventBus#post(Event)
      */
+    @Contract(value = "_ -> false")
     boolean post(T event);
 
     /**
@@ -118,6 +121,7 @@ public sealed interface EventBus<T extends Event> permits CancellableEventBus, A
      * @param event The instance of this event to fire to listeners
      * @return The event after being posted
      */
+    @Contract(value = "_ -> param1")
     T fire(T event);
 
     /**

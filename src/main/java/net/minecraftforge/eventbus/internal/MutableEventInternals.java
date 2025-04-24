@@ -8,8 +8,6 @@ import net.minecraftforge.eventbus.api.event.MutableEvent;
 import net.minecraftforge.eventbus.api.event.characteristic.MonitorAware;
 
 public sealed abstract class MutableEventInternals permits MutableEvent {
-    /**
-     * @see MonitorAware
-     */
+    /** @see MonitorAware#isMonitoring() */
     public transient boolean isMonitoring;
 }

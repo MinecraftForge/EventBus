@@ -11,6 +11,7 @@ import net.minecraftforge.eventbus.api.listener.ObjBooleanBiConsumer;
 import net.minecraftforge.eventbus.api.listener.Priority;
 import net.minecraftforge.eventbus.internal.BusGroupImpl;
 import net.minecraftforge.eventbus.internal.CancellableEventBusImpl;
+import org.jetbrains.annotations.Contract;
 
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -66,6 +67,10 @@ public sealed interface CancellableEventBus<T extends Event & Cancellable>
      * @return A reference that can be used to remove this listener later with {@link #removeListener(EventListener)}.
      */
     EventListener addListener(ObjBooleanBiConsumer<T> listener);
+
+    @Override
+    @Contract("_ -> _")
+    boolean post(T event);
 
     /**
      * Creates a new CancellableEventBus for the given event type on the default {@link BusGroup}.

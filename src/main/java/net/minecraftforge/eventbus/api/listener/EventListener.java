@@ -8,6 +8,7 @@ import net.minecraftforge.eventbus.api.bus.CancellableEventBus;
 import net.minecraftforge.eventbus.api.bus.EventBus;
 import net.minecraftforge.eventbus.internal.Event;
 import net.minecraftforge.eventbus.internal.EventListenerImpl;
+import org.jetbrains.annotations.Contract;
 
 import java.util.function.Consumer;
 
@@ -19,17 +20,20 @@ import java.util.function.Consumer;
  * various conversion operations to different lambda types.</p>
  */
 public sealed interface EventListener permits EventListenerImpl {
+    @Contract(pure = true)
     @SuppressWarnings("ClassEscapesDefinedScope") // ? can be a subtype of Event which is publicly accessible
     Class<? extends Event> eventType();
 
     /**
      * @see Priority
      */
+    @Contract(pure = true)
     byte priority();
 
     /**
      * @see CancellableEventBus#addListener(boolean, Consumer)
      */
+    @Contract(pure = true)
     default boolean alwaysCancelling() {
         return false;
     }

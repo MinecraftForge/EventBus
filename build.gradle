@@ -33,6 +33,7 @@ repositories {
 
 dependencies {
     api libs.jspecify.annotations
+    compileOnly libs.jetbrains.annotations
     errorprone libs.errorprone.core
     errorprone libs.nullaway
 }

@@ -8,6 +8,8 @@ import net.minecraftforge.eventbus.api.listener.EventListener;
 import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.eventbus.internal.BusGroupImpl;
 import net.minecraftforge.eventbus.internal.Event;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 
 import java.lang.invoke.MethodHandles;
 import java.util.Collection;
@@ -109,6 +111,7 @@ public sealed interface BusGroup permits BusGroupImpl {
      * The unique name of this BusGroup.
      * <p>The uniqueness of this name is enforced when the bus group is {@linkplain #create(String) created}.</p>
      */
+    @Contract(pure = true)
     String name();
 
     /**
@@ -145,6 +148,7 @@ public sealed interface BusGroup permits BusGroupImpl {
      * @apiNote <strong>This is an experimental feature!</strong> It may be removed, renamed or otherwise changed
      * without notice.
      */
+    @ApiStatus.Experimental
     void trim();
 
     /**
