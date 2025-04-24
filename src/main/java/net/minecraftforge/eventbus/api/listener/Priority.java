@@ -4,41 +4,41 @@
  */
 package net.minecraftforge.eventbus.api.listener;
 
+import net.minecraftforge.eventbus.internal.UtilityInterface;
+
 /**
  * Some common priority values, spread out evenly across the range of a Java signed byte, factoring in the special
  * {@link Priority#MONITOR} priority.
  */
-public final class Priority {
-    private Priority() {}
-
+public sealed interface Priority permits UtilityInterface {
     /**
      * Runs first
      */
-    public static final byte HIGHEST = Byte.MAX_VALUE;
+    byte HIGHEST = Byte.MAX_VALUE;
 
     /**
      * Runs before {@link #NORMAL} but after {@link #HIGHEST}
      */
-    public static final byte HIGH = 64;
+    byte HIGH = 64;
 
     /**
      * The default priority
      */
-    public static final byte NORMAL = 0;
+    byte NORMAL = 0;
 
     /**
      * Runs after {@link #NORMAL} but before {@link #LOWEST}
      */
-    public static final byte LOW = -64;
+    byte LOW = -64;
 
     /**
      * The last priority that can mutate the event instance
      */
-    public static final byte LOWEST = Byte.MIN_VALUE + 1;
+    byte LOWEST = Byte.MIN_VALUE + 1;
 
     /**
      * A special priority that is only used for monitoring purposes and typically doesn't allow cancelling or mutation.
      * <p>Monitoring listeners are always called last - even if the event is cancelled.</p>
      */
-    public static final byte MONITOR = Byte.MIN_VALUE;
+    byte MONITOR = Byte.MIN_VALUE;
 }
