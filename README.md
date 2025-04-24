@@ -1,3 +1,6 @@
+<!-- NOTE: The overview, basic example, and note on nullability are also included in
+     `src/main/java/module-info.java` -->
+
 # EventBus
 
 A flexible, high-performance, thread-safe subscriber-publisher framework designed with modern Java in mind.
@@ -14,13 +17,13 @@ First, add the Forge Maven repository and the EventBus dependency to your projec
 ```gradle
 repositories {
     maven {
-        name = "Forge"
-        url = "https://maven.minecraftforge.net"
+        name = 'Forge'
+        url = 'https://maven.minecraftforge.net'
     }
 }
 
 dependencies {
-    implementation "net.minecraftforge:eventbus:<version>"
+    implementation 'net.minecraftforge:eventbus:<version>'
 }
 ```
 
@@ -47,11 +50,11 @@ Browse the `net.minecraftforge.eventbus.api` package and read the Javadocs for m
 examples, check out Forge's extensive use of EventBus [here][Forge usages].
 
 ## Nullability
-The entirety of EventBus' API is `@NullMarked` and compliant with the [jSpecify specification](https://jspecify.dev/) -
-this means that everything is non-null by default unless otherwise specified.
+The entirety of EventBus' API is `@NullMarked` and compliant with the [jSpecify specification](https://jspecify.dev/).
+This means that everything is non-null by default unless otherwise specified.
 
-Attempting to pass a `null` value to a method param that isn't explicitly marked as `@Nullable` is an unsupported
-operation and won't be considered a breaking change if a future version throws an exception in such cases when it didn't
+Attempting to pass a `null` value to a method param that isn't explicitly marked as `@Nullable` is an *unsupported
+operation* and won't be considered a breaking change if a future version throws an exception in such cases when it didn't
 before.
 
 ## Contributing

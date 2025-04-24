@@ -33,6 +33,10 @@ license {
     newLine = false
 }
 
+tasks.named('javadoc', Javadoc) {
+    enabled = false
+}
+
 // Hack eclipse into knowing that the gradle deps are modules
 eclipse.classpath {
     containers 'org.eclipse.buildship.core.gradleclasspathcontainer'
