@@ -62,7 +62,7 @@ import java.util.function.Consumer;
  * cancellation state. As discussed in the documentation for the cancellable characteristic, the cancellation state is
  * <i>not attached</i> to the event instance.</p>
  *
- * @param <T> The event type this bus is for
+ * @param <T> The type of event for this bus
  */
 public sealed interface EventBus<T extends Event> permits CancellableEventBus, AbstractEventBusImpl, EventBusImpl {
     /**
@@ -76,7 +76,7 @@ public sealed interface EventBus<T extends Event> permits CancellableEventBus, A
     /**
      * Adds a listener to this EventBus with the given {@linkplain Priority priority}.
      *
-     * @param priority The priority of this listener
+     * @param priority The priority for the listener
      * @param listener The listener to add
      * @return A reference that can be used to remove this listener later with {@link #removeListener(EventListener)}
      * @see Priority
@@ -106,12 +106,12 @@ public sealed interface EventBus<T extends Event> permits CancellableEventBus, A
      * Posts the given event to all listeners registered to this bus.
      *
      * @param event The instance of this event to post to listeners
-     * @return {@code false}
+     * @return {@code true} if the event was cancelled <strong>and</strong> this event bus is a
+     * {@linkplain CancellableEventBus cancellable event bus}
      * @apiNote This bus will <strong>always return {@code false}</strong> unless it is a
      * {@linkplain CancellableEventBus cancellable event bus}.
      * @see CancellableEventBus#post(Event)
      */
-    @Contract(value = "_ -> false")
     boolean post(T event);
 
     /**
@@ -136,7 +136,8 @@ public sealed interface EventBus<T extends Event> permits CancellableEventBus, A
     boolean hasListeners();
 
     /**
-     * Creates a new EventBus for the given event type on the {@linkplain BusGroup#DEFAULT default bus group}.
+     * Creates a new event bus for the given {@linkplain net.minecraftforge.eventbus.api.event event} type on the
+     * {@linkplain BusGroup#DEFAULT default bus group}.
      * <p>The returned EventBus <strong>must be stored in a {@code static final} field!</strong> Failing to do so will
      * severely hinder performance.</p>
      * <p>Additionally, there can only be one event bus instance per event type per bus group. If an event bus already
@@ -152,7 +153,8 @@ public sealed interface EventBus<T extends Event> permits CancellableEventBus, A
     }
 
     /**
-     * Creates a new event bus for the given event type on the given {@linkplain BusGroup bus group}.
+     * Creates a new event bus for the given {@linkplain net.minecraftforge.eventbus.api.event event} type on the given
+     * {@linkplain BusGroup bus group}.
      * <p>The returned event bus <strong>must be stored in a {@code static final} field!</strong> Failing to do so will
      * severely hinder performance.</p>
      * <p>Additionally, there can only be one event bus instance per event type per bus group. If an event bus already

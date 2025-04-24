@@ -1,5 +1,5 @@
 <!-- NOTE: The overview, basic example, and note on nullability are also included in
-     `src/main/java/net/minecraftforge/eventbus/api/package-info.java` -->
+     `src/main/java/module-info.java` -->
 
 # EventBus
 
