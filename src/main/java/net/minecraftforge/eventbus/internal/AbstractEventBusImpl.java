@@ -141,8 +141,9 @@ public sealed interface AbstractEventBusImpl<T extends Event, I> extends EventBu
             // Force invalidate the invoker to remove the no-op invoker that might've been set by shutdown()
             alreadyInvalidated().set(false);
             invalidateInvoker();
+
+            children().forEach(AbstractEventBusImpl::startup);
         }
-        children().forEach(AbstractEventBusImpl::startup);
     }
 
     default void shutdown() {
@@ -154,8 +155,9 @@ public sealed interface AbstractEventBusImpl<T extends Event, I> extends EventBu
             // on calls to addListener() to keep the no-op invoker
             setNoOpInvoker();
             alreadyInvalidated().set(true);
+
+            children().forEach(AbstractEventBusImpl::shutdown);
         }
-        children().forEach(AbstractEventBusImpl::shutdown);
     }
 
     default void dispose() {
@@ -166,14 +168,22 @@ public sealed interface AbstractEventBusImpl<T extends Event, I> extends EventBu
 
             backingList().trimToSize();
             monitorBackingList().trimToSize();
+
+            children().forEach(AbstractEventBusImpl::dispose);
+
+            if (children() instanceof ArrayList<?> childrenArrayList) {
+                childrenArrayList.clear();
+                childrenArrayList.trimToSize();
+            }
         }
-        children().forEach(AbstractEventBusImpl::dispose);
     }
 
     default void trim() {
         synchronized (backingList()) {
             backingList().trimToSize();
             monitorBackingList().trimToSize();
+            if (children() instanceof ArrayList<?> childrenArrayList)
+                childrenArrayList.trimToSize();
         }
     }
 
