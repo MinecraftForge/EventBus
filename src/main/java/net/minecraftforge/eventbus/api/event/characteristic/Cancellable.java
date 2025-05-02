@@ -6,6 +6,7 @@ package net.minecraftforge.eventbus.api.event.characteristic;
 
 import net.minecraftforge.eventbus.api.bus.CancellableEventBus;
 import net.minecraftforge.eventbus.internal.Event;
+import net.minecraftforge.eventbus.internal.EventCharacteristic;
 
 /**
  * A cancellable event returns {@code true} from {@link CancellableEventBus#post(Event)} if it was cancelled.

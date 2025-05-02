@@ -6,6 +6,7 @@ package net.minecraftforge.eventbus.api.event.characteristic;
 
 import net.minecraftforge.eventbus.api.bus.EventBus;
 import net.minecraftforge.eventbus.internal.Event;
+import net.minecraftforge.eventbus.internal.EventCharacteristic;
 
 /**
  * Experimental feature - may be removed, renamed or otherwise changed without notice.

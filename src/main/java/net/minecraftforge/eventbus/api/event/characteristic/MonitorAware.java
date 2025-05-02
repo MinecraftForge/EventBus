@@ -5,6 +5,7 @@
 package net.minecraftforge.eventbus.api.event.characteristic;
 
 import net.minecraftforge.eventbus.api.event.MutableEvent;
+import net.minecraftforge.eventbus.internal.EventCharacteristic;
 import net.minecraftforge.eventbus.internal.MutableEventInternals;
 
 /**
