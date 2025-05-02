@@ -19,6 +19,7 @@ final class Constants {
 
     static final Consumer<Event> NO_OP_CONSUMER = event -> {};
     static final Predicate<Event> NO_OP_PREDICATE = event -> false;
+    static final Predicate<Event> ALWAYS_TRUE_PREDICATE = event -> true;
 
     static final MethodHandle MH_NULL_CONSUMER = MethodHandles.constant(Consumer.class, null);
     static final MethodHandle MH_NO_OP_CONSUMER = MethodHandles.constant(Consumer.class, NO_OP_CONSUMER);
@@ -60,8 +61,8 @@ final class Constants {
     }
 
     @SuppressWarnings("unchecked")
-    static <T> Predicate<T> getNoOpPredicate() {
-        return (Predicate<T>) NO_OP_PREDICATE;
+    static <T> Predicate<T> getNoOpPredicate(boolean alwaysCancelling) {
+        return (Predicate<T>) (alwaysCancelling ? ALWAYS_TRUE_PREDICATE : NO_OP_PREDICATE);
     }
 
     static boolean isSelfDestructing(int characteristics) {
