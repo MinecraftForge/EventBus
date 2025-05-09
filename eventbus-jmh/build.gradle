@@ -42,16 +42,18 @@ tasks.register('aggregateJmh', AggregateJmh) {
 
 tasks.register('archiveJfr', ArchiveJfr) {
     outputs.upToDateWhen { false }
-    input = project.layout.buildDirectory.dir('jmh_profile_results/last_run')
-    output = project.layout.buildDirectory.dir('jmh_profile_results/archive')
+    input = file("build/jmh_profile_results/last_run/")
+    output = file('build/jmh_profile_results/archive/')
 }
 
 tasks.register('jmh')
 
 ((Map<String, List<Integer>>) ext.VALID_VMS).forEach { javaVendor, javaVersions ->
     for (Integer javaVersion in javaVersions) {
-        var output = project.layout.buildDirectory.file("jmh_results/jmh-${javaVendor}-${javaVersion}.json").map { it.asFile.absoluteFile.parentFile.mkdirs(); it }
-//        var outputJfr = project.layout.buildDirectory.dir("jmh_profile_results/last_run/${javaVendor}-${javaVersion}").map { it.asFile.mkdirs(); it }
+        var output = file("build/jmh_results/jmh-${javaVendor}-${javaVersion}.json")
+        output.mkdirs()
+//        var outputJfr = file("build/jmh_profile_results/last_run/${javaVendor}-${javaVersion}/")
+//        outputJfr.mkdirs()
         var task = tasks.register("jmh${javaVendor}${javaVersion}", JavaExec) {
             classpath = sourceSets.main.runtimeClasspath
             mainModule = 'net.minecraftforge.eventbus.jmh'
@@ -86,9 +88,11 @@ tasks.register('jmh')
                 args += project.property('bench')
 
             doFirst {
-                var file = output.get().asFile
-                if (file.exists())
-                    file.delete()
+//                outputJfr.deleteDir()
+                if (!output.parentFile.exists())
+                    output.parentFile.mkdirs()
+                if (output.exists())
+                    output.delete()
             }
             javaLauncher = javaToolchains.launcherFor {
                 vendor = JvmVendorSpec."${javaVendor.toUpperCase(Locale.ROOT)}" as JvmVendorSpec
