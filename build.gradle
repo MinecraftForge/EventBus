@@ -82,7 +82,7 @@ license {
 publishing {
     publications.register('mavenJava', MavenPublication) {
         from components.java
-        artifactId = project.name
+        artifactId = 'eventbus'
         pom {
             name = projectDisplayName
             description = project.description
@@ -112,10 +112,10 @@ allprojects {
         ext.VALID_VMS = [
             'Adoptium':  [21],
             'Amazon':    [21],
-            'Azul':      (21),
-            'BellSoft':  (21),
+            'Azul':      [21],
+            'BellSoft':  [21],
             'Graal_VM':  [21],
             'Microsoft': [21],
-            'Oracle':    (21),
+            'Oracle':    [21],
         ]
 }
