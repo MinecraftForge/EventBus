@@ -1,15 +1,10 @@
-import groovy.xml.DOMBuilder
-import groovy.xml.dom.DOMCategory
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
 import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 
 abstract class ArchiveJfr extends DefaultTask {
     @InputDirectory

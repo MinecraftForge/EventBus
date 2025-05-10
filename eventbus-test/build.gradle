@@ -1,15 +1,10 @@
 plugins {
     id 'eclipse'
     id 'java-library'
-    id 'net.minecraftforge.gradleutils'
-    id 'net.minecraftforge.licenser'
-    id 'org.gradlex.extra-java-module-info'
+    alias libs.plugins.gradleutils
+    alias libs.plugins.licenser
+    alias libs.plugins.modules
     id 'test-report-aggregation'
-}
-
-repositories {
-    mavenCentral()
-    maven gradleutils.forgeMaven
 }
 
 java {
@@ -17,7 +12,7 @@ java {
 }
 
 license {
-    header = rootProject.file("LICENSE-header.txt")
+    header = rootProject.file('LICENSE-header.txt')
     newLine = false
 }
 
@@ -48,13 +43,15 @@ tasks.register('testAll', AggregateTest) {
         output.mkdirs()
         var task = tasks.register("test${javaVendor}${javaVersion}", Test) {
             useJUnitPlatform()
+            classpath = configurations.runtimeClasspath
+            testClassesDirs = sourceSets.main.output.classesDirs
             javaLauncher = javaToolchains.launcherFor {
                 vendor = JvmVendorSpec."${javaVendor.toUpperCase(Locale.ROOT)}" as JvmVendorSpec
                 languageVersion = JavaLanguageVersion.of(javaVersion)
                 implementation = JvmImplementation.VENDOR_SPECIFIC
             }
-            reports.html.destination = file("build/test-reports/${javaVendor}-${javaVersion}/")
-            reports.junitXml.destination = output
+            reports.html.outputLocation.fileValue file("build/test-reports/${javaVendor}-${javaVersion}/")
+            reports.junitXml.outputLocation.fileValue output
         }
         tasks.named('testAll') {
             inputs.dir(output)

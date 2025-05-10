@@ -1,55 +1,53 @@
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        maven { url = 'https://maven.minecraftforge.net/' }
-    }
-}
-
 plugins {
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.9.0'
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.10.0'
 }
 
 dependencyResolutionManagement {
-    versionCatalogs {
-        libs {
-            // https://mvnrepository.com/artifact/org.jspecify/jspecify
-            library('jspecify-annotations', 'org.jspecify', 'jspecify') version '1.0.0'
-
-            // https://mvnrepository.com/artifact/com.google.errorprone/error_prone_core
-            library('errorprone-core', 'com.google.errorprone', 'error_prone_core') version '2.36.0'
-
-            // https://mvnrepository.com/artifact/com.uber.nullaway/nullaway
-            library('nullaway', 'com.uber.nullaway', 'nullaway') version '0.12.4'
-
-            // ModLauncher stack
-            library('modlauncher', 'net.minecraftforge:modlauncher:10.1.1')
-            library('securemodules', 'net.minecraftforge:securemodules:2.2.21')
-            library('unsafe', 'net.minecraftforge:unsafe:0.9.2')
-
-            // Generics from lambdas
-            library('typetools', 'net.jodah:typetools:0.6.3')
-
-            library('nulls', 'org.jetbrains:annotations:23.0.0')
-            library('jopt-simple', 'net.sf.jopt-simple:jopt-simple:5.0.4')
-            library('log4j-api', 'org.apache.logging.log4j:log4j-api:2.17.1')
-
-            version('junit', '5.10.1')
-            library('junit-api', 'org.junit.jupiter', 'junit-jupiter-api').versionRef('junit')
-            library('junit-engine', 'org.junit.jupiter', 'junit-jupiter-engine').versionRef('junit')
-            library('junit-platform-launcher', 'org.junit.platform:junit-platform-launcher:1.10.1')
-            bundle('junit-runtime', ['junit-engine', 'junit-platform-launcher'])
-
-            version('asm', '9.7.1')
-            library('asm',         'org.ow2.asm', 'asm'        ).versionRef('asm')
-            library('asm-tree',    'org.ow2.asm', 'asm-tree'   ).versionRef('asm')
-            library('asm-commons', 'org.ow2.asm', 'asm-commons').versionRef('asm')
-            bundle('asm', ['asm', 'asm-tree', 'asm-commons'])
-
-            version('jmh', '1.37')
-            library('jmh-core', 'org.openjdk.jmh', 'jmh-core') versionRef 'jmh'
-            library('jmh-annotationProcessor', 'org.openjdk.jmh', 'jmh-generator-annprocess') versionRef 'jmh'
-        }
+    repositories {
+        // TODO [Gradle9][GradleUtils3] Replace with gradleutils.forgeMaven
+        maven { url = 'https://maven.minecraftforge.net/' }
+        mavenCentral()
     }
+
+    //@formatter:off
+    versionCatalogs.register('libs') {
+        plugin 'modules',     'org.gradlex.extra-java-module-info' version '1.11'
+        plugin 'gradleutils', 'net.minecraftforge.gradleutils'     version '2.5.1'
+        plugin 'licenser',    'net.minecraftforge.licenser'        version '1.2.0'
+
+        plugin 'errorprone', 'net.ltgt.errorprone' version '4.1.0'
+        plugin 'nullaway',   'net.ltgt.nullaway'   version '2.2.0'
+
+        // https://mvnrepository.com/artifact/org.jspecify/jspecify
+        library 'jspecify-annotations', 'org.jspecify', 'jspecify' version '1.0.0'
+
+        // https://mvnrepository.com/artifact/com.google.errorprone/error_prone_core
+        library 'errorprone-core', 'com.google.errorprone', 'error_prone_core' version '2.36.0'
+
+        // https://mvnrepository.com/artifact/com.uber.nullaway/nullaway
+        library 'nullaway', 'com.uber.nullaway', 'nullaway' version '0.12.4'
+
+
+        /* The rest is for testing */
+        library 'unsafe', 'net.minecraftforge:unsafe:0.9.2'
+
+        version 'junit', '5.10.1'
+        library 'junit-api',               'org.junit.jupiter',  'junit-jupiter-api'       versionRef 'junit'
+        library 'junit-engine',            'org.junit.jupiter',  'junit-jupiter-engine'    versionRef 'junit'
+        library 'junit-platform-launcher', 'org.junit.platform', 'junit-platform-launcher' version '1.10.1'
+        bundle 'junit-runtime', ['junit-engine', 'junit-platform-launcher']
+
+        version 'asm', '9.7.1'
+        library 'asm',         'org.ow2.asm', 'asm'         versionRef 'asm'
+        library 'asm-tree',    'org.ow2.asm', 'asm-tree'    versionRef 'asm'
+        library 'asm-commons', 'org.ow2.asm', 'asm-commons' versionRef 'asm'
+        bundle 'asm', ['asm', 'asm-tree', 'asm-commons']
+
+        version 'jmh', '1.37'
+        library 'jmh-core',                'org.openjdk.jmh', 'jmh-core'                 versionRef 'jmh'
+        library 'jmh-annotationProcessor', 'org.openjdk.jmh', 'jmh-generator-annprocess' versionRef 'jmh'
+    }
+    //@formatter:on
 }
 
 enableFeaturePreview 'TYPESAFE_PROJECT_ACCESSORS'

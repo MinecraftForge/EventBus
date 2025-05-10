@@ -1,32 +1,30 @@
-import net.minecraftforge.gradleutils.PomUtils
 import net.ltgt.gradle.errorprone.ErrorProneOptions
 import net.ltgt.gradle.nullaway.NullAwayOptions
 
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'org.gradlex.extra-java-module-info' version '1.11'
-    id 'net.minecraftforge.gradleutils' version '2.4.13'
-    id 'net.minecraftforge.licenser' version '1.1.1'
+    alias libs.plugins.modules
+    alias libs.plugins.gradleutils
+    alias libs.plugins.licenser
 
     // Enforce jSpecify annotations at compile-time
-    id 'net.ltgt.errorprone' version '4.1.0'
-    id 'net.ltgt.nullaway' version '2.2.0'
+    alias libs.plugins.errorprone
+    alias libs.plugins.nullaway
 }
 
+final projectDisplayName = 'EventBus'
+final projectVendor = 'Forge Development LLC'
+description = 'High performance Event Bus library'
 group = 'net.minecraftforge'
-version = gitversion.version.tagOffset
+version = gitversion.tagOffset
+
 print "Version: $version"
 
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(21)
     modularity.inferModulePath = true
     withSourcesJar()
-}
-
-repositories {
-    mavenCentral()
-    maven gradleutils.forgeMaven
 }
 
 dependencies {
@@ -56,19 +54,19 @@ tasks.withType(JavaCompile).configureEach {
         }
 
         // Enforce the ErrorProne checks we care about
-        errorProne.error("FieldCanBeFinal", "MethodCanBeStatic", "LambdaFunctionalInterface")
+        errorProne.error 'FieldCanBeFinal', 'MethodCanBeStatic', 'LambdaFunctionalInterface'
     }
 }
 
 tasks.named('jar', Jar) {
     manifest {
         attributes([
-            'Specification-Title':   'EventBus',
-            'Specification-Version':  gitversion.version.info.tag,
-            'Specification-Vendor':   'Forge Development LLC',
-            'Implementation-Title':   'EventBus',
+            'Specification-Title'   : projectDisplayName,
+            'Specification-Version' : gitversion.info.tag,
+            'Specification-Vendor'  : projectVendor,
+            'Implementation-Title'  : projectDisplayName,
             'Implementation-Version': project.version,
-            'Implementation-Vendor':  'Forge Development LLC'
+            'Implementation-Vendor' : projectVendor
         ])
     }
 
@@ -77,7 +75,7 @@ tasks.named('jar', Jar) {
 }
 
 license {
-    header = file("LICENSE-header.txt")
+    header = file('LICENSE-header.txt')
     newLine = false
 }
 
@@ -86,15 +84,17 @@ publishing {
         from components.java
         artifactId = 'eventbus'
         pom {
-            name = 'EventBus'
-            description = 'High performance Event Bus library'
+            name = projectDisplayName
+            description = project.description
 
             gradleutils.pom.gitHubDetails = pom
 
-            license PomUtils.Licenses.LGPLv2_1
+            licenses {
+                license gradleutils.pom.licenses.LGPLv2_1
+            }
 
             developers {
-                developer PomUtils.Developers.Paint_Ninja
+                developer gradleutils.pom.developers.Paint_Ninja
             }
         }
     }
@@ -105,17 +105,17 @@ publishing {
 }
 
 allprojects {
-    ext.VALID_VMS = [
-        'Adoptium':  [21],
-        'Amazon':    [21],
-        'Azul':      (21),
-        'BellSoft':  (21),
-        'Graal_VM':  [21],
-        'Microsoft': [21],
-        'Oracle':    (21),
-    ]
-
     // Tests are expensive to run all variants, so only run if asked to
     if (!project.hasProperty('bulk_tests'))
         ext.VALID_VMS = ['Adoptium':  [21]]
+    else
+        ext.VALID_VMS = [
+            'Adoptium':  [21],
+            'Amazon':    [21],
+            'Azul':      [21],
+            'BellSoft':  [21],
+            'Graal_VM':  [21],
+            'Microsoft': [21],
+            'Oracle':    [21],
+        ]
 }

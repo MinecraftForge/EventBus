@@ -1,14 +1,9 @@
 plugins {
     id 'eclipse'
     id 'java-library'
-    id 'org.gradlex.extra-java-module-info'
-    id 'net.minecraftforge.gradleutils'
-    id 'net.minecraftforge.licenser'
-}
-
-repositories {
-    mavenCentral()
-    maven gradleutils.forgeMaven
+    alias libs.plugins.modules
+    alias libs.plugins.gradleutils
+    alias libs.plugins.licenser
 }
 
 java {
@@ -16,9 +11,9 @@ java {
 }
 
 dependencies {
-    implementation(rootProject)
-    implementation(libs.bundles.asm)
-    implementation(libs.unsafe)
+    implementation rootProject
+    implementation libs.bundles.asm
+    implementation libs.unsafe
 
     implementation libs.jmh.core
 }
@@ -29,7 +24,7 @@ extraJavaModuleInfo {
 }
 
 license {
-    header = rootProject.file("LICENSE-header.txt")
+    header = rootProject.file('LICENSE-header.txt')
     newLine = false
 }
 

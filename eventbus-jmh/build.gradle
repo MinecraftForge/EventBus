@@ -1,13 +1,8 @@
 plugins {
     id 'java-library'
-    id 'org.gradlex.extra-java-module-info'
-    id 'net.minecraftforge.gradleutils'
-    id 'net.minecraftforge.licenser'
-}
-
-repositories {
-    mavenCentral()
-    maven gradleutils.forgeMaven
+    alias libs.plugins.modules
+    alias libs.plugins.gradleutils
+    alias libs.plugins.licenser
 }
 
 java {
@@ -15,7 +10,7 @@ java {
 }
 
 license {
-    header = rootProject.file("LICENSE-header.txt")
+    header = rootProject.file('LICENSE-header.txt')
     newLine = false
 }
 
@@ -33,7 +28,6 @@ dependencies {
 extraJavaModuleInfo {
     failOnMissingModuleInfo = false
     automaticModule('org.openjdk.jmh:jmh-core', 'jmh.core')
-    automaticModule('net.sf.jopt-simple:jopt-simple', 'jopt.simple')
 }
 
 tasks.register('aggregateJmh', AggregateJmh) {
