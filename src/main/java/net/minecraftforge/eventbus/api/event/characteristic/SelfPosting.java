@@ -9,12 +9,12 @@ import net.minecraftforge.eventbus.internal.Event;
 import net.minecraftforge.eventbus.internal.EventCharacteristic;
 
 /**
- * Experimental feature - may be removed, renamed or otherwise changed without notice.
- * <p>{@link SelfPosting} events are associated with a default {@link EventBus} in order to offer some convenience
- * instance methods.</p>
- * <u>Example</u>
+ * Self-posting events are associated with a default {@link EventBus}, allowing for some convenience methods on the
+ * instance.
+ *
+ * <h2>Example</h2>
  * {@snippet :
- * import net.minecraftforge.eventbus.api.event.RecordEvent;
+ * import module net.minecraftforge.eventbus;
  *
  * // Event declaration
  * public record ExampleEvent() implements SelfPosting<ExampleEvent>, RecordEvent {
@@ -32,10 +32,13 @@ import net.minecraftforge.eventbus.internal.EventCharacteristic;
  * // instead of this
  * ExampleEvent.BUS.post(new ExampleEvent());
  *}
+ *
+ * @apiNote This is an experimental feature that may be removed, renamed or otherwise changed without notice.
  */
 public non-sealed interface SelfPosting<T extends Event> extends EventCharacteristic {
     /**
-     * @implSpec This should directly return a {@code static final} field without additional logic or processing.
+     * @implSpec This should directly return a {@code static final} field without additional logic or processing -
+     *           failure to do so may hurt performance.
      */
     EventBus<T> getDefaultBus();
 
