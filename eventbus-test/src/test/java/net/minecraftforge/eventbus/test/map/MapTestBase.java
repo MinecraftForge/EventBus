@@ -38,7 +38,7 @@ public class MapTestBase {
 
     // Hacky because I dont want to deal with implementing the entire Map interface
     protected static class MapLike<K, V> implements Map<K, V> {
-        private final Cache<K, V> lock = InternalUtils.cache();
+        private final Cache<K, V> lock = Cache.create();
         @SuppressWarnings("unchecked")
         private final Function<K, V> get = Whitebox.getMethod(lock, "get", (Class<K>)Object.class);
 
@@ -49,15 +49,15 @@ public class MapTestBase {
         }
         @Override
         public V put(K key, V value) {
-            return lock.computeIfAbsent(key, () -> value);
+            return lock.computeIfAbsent(key, k -> value);
         }
         @Override
         public V putIfAbsent(K key, V value) {
-            return lock.computeIfAbsent(key, () -> value);
+            return lock.computeIfAbsent(key, k -> value);
         }
         @Override
         public V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
-            return lock.computeIfAbsent(key, () ->  mappingFunction.apply(key));
+            return lock.computeIfAbsent(key, mappingFunction::apply);
         }
         @Override public int size() { throw new UnsupportedOperationException(); }
         @Override public boolean isEmpty() { throw new UnsupportedOperationException(); }

@@ -34,7 +34,7 @@ public class EventListenerHelper {
 
     static ListenerList getListenerListInternal(Class<?> eventClass, boolean fromInstanceCall) {
         if (eventClass == Event.class) return EVENTS_LIST; // Small optimization, bypasses all the locks/maps.
-        return listeners.computeIfAbsent(eventClass, () -> computeListenerList(eventClass, fromInstanceCall));
+        return listeners.computeIfAbsent(eventClass, k -> computeListenerList(k, fromInstanceCall));
     }
 
     private static ListenerList computeListenerList(Class<?> eventClass, boolean fromInstanceCall) {
@@ -69,10 +69,10 @@ public class EventListenerHelper {
         if (eventClass == Event.class || eventClass == Object.class)
             return false;
 
-        return cache.computeIfAbsent(eventClass, () -> {
-            if (eventClass.isAnnotationPresent(annotation))
+        return cache.computeIfAbsent(eventClass, k -> {
+            if (k.isAnnotationPresent(annotation))
                 return true;
-            var parent = eventClass.getSuperclass();
+            var parent = k.getSuperclass();
             return parent != null && hasAnnotation(parent, annotation, cache);
         });
     }

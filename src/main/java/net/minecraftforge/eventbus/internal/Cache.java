@@ -14,11 +14,11 @@ import java.util.function.Supplier;
 public interface Cache<K, V> {
     V get(K key);
 
-    default V computeIfAbsent(K key, Supplier<V> factory) {
+    default V computeIfAbsent(K key, Function<K, V> factory) {
         return computeIfAbsent(key, factory, Function.identity());
     }
 
-    <I> V computeIfAbsent(K key, Supplier<I> factory, Function<I, V> finalizer);
+    <I> V computeIfAbsent(K key, Function<K, I> factory, Function<I, V> finalizer);
 
     static <K, V> Cache<K, V> create() {
         var type = System.getProperty("eb.cache_type");

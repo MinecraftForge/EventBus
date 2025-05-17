@@ -26,7 +26,7 @@ public class ModLauncherFactory extends ClassLoaderFactory {
 
     private void enqueueWrapper(Method callback) {
         String name = getUniqueName(callback);
-        PENDING.computeIfAbsent(name, () -> callback);
+        PENDING.computeIfAbsent(name, k -> callback);
     }
 
     public static boolean hasPendingWrapperClass(final String className) {

@@ -35,7 +35,7 @@ class CacheCopyOnWrite<K,V> implements Cache<K, V> {
     }
 
     @Override
-    public <I> V computeIfAbsent(K key, Supplier<I> factory, Function<I, V> finalizer) {
+    public <I> V computeIfAbsent(K key, Function<K, I> factory, Function<I, V> finalizer) {
         // This is a put once map, so lets try checking if the map has this value.
         // Should be thread safe to read without lock as any writes will be guarded
         var ret = get(key);
@@ -46,7 +46,7 @@ class CacheCopyOnWrite<K,V> implements Cache<K, V> {
 
         // Let's pre-compute our new value. This could take a while, as well as recursively call this
         // function. as such, we need to make sure we don't hold a lock when we do this
-        var intermediate = factory.get();
+        var intermediate = factory.apply(key);
 
         // We're actually gunna mutate the object now so lets lock it
         synchronized (lock) {
