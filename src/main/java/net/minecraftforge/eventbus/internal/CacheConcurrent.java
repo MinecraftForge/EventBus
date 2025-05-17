@@ -4,22 +4,17 @@
  */
 package net.minecraftforge.eventbus.internal;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /*
  * An implementation of the Cache class that uses a ConcurrentHashMap for the backing map.
  * This allows us to use no locks when calling the get method.
  * However, it has re-entrant issues when writing. So we guard that using a synchronized block
  */
-class CacheConcurrent<K,V> implements Cache<K, V> {
-    private Object lock = new Object();
-    private final Map<K, V> map;
-
+record CacheConcurrent<K, V>(ConcurrentHashMap<K, V> map, Object lock) implements Cache<K, V> {
     CacheConcurrent() {
-        this.map = new ConcurrentHashMap<>(32);
+        this(new ConcurrentHashMap<>(32), new Object());
     }
 
     @Override

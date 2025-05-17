@@ -7,7 +7,6 @@ package net.minecraftforge.eventbus.internal;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.IntFunction;
-import java.util.function.Supplier;
 
 /*
  * An implementation of the Cache class that uses any type of backing map the user wants.
@@ -17,9 +16,9 @@ import java.util.function.Supplier;
  * It also has performance issues for large maps for obvious reasons.
  * But the benefit is no locks during read
  */
-class CacheCopyOnWrite<K,V> implements Cache<K, V> {
-    private Object lock = new Object();
-    private IntFunction<Map<K, V>> factory;
+final class CacheCopyOnWrite<K, V> implements Cache<K, V> {
+    private final Object lock = new Object();
+    private final IntFunction<Map<K, V>> factory;
     private final Map<K, V> map;
     private volatile Map<K, V> readable;
 

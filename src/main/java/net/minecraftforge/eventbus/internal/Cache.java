@@ -8,7 +8,6 @@ import org.jetbrains.annotations.ApiStatus;
 
 import java.util.HashMap;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 @ApiStatus.Internal
 public interface Cache<K, V> {
