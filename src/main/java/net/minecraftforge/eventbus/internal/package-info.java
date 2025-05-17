@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Forge Development LLC
+ * SPDX-License-Identifier: LGPL-2.1-only
+ */
 /**
  * Internal classes that may change or be removed at any time without notice. Only exported for tests and may no longer
  * be exported in a future release.
