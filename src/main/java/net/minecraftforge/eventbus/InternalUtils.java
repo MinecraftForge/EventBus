@@ -13,7 +13,9 @@ import org.jetbrains.annotations.ApiStatus;
  * MODDERS SHOULD NEVER TOUCH THIS. And I reserve the right to do any breaking changes I want to this class.
  */
 @ApiStatus.Internal
-public class InternalUtils {
+public final class InternalUtils {
+    private InternalUtils() {}
+    
     public static <K,V> BiFunction<K, Supplier<V>, V> cachePublic() {
         return cache();
     }

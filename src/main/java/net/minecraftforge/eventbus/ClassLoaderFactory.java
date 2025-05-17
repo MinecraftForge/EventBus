@@ -41,7 +41,7 @@ public class ClassLoaderFactory implements IEventListenerFactory {
         }, ClassLoaderFactory::defineClass);
     }
 
-    private static final Class<?> defineClass(ClassNode node) {
+    private static Class<?> defineClass(ClassNode node) {
         var cw = new ClassWriter(0);
         node.accept(cw);
         return LOADER.define(node.name.replace('/', '.'), cw.toByteArray());
@@ -111,7 +111,7 @@ public class ClassLoaderFactory implements IEventListenerFactory {
         target.visitEnd();
     }
 
-    private static class ASMClassLoader extends ClassLoader {
+    private static final class ASMClassLoader extends ClassLoader {
         private ASMClassLoader() {
             super(null);
         }

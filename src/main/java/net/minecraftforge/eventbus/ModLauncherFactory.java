@@ -5,7 +5,6 @@
 package net.minecraftforge.eventbus;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Optional;
 import org.objectweb.asm.tree.ClassNode;
 

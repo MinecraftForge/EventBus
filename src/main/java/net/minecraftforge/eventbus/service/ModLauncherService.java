@@ -33,7 +33,7 @@ public class ModLauncherService implements ILaunchPluginService {
 
     @Override
     public int processClassWithFlags(final Phase phase, final ClassNode classNode, final Type classType, String reason) {
-        return Objects.equals(reason, "classloading") ? getEventBusEngine().processClass(classNode, classType) : ComputeFlags.NO_REWRITE;
+        return "classloading".equals(reason) ? getEventBusEngine().processClass(classNode, classType) : ComputeFlags.NO_REWRITE;
     }
 
     private static final EnumSet<Phase> DOIT = EnumSet.of(Phase.BEFORE);
