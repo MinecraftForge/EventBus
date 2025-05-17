@@ -16,10 +16,9 @@ open module net.minecraftforge.eventbus {
     exports net.minecraftforge.eventbus.api;
 
     /**
-     * Internal classes that may change or be removed at any time without notice. Only exported for tests and may no
-     * longer be exported in a future release.
+     * Internal classes that may change or be removed at any time without notice
      */
-    exports net.minecraftforge.eventbus.internal;
+    exports net.minecraftforge.eventbus.internal to net.minecraftforge.eventbus.test;
 
     provides cpw.mods.modlauncher.serviceapi.ILaunchPluginService with net.minecraftforge.eventbus.service.ModLauncherService;
     provides net.minecraftforge.eventbus.IEventBusEngine with net.minecraftforge.eventbus.EventBusEngine;
