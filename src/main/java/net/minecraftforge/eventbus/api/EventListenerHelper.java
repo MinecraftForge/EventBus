@@ -34,6 +34,12 @@ public class EventListenerHelper {
 
     static ListenerList getListenerListInternal(Class<?> eventClass, boolean fromInstanceCall) {
         if (eventClass == Event.class) return EVENTS_LIST; // Small optimization, bypasses all the locks/maps.
+
+        // Attempt to get the ListenerList directly from the cache first. This avoids an allocating lambda on cache hit
+        var ret = listeners.get(eventClass);
+        if (ret != null) return ret;
+
+        // Cache miss, check again (for thread-safety) and compute the ListenerList if still absent
         return listeners.computeIfAbsent(eventClass, k -> computeListenerList(k, fromInstanceCall));
     }
 
@@ -68,6 +74,9 @@ public class EventListenerHelper {
     private static boolean hasAnnotation(Class<?> eventClass, Class<? extends Annotation> annotation, Cache<Class<?>, Boolean> cache) {
         if (eventClass == Event.class || eventClass == Object.class)
             return false;
+
+        var ret = cache.get(eventClass);
+        if (ret != null) return ret;
 
         return cache.computeIfAbsent(eventClass, k -> {
             if (k.isAnnotationPresent(annotation))
