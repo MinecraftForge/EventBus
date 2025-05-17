@@ -6,13 +6,15 @@ package net.minecraftforge.eventbus;
 
 import java.lang.reflect.Method;
 import java.util.Optional;
+
+import net.minecraftforge.eventbus.internal.Cache;
 import org.objectweb.asm.tree.ClassNode;
 
 import cpw.mods.modlauncher.Launcher;
 import cpw.mods.modlauncher.api.IModuleLayerManager;
 
 public class ModLauncherFactory extends ClassLoaderFactory {
-    private static final Cache<String, Method> PENDING = InternalUtils.cache();
+    private static final Cache<String, Method> PENDING = Cache.create();
     private Optional<ClassLoader> gameClassLoader = null;
 
     @Override

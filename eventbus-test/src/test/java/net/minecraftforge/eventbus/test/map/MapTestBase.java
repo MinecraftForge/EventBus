@@ -9,11 +9,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
-import net.minecraftforge.eventbus.InternalUtils;
+import net.minecraftforge.eventbus.internal.Cache;
 import net.minecraftforge.eventbus.test.Whitebox;
 
 public class MapTestBase {
@@ -40,7 +38,7 @@ public class MapTestBase {
 
     // Hacky because I dont want to deal with implementing the entire Map interface
     protected static class MapLike<K, V> implements Map<K, V> {
-        private final BiFunction<K, Supplier<V>, V> lock = InternalUtils.cachePublic();
+        private final Cache<K, V> lock = InternalUtils.cache();
         @SuppressWarnings("unchecked")
         private final Function<K, V> get = Whitebox.getMethod(lock, "get", (Class<K>)Object.class);
 
@@ -51,15 +49,15 @@ public class MapTestBase {
         }
         @Override
         public V put(K key, V value) {
-            return lock.apply(key, () -> value);
+            return lock.computeIfAbsent(key, () -> value);
         }
         @Override
         public V putIfAbsent(K key, V value) {
-            return lock.apply(key, () -> value);
+            return lock.computeIfAbsent(key, () -> value);
         }
         @Override
         public V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
-            return lock.apply(key, () ->  mappingFunction.apply(key));
+            return lock.computeIfAbsent(key, () ->  mappingFunction.apply(key));
         }
         @Override public int size() { throw new UnsupportedOperationException(); }
         @Override public boolean isEmpty() { throw new UnsupportedOperationException(); }
