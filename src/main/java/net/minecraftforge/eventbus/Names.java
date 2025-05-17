@@ -8,7 +8,9 @@ import static org.objectweb.asm.Type.*;
 
 import org.objectweb.asm.tree.MethodNode;
 
-class Names {
+final class Names {
+    private Names() {}
+
     static final String SUBSCRIBE_EVENT = "Lnet/minecraftforge/eventbus/api/SubscribeEvent;";
     static final String HAS_RESULT = "Lnet/minecraftforge/eventbus/api/Event$HasResult;";
     static final Method HAS_RESULT_M = new Method("hasResult", getMethodDescriptor(BOOLEAN_TYPE));
@@ -26,7 +28,7 @@ class Names {
     static final Method INIT_M = new Method("<init>", getMethodDescriptor(VOID_TYPE));
     static final Method STATIC_INIT_M = new Method("<clinit>", getMethodDescriptor(VOID_TYPE));
 
-    static record Method(String name, String desc) {
+    record Method(String name, String desc) {
         boolean equals(MethodNode node) {
             return this.name.equals(node.name) && this.desc.equals(node.desc);
         }

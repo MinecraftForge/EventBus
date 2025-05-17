@@ -7,6 +7,8 @@ package net.minecraftforge.eventbus;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+
+import net.minecraftforge.eventbus.internal.Cache;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
@@ -21,7 +23,7 @@ public class ClassLoaderFactory implements IEventListenerFactory {
     private static final String HANDLER_DESC = Type.getInternalName(IEventListener.class);
     private static final String HANDLER_FUNC_DESC = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Event.class));
     private static final ASMClassLoader LOADER = new ASMClassLoader();
-    private static final Cache<Method, Class<?>> cache = InternalUtils.cache();
+    private static final Cache<Method, Class<?>> cache = Cache.create();
 
     @Override
     public IEventListener create(Method method, Object target) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
@@ -34,14 +36,14 @@ public class ClassLoaderFactory implements IEventListenerFactory {
 
 
     protected Class<?> createWrapper(Method callback) throws ClassNotFoundException {
-        return cache.computeIfAbsent(callback, () -> {
+        return cache.computeIfAbsent(callback, k -> {
             var node = new ClassNode();
-            transformNode(getUniqueName(callback), callback, node);
+            transformNode(getUniqueName(k), k, node);
             return node;
         }, ClassLoaderFactory::defineClass);
     }
 
-    private static final Class<?> defineClass(ClassNode node) {
+    private static Class<?> defineClass(ClassNode node) {
         var cw = new ClassWriter(0);
         node.accept(cw);
         return LOADER.define(node.name.replace('/', '.'), cw.toByteArray());
@@ -111,7 +113,7 @@ public class ClassLoaderFactory implements IEventListenerFactory {
         target.visitEnd();
     }
 
-    private static class ASMClassLoader extends ClassLoader {
+    private static final class ASMClassLoader extends ClassLoader {
         private ASMClassLoader() {
             super(null);
         }

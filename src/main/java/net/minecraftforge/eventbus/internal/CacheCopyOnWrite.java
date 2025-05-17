@@ -2,12 +2,11 @@
  * Copyright (c) Forge Development LLC
  * SPDX-License-Identifier: LGPL-2.1-only
  */
-package net.minecraftforge.eventbus;
+package net.minecraftforge.eventbus.internal;
 
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.IntFunction;
-import java.util.function.Supplier;
 
 /*
  * An implementation of the Cache class that uses any type of backing map the user wants.
@@ -17,9 +16,9 @@ import java.util.function.Supplier;
  * It also has performance issues for large maps for obvious reasons.
  * But the benefit is no locks during read
  */
-class CacheCopyOnWrite<K,V> implements Cache<K, V> {
-    private Object lock = new Object();
-    private IntFunction<Map<K, V>> factory;
+final class CacheCopyOnWrite<K, V> implements Cache<K, V> {
+    private final Object lock = new Object();
+    private final IntFunction<Map<K, V>> factory;
     private final Map<K, V> map;
     private volatile Map<K, V> readable;
 
@@ -35,7 +34,7 @@ class CacheCopyOnWrite<K,V> implements Cache<K, V> {
     }
 
     @Override
-    public <I> V computeIfAbsent(K key, Supplier<I> factory, Function<I, V> finalizer) {
+    public <I> V computeIfAbsent(K key, Function<K, I> factory, Function<I, V> finalizer) {
         // This is a put once map, so lets try checking if the map has this value.
         // Should be thread safe to read without lock as any writes will be guarded
         var ret = get(key);
@@ -46,7 +45,7 @@ class CacheCopyOnWrite<K,V> implements Cache<K, V> {
 
         // Let's pre-compute our new value. This could take a while, as well as recursively call this
         // function. as such, we need to make sure we don't hold a lock when we do this
-        var intermediate = factory.get();
+        var intermediate = factory.apply(key);
 
         // We're actually gunna mutate the object now so lets lock it
         synchronized (lock) {

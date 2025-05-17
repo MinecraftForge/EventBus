@@ -4,22 +4,21 @@
  */
 package net.minecraftforge.eventbus.api;
 
-import net.minecraftforge.eventbus.InternalUtils;
 import net.minecraftforge.eventbus.ListenerList;
 import net.minecraftforge.eventbus.api.Event.HasResult;
+import net.minecraftforge.eventbus.internal.Cache;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.util.function.BiFunction;
-import java.util.function.Supplier;
 
 public class EventListenerHelper {
-    private static final BiFunction<Class<?>, Supplier<ListenerList>, ListenerList> listeners = InternalUtils.cachePublic();
+    private static final Cache<Class<?>, ListenerList> listeners = Cache.create();
     private static final ListenerList EVENTS_LIST = new ListenerList();
-    private static final BiFunction<Class<?>, Supplier<Boolean>, Boolean> cancelable = InternalUtils.cachePublic();
-    private static final BiFunction<Class<?>, Supplier<Boolean>, Boolean> hasResult = InternalUtils.cachePublic();
+    private static final Cache<Class<?>, Boolean> cancelable = Cache.create();
+    private static final Cache<Class<?>, Boolean> hasResult = Cache.create();
+
     /**
      * Returns a {@link ListenerList} object that contains all listeners
      * that are registered to this event class.
@@ -35,7 +34,13 @@ public class EventListenerHelper {
 
     static ListenerList getListenerListInternal(Class<?> eventClass, boolean fromInstanceCall) {
         if (eventClass == Event.class) return EVENTS_LIST; // Small optimization, bypasses all the locks/maps.
-        return listeners.apply(eventClass, () -> computeListenerList(eventClass, fromInstanceCall));
+
+        // Attempt to get the ListenerList directly from the cache first. This avoids an allocating lambda on cache hit
+        var ret = listeners.get(eventClass);
+        if (ret != null) return ret;
+
+        // Cache miss, check again (for thread-safety) and compute the ListenerList if still absent
+        return listeners.computeIfAbsent(eventClass, k -> computeListenerList(k, fromInstanceCall));
     }
 
     private static ListenerList computeListenerList(Class<?> eventClass, boolean fromInstanceCall) {
@@ -66,14 +71,17 @@ public class EventListenerHelper {
         return hasAnnotation(eventClass, HasResult.class, hasResult);
     }
 
-    private static boolean hasAnnotation(Class<?> eventClass, Class<? extends Annotation> annotation, BiFunction<Class<?>, Supplier<Boolean>, Boolean> cache) {
+    private static boolean hasAnnotation(Class<?> eventClass, Class<? extends Annotation> annotation, Cache<Class<?>, Boolean> cache) {
         if (eventClass == Event.class || eventClass == Object.class)
             return false;
 
-        return cache.apply(eventClass, () -> {
-            if (eventClass.isAnnotationPresent(annotation))
+        var ret = cache.get(eventClass);
+        if (ret != null) return ret;
+
+        return cache.computeIfAbsent(eventClass, k -> {
+            if (k.isAnnotationPresent(annotation))
                 return true;
-            var parent = eventClass.getSuperclass();
+            var parent = k.getSuperclass();
             return parent != null && hasAnnotation(parent, annotation, cache);
         });
     }

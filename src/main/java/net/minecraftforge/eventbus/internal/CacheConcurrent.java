@@ -2,24 +2,19 @@
  * Copyright (c) Forge Development LLC
  * SPDX-License-Identifier: LGPL-2.1-only
  */
-package net.minecraftforge.eventbus;
+package net.minecraftforge.eventbus.internal;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /*
  * An implementation of the Cache class that uses a ConcurrentHashMap for the backing map.
  * This allows us to use no locks when calling the get method.
  * However, it has re-entrant issues when writing. So we guard that using a synchronized block
  */
-class CacheConcurrent<K,V> implements Cache<K, V> {
-    private Object lock = new Object();
-    private final Map<K, V> map;
-
+record CacheConcurrent<K, V>(ConcurrentHashMap<K, V> map, Object lock) implements Cache<K, V> {
     CacheConcurrent() {
-        this.map = new ConcurrentHashMap<>(32);
+        this(new ConcurrentHashMap<>(32), new Object());
     }
 
     @Override
@@ -28,7 +23,7 @@ class CacheConcurrent<K,V> implements Cache<K, V> {
     }
 
     @Override
-    public <I> V computeIfAbsent(K key, Supplier<I> factory, Function<I, V> finalizer) {
+    public <I> V computeIfAbsent(K key, Function<K, I> factory, Function<I, V> finalizer) {
         // This is a put once map, so lets try checking if the map has this value.
         // Should be thread safe to read without lock as any writes will be guarded
         var ret = get(key);
@@ -39,7 +34,7 @@ class CacheConcurrent<K,V> implements Cache<K, V> {
 
         // Let's pre-compute our new value. This could take a while, as well as recursively call this
         // function. as such, we need to make sure we don't hold a lock when we do this
-        var intermediate = factory.get();
+        var intermediate = factory.apply(key);
 
         // We are actually gunna modify the map now, so prevent other threads form doing so
         synchronized (lock) {
