@@ -7,6 +7,7 @@ package net.minecraftforge.eventbus.api;
 import net.minecraftforge.eventbus.ListenerList;
 import net.minecraftforge.eventbus.api.Event.HasResult;
 import net.minecraftforge.eventbus.internal.Cache;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -63,7 +64,8 @@ public class EventListenerHelper {
         }
     }
 
-    static boolean isCancelable(Class<?> eventClass) {
+    @ApiStatus.Internal
+    public static boolean isCancelable(Class<?> eventClass) {
         return hasAnnotation(eventClass, Cancelable.class, cancelable);
     }
 

@@ -110,7 +110,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
         }
     }
 
-    private void parentTypes(Set<Class<?>> classes, Stack<Class<?>> stack, Class<?> cls) {
+    private static void parentTypes(Set<Class<?>> classes, Stack<Class<?>> stack, Class<?> cls) {
         for (var inf : cls.getInterfaces()) {
             if (classes.add(inf))
                 stack.push(inf);
@@ -166,7 +166,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     private static final Predicate<Event> checkCancelled = e -> !e.isCanceled();
     @SuppressWarnings("unchecked")
     private static <T extends Event> Predicate<T> passCancelled(boolean ignored) {
-        return ignored ? null : (Predicate<T>)checkCancelled;
+        return ignored ? null : (Predicate<T>) checkCancelled;
     }
 
     private static <T extends GenericEvent<? extends F>, F> Predicate<T> passGenericFilter(Class<F> type, boolean ignored) {
@@ -250,7 +250,13 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
             throw new IllegalArgumentException(
                     "Listener for event " + eventClass + " takes an argument that is not a subtype of the base type " + baseType);
         }
-        addToListeners(consumer, eventClass, NamedEventListener.namedWrapper(e-> doCastFilter(filter, eventClass, consumer, e), consumer.getClass()::getName), priority);
+
+        @SuppressWarnings("unchecked")
+        IEventListener listener = !EventListenerHelper.isCancelable(eventClass) && (filter == checkCancelled || filter == null)
+                ? e -> consumer.accept((T) e)
+                : e -> doCastFilter(filter, eventClass, consumer, e);
+
+        addToListeners(consumer, eventClass, NamedEventListener.namedWrapper(listener, consumer.getClass()::getName), priority);
     }
 
     @SuppressWarnings("unchecked")
@@ -262,8 +268,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
     private void register(Class<?> eventType, Object target, Method method) {
         try {
-            final ASMEventHandler asm = new ASMEventHandler(this.factory, target, method, IGenericEvent.class.isAssignableFrom(eventType));
-
+            ASMEventHandler asm = ASMEventHandler.of(this.factory, target, method, IGenericEvent.class.isAssignableFrom(eventType));
             addToListeners(target, eventType, asm, asm.getPriority());
         } catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException | ClassNotFoundException e) {
             LOGGER.error(EVENTBUS,"Error registering event handler: {} {}", eventType, method, e);
