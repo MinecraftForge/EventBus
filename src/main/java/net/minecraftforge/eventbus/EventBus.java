@@ -252,7 +252,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
         }
 
         @SuppressWarnings("unchecked")
-        IEventListener listener = !EventListenerHelper.isCancelable(eventClass) && (filter == checkCancelled || filter == null)
+        IEventListener listener = Modifier.isFinal(eventClass.getModifiers()) && (filter == checkCancelled || filter == null) && !EventListenerHelper.isCancelable(eventClass)
                 ? e -> consumer.accept((T) e)
                 : e -> doCastFilter(filter, eventClass, consumer, e);
 

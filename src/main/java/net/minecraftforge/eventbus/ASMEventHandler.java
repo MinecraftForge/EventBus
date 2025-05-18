@@ -76,7 +76,8 @@ public class ASMEventHandler implements IEventListener {
     public static ASMEventHandler of(IEventListenerFactory factory, Object target, Method method, boolean isGeneric) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException {
         var subInfo = method.getAnnotation(SubscribeEvent.class);
         assert subInfo != null;
-        if (isGeneric || EventListenerHelper.isCancelable(method.getParameterTypes()[0]))
+        var eventType = method.getParameterTypes()[0];
+        if (isGeneric || !Modifier.isFinal(eventType.getModifiers()) || EventListenerHelper.isCancelable(eventType))
             return new ASMEventHandler(factory, target, method, isGeneric, subInfo);
 
         // If we get to this point, no post-time checks are needed, so strip them out

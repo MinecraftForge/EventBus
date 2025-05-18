@@ -8,4 +8,4 @@ package net.minecraftforge.eventbus.testjar.events;
 import net.minecraftforge.eventbus.api.Event;
 
 @Event.HasResult
-public class ResultEvent extends Event { }
+public final class ResultEvent extends Event {}
