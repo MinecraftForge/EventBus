@@ -7,7 +7,7 @@ package net.minecraftforge.eventbus.testjar.events;
 
 import net.minecraftforge.eventbus.api.Event;
 
-public class EventWithData extends Event {
+public final class EventWithData extends Event {
     private final String data;
     private final int foo;
     private final boolean bar;

@@ -9,4 +9,4 @@ import net.minecraftforge.eventbus.api.Cancelable;
 import net.minecraftforge.eventbus.api.Event;
 
 @Cancelable
-public class CancelableEvent extends Event { }
+public final class CancelableEvent extends Event {}
