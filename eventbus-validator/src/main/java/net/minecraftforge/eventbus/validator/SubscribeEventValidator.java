@@ -21,7 +21,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
-import javax.tools.Diagnostic;
 import java.util.Set;
 
 public final class SubscribeEventValidator extends AbstractValidator {
@@ -107,8 +106,7 @@ public final class SubscribeEventValidator extends AbstractValidator {
 
             if (scanner.sawReturn && !scanner.sawNonLiteralReturn && scanner.sawLiteralFalse && !scanner.sawLiteralTrue) {
                 // if we get here, all returns in this method are literal `return false;` statements
-                processingEnv.getMessager().printMessage(
-                        Diagnostic.Kind.WARNING,
+                processingEnv.getMessager().printWarning(
                         "Listener always returns false, consider using a void return type instead",
                         method
                 );
@@ -117,7 +115,7 @@ public final class SubscribeEventValidator extends AbstractValidator {
     }
 
     private void error(ExecutableElement method, String message) {
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, message, method);
+        processingEnv.getMessager().printError(message, method);
     }
 
     private static final class ReturnScanner extends TreePathScanner<Void, Void> {

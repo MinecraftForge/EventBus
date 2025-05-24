@@ -11,7 +11,6 @@ import net.minecraftforge.eventbus.api.event.MutableEvent;
 import net.minecraftforge.eventbus.api.event.RecordEvent;
 import net.minecraftforge.eventbus.api.event.characteristic.Cancellable;
 import net.minecraftforge.eventbus.api.event.characteristic.MonitorAware;
-import net.minecraftforge.eventbus.api.event.characteristic.SelfDestructing;
 
 import javax.annotation.processing.Completion;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -40,8 +39,6 @@ abstract sealed class AbstractValidator implements Processor
         private EventCharacteristics() {}
 
         protected static TypeMirror cancellable;
-        protected static TypeMirror inheritable;
-        protected static TypeMirror selfDestructing;
         protected static TypeMirror monitorAware;
     }
 
@@ -78,8 +75,6 @@ abstract sealed class AbstractValidator implements Processor
         EventTypes.recordEvent = elements.getTypeElement(RecordEvent.class.getCanonicalName()).asType();
         EventTypes.mutableEvent = elements.getTypeElement(MutableEvent.class.getCanonicalName()).asType();
         EventCharacteristics.cancellable = elements.getTypeElement(Cancellable.class.getCanonicalName()).asType();
-        EventCharacteristics.inheritable = elements.getTypeElement(InheritableEvent.class.getCanonicalName()).asType();
-        EventCharacteristics.selfDestructing = elements.getTypeElement(SelfDestructing.class.getCanonicalName()).asType();
         EventCharacteristics.monitorAware = elements.getTypeElement(MonitorAware.class.getCanonicalName()).asType();
         BusTypes.eventBus = types.erasure(elements.getTypeElement(EventBus.class.getCanonicalName()).asType());
         BusTypes.cancellableEventBus = types.erasure(elements.getTypeElement(CancellableEventBus.class.getCanonicalName()).asType());

@@ -6,7 +6,6 @@ package net.minecraftforge.eventbus.validator;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
-import javax.tools.Diagnostic;
 import java.util.Set;
 
 public final class EventTypeValidator extends AbstractValidator {
@@ -22,8 +21,7 @@ public final class EventTypeValidator extends AbstractValidator {
 
             // Check that RecordEvent is only implemented by record classes
             if (typeUtils.isAssignable(rootType, EventTypes.recordEvent) && rootKind != ElementKind.RECORD) {
-                processingEnv.getMessager().printMessage(
-                        Diagnostic.Kind.ERROR,
+                processingEnv.getMessager().printError(
                         "Event type " + rootType + " implements RecordEvent but is not a record class",
                         root
                 );
@@ -31,8 +29,7 @@ public final class EventTypeValidator extends AbstractValidator {
 
             // Check that MonitorAware is only implemented on classes that extend MutableEvent
             if (typeUtils.isAssignable(rootType, EventCharacteristics.monitorAware) && !typeUtils.isAssignable(rootType, EventTypes.mutableEvent)) {
-                processingEnv.getMessager().printMessage(
-                        Diagnostic.Kind.ERROR,
+                processingEnv.getMessager().printError(
                         "Event type " + rootType + " implements MonitorAware but is not a mutable event",
                         root
                 );
@@ -48,8 +45,7 @@ public final class EventTypeValidator extends AbstractValidator {
                 if (rootInterfaces.size() == 1 && typeUtils.isSameType(rootInterfaces.getFirst(), EventTypes.inheritableEvent)) {
                     var errorMsg = "Event type " + rootType + " directly implements InheritableEvent but is not inheritable";
                     var solution = rootKind == ElementKind.RECORD ? "implement RecordEvent instead" : "extend MutableEvent instead";
-                    processingEnv.getMessager().printMessage(
-                            Diagnostic.Kind.ERROR,
+                    processingEnv.getMessager().printError(
                             errorMsg + " - " + solution,
                             root
                     );

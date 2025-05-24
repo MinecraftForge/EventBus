@@ -17,7 +17,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
-import javax.tools.Diagnostic;
 import java.util.Set;
 
 public final class EventBusValidator extends AbstractValidator {
@@ -55,8 +54,7 @@ public final class EventBusValidator extends AbstractValidator {
 
             // Show a warning if the bus field is not final
             if (!element.getModifiers().contains(Modifier.FINAL)) {
-                processingEnv.getMessager().printMessage(
-                        Diagnostic.Kind.WARNING,
+                processingEnv.getMessager().printWarning(
                         "EventBus field " + element + " should be final",
                         element
                 );
@@ -67,8 +65,7 @@ public final class EventBusValidator extends AbstractValidator {
                     && !declaredType.getTypeArguments().isEmpty()) {
                 var genericType = declaredType.getTypeArguments().getFirst();
                 if (types.isAssignable(genericType, EventCharacteristics.cancellable)) {
-                    processingEnv.getMessager().printMessage(
-                            Diagnostic.Kind.WARNING,
+                    processingEnv.getMessager().printWarning(
                             """
                             EventBus field %s should be CancellableEventBus<%s> instead of EventBus<%s> because %s inherits from Cancellable
                             """,
