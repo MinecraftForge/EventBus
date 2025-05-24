@@ -4,6 +4,11 @@
  */
 package net.minecraftforge.eventbus.validator;
 
+import com.sun.source.tree.LiteralTree;
+import com.sun.source.tree.ReturnTree;
+import com.sun.source.tree.Tree;
+import com.sun.source.util.TreePathScanner;
+import com.sun.source.util.Trees;
 import net.minecraftforge.eventbus.api.listener.Priority;
 import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 
@@ -22,6 +27,7 @@ import java.util.Set;
 public final class SubscribeEventValidator extends AbstractValidator {
     private Types types;
     private TypeMirror eventType;
+    private Trees trees;
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
@@ -34,6 +40,7 @@ public final class SubscribeEventValidator extends AbstractValidator {
         types = processingEnv.getTypeUtils();
         var elements = processingEnv.getElementUtils();
         eventType = elements.getTypeElement("net.minecraftforge.eventbus.internal.Event").asType();
+        trees = Trees.instance(processingEnv);
     }
 
     @Override
@@ -89,10 +96,53 @@ public final class SubscribeEventValidator extends AbstractValidator {
 
             if (returnType.getKind() == TypeKind.BOOLEAN)
                 error(method, "Return type boolean is only valid for cancellable events");
+        } else if (paramCount == 1 && returnType.getKind() == TypeKind.BOOLEAN) {
+            // We have a listener that returns a boolean on a cancellable event, check if all return statements are
+            // the same literal value (true or false)
+            var methodPath = trees.getPath(method);
+            if (methodPath == null) return;
+
+            var scanner = new ReturnScanner();
+            scanner.scan(methodPath, null);
+
+            if (scanner.sawReturn && !scanner.sawNonLiteralReturn && scanner.sawLiteralFalse && !scanner.sawLiteralTrue) {
+                // if we get here, all returns in this method are literal `return false;` statements
+                processingEnv.getMessager().printMessage(
+                        Diagnostic.Kind.WARNING,
+                        "Listener always returns false, consider using a void return type instead",
+                        method
+                );
+            }
         }
     }
 
     private void error(ExecutableElement method, String message) {
         processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, message, method);
+    }
+
+    private static final class ReturnScanner extends TreePathScanner<Void, Void> {
+        private boolean sawReturn = false; // whether we saw any return statements
+        private boolean sawLiteralTrue = false; // whether we saw a `return true;` statement
+        private boolean sawLiteralFalse = false; // whether we saw a `return false;` statement
+        private boolean sawNonLiteralReturn = false; // whether we saw a return statement that was something else, like `return someVariable;`
+
+        @Override
+        public Void visitReturn(ReturnTree returnTree, Void aVoid) {
+            sawReturn = true;
+            var expression = returnTree.getExpression();
+            if (expression != null) {
+                if (expression.getKind() == Tree.Kind.BOOLEAN_LITERAL) {
+                    boolean value = ((LiteralTree) expression).getValue().equals(Boolean.TRUE);
+                    if (value) {
+                        sawLiteralTrue = true;
+                    } else {
+                        sawLiteralFalse = true;
+                    }
+                } else {
+                    sawNonLiteralReturn = true;
+                }
+            }
+            return super.visitReturn(returnTree, aVoid);
+        }
     }
 }

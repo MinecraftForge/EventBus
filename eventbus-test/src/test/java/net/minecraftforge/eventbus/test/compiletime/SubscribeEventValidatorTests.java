@@ -40,8 +40,11 @@ public class SubscribeEventValidatorTests {
 
     @Test
     public void testSubscribeEventReturnType() {
-        var compilation = compile("@SubscribeEvent int invalidReturnType(EventWithData a) { return 0; }");
+        var compilation = compile("@SubscribeEvent int invalidReturnType(EventWithData event) { return 0; }");
         assertThat(compilation).hadErrorContaining("expected void");
+
+        compilation = compile("@SubscribeEvent boolean neverCancellingEvent(CancelableEvent event) { return false; }");
+        assertThat(compilation).hadWarningContaining("consider using a void return type");
     }
 
     // Todo: The rest of the tests
