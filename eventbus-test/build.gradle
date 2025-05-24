@@ -19,17 +19,22 @@ license {
 dependencies {
     testImplementation rootProject
     testImplementation projects.eventbusTestJar
+    testImplementation projects.eventbusValidator
     testImplementation libs.junit.api
     testImplementation libs.jspecify.annotations
+    testImplementation libs.compile.testing
+    testImplementation libs.jetbrains.annotations
     testRuntimeOnly libs.bundles.junit.runtime
 }
 
 extraJavaModuleInfo {
     failOnMissingModuleInfo = false
+    automaticModule(libs.compile.testing, "compile.testing")
 }
 
 tasks.named('test', Test) {
     useJUnitPlatform()
+    systemProperties = ['eventbus.api.strictRuntimeChecks': true]
 }
 
 tasks.register('testAll', AggregateTest) {

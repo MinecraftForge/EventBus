@@ -34,9 +34,16 @@ final class Constants {
     static final int CHARACTERISTIC_INHERITABLE = 8;
 
     /**
+     * If true, performs additional runtime checks to aid debugging.
+     */
+    static final boolean STRICT_RUNTIME_CHECKS = Boolean.getBoolean("eventbus.api.strictRuntimeChecks");
+
+    /**
      * If true, performs exhaustive validation on bulk registration to aid debugging.
      */
-    static final boolean STRICT_REGISTRATION_CHECKS = Boolean.getBoolean("eventbus.api.strictRegistrationChecks");
+    static final boolean STRICT_REGISTRATION_CHECKS = STRICT_RUNTIME_CHECKS || Boolean.getBoolean("eventbus.api.strictRegistrationChecks");
+
+    static final boolean STRICT_BUS_CREATION_CHECKS = STRICT_RUNTIME_CHECKS || Boolean.getBoolean("eventbus.api.strictBusCreationChecks");
 
     /**
      * If true, allows the same listener to be registered multiple times. Intended for use in benchmarks only.

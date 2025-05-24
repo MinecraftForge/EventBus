@@ -1,0 +1,20 @@
+plugins {
+    id 'java-library'
+    alias libs.plugins.gradleutils
+    alias libs.plugins.licenser
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
+}
+
+dependencies {
+    implementation rootProject
+}
+
+license {
+    header = rootProject.file('LICENSE-header.txt')
+    newLine = false
+}
+
+// todo: verify publishing works
