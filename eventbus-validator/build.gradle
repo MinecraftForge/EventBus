@@ -1,5 +1,6 @@
 plugins {
     id 'java-library'
+    id 'maven-publish'
     alias libs.plugins.gradleutils
     alias libs.plugins.licenser
 }
@@ -17,4 +18,27 @@ license {
     newLine = false
 }
 
-// todo: verify publishing works
+publishing {
+    publications.register('validatorMavenJava', MavenPublication) {
+        from components.java
+        artifactId = 'eventbus-validator'
+        groupId = 'net.minecraftforge'
+        version = rootProject.version.toString()
+        pom {
+            name = 'EventBus Validator'
+            description = 'A compile-time validator for EventBus API usages'
+
+            licenses {
+                license gradleutils.pom.licenses.LGPLv2_1
+            }
+
+            developers {
+                developer gradleutils.pom.developers.Paint_Ninja
+            }
+        }
+    }
+
+    repositories {
+        maven gradleutils.publishingForgeMaven
+    }
+}
