@@ -653,7 +653,7 @@ public class BulkEventListenerTests {
     }
 
     /**
-     * Tests that strict bulk registeration on a class with a non-monitoring priority on a cancellation-aware monitoring event listener method throws an exception.
+     * Tests that strict bulk registration on a class with a non-monitoring priority on a cancellation-aware monitoring event listener method throws an exception.
      */
     @Test
     public void testStrictBulkRegistrationValidationWrongPriorityMonitoring() {

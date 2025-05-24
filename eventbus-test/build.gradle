@@ -35,19 +35,19 @@ extraJavaModuleInfo {
 }
 
 @Field
-static final List<String> JVM_ARGS_FOR_TESTS = List.of(
-        '--add-opens', 'net.minecraftforge.eventbus/net.minecraftforge.eventbus.internal=net.minecraftforge.eventbus.test',
-        '--add-exports', 'net.minecraftforge.eventbus/net.minecraftforge.eventbus.internal=net.minecraftforge.eventbus.test',
-)
+static final String MODULE_ARG = 'net.minecraftforge.eventbus/net.minecraftforge.eventbus.internal=net.minecraftforge.eventbus.test'
 
 tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs.addAll(JVM_ARGS_FOR_TESTS)
+    options.compilerArgs.addAll(['--add-exports', MODULE_ARG])
 }
 
 tasks.named('test', Test) {
     useJUnitPlatform()
-    systemProperties = ['eventbus.api.strictRuntimeChecks': 'true']
-    jvmArgs JVM_ARGS_FOR_TESTS
+    systemProperties = ['eventbus.api.strictBusCreationChecks': true]
+    jvmArgs = [
+        '--add-opens', MODULE_ARG,
+        '--add-exports', MODULE_ARG
+    ]
 }
 
 tasks.register('testAll', AggregateTest) {

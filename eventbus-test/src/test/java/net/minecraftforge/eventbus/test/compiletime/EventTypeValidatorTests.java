@@ -10,6 +10,9 @@ import static com.google.testing.compile.CompilationSubject.assertThat;
 import static net.minecraftforge.eventbus.test.compiletime.CompileTestHelper.compile;
 
 public class EventTypeValidatorTests {
+    /**
+     * Tests that compile-time validation throws an error for non-record classes that implement RecordEvent.
+     */
     @Test
     public void testRecordEventValidation() {
         var compilation = compile("final class ClassTestEvent implements RecordEvent {}");
@@ -19,6 +22,9 @@ public class EventTypeValidatorTests {
         assertThat(compilation).succeededWithoutWarnings();
     }
 
+    /**
+     * Tests that compile-time validation throws an error for MonitorAware on classes that do not extend MutableEvent.
+     */
     @Test
     public void testMonitorAwareValidation() {
         var compilation = compile("record RecordTestEvent() implements RecordEvent, MonitorAware {}");
@@ -28,6 +34,9 @@ public class EventTypeValidatorTests {
         assertThat(compilation).succeededWithoutWarnings();
     }
 
+    /**
+     * Tests that compile-time validation throws an error for InheritableEvent on classes that are not inheritable.
+     */
     @Test
     public void testInheritableEventValidation() {
         var compilation = compile("final class ClassTestEvent implements InheritableEvent {}");

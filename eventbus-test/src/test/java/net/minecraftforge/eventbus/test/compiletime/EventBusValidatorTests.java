@@ -10,6 +10,9 @@ import static com.google.testing.compile.CompilationSubject.assertThat;
 import static net.minecraftforge.eventbus.test.compiletime.CompileTestHelper.compile;
 
 public class EventBusValidatorTests {
+    /**
+     * Tests that compile-time validation emits a warning for EventBus fields that are not final.
+     */
     @Test
     public void testBusFieldModifiers() {
         var compilation = compile("""
@@ -20,6 +23,9 @@ public class EventBusValidatorTests {
         assertThat(compilation).hadWarningContaining("should be final");
     }
 
+    /**
+     * Tests that compile-time validation emits a warning for EventBus fields that are not of the correct type.
+     */
     @Test
     public void testBusFieldType() {
         var compilation = compile("""
