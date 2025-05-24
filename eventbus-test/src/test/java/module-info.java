@@ -13,4 +13,5 @@ open module net.minecraftforge.eventbus.test {
     requires net.minecraftforge.eventbus.testjars;
 
     exports net.minecraftforge.eventbus.test;
+    exports net.minecraftforge.eventbus.test.compiletime;
 }

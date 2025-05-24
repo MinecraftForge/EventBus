@@ -288,7 +288,7 @@ public class BulkEventListenerTests {
             monitoringCalled = true;
         }
 
-        @SubscribeEvent
+        @SubscribeEvent(priority = Priority.MONITOR)
         public static void cancellationAwareMonitoringListener(CancellableTestEvent event, boolean wasCancelled) {
             cancellationAwareMonitoringCalled = true;
         }
