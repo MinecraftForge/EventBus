@@ -131,7 +131,7 @@ final class EventListenerFactory {
             if (hasSubscribeEvent) {
                 var firstParamExtendsCancellable = Cancellable.class.isAssignableFrom(parameterTypes[0]);
                 var subscribeEventAnnotation = method.getAnnotation(SubscribeEvent.class);
-                var isMonitoringListener = subscribeEventAnnotation.priority() == Priority.MONITOR;
+                var isMonitoringPriority = subscribeEventAnnotation.priority() == Priority.MONITOR;
 
                 if (!firstParamExtendsEvent)
                     throw fail(method, "First parameter of a @SubscribeEvent method must be an event");
@@ -144,7 +144,7 @@ final class EventListenerFactory {
                 if (listenerInstance == null && !Modifier.isStatic(method.getModifiers()))
                     throw fail(method, "Listener instance is null and method is not static");
 
-                if (isMonitoringListener && (returnType == boolean.class || subscribeEventAnnotation.alwaysCancelling()))
+                if (isMonitoringPriority && (returnType == boolean.class || subscribeEventAnnotation.alwaysCancelling()))
                     throw fail(method, "Monitoring listeners cannot cancel events");
 
                 if (paramCount == 2) {
@@ -154,7 +154,7 @@ final class EventListenerFactory {
                     if (!boolean.class.isAssignableFrom(parameterTypes[1]))
                         throw fail(method, "Second parameter of a cancellation-aware monitoring listener must be a boolean");
 
-                    if (subscribeEventAnnotation.priority() != Priority.MONITOR)
+                    if (!isMonitoringPriority)
                         throw fail(method, "Cancellation-aware monitoring listeners must have a priority of MONITOR");
                 }
 

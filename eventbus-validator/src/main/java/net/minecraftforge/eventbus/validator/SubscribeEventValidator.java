@@ -72,9 +72,9 @@ public final class SubscribeEventValidator extends AbstractValidator {
 
         var firstParamExtendsCancellable = types.isAssignable(firstParamType, EventCharacteristics.cancellable);
         var subscribeEventAnnotation = method.getAnnotation(SubscribeEvent.class);
-        var isMonitoringListener = subscribeEventAnnotation.priority() == Priority.MONITOR;
+        var isMonitoringPriority = subscribeEventAnnotation.priority() == Priority.MONITOR;
 
-        if (isMonitoringListener && (returnType.getKind() == TypeKind.BOOLEAN || subscribeEventAnnotation.alwaysCancelling()))
+        if (isMonitoringPriority && (returnType.getKind() == TypeKind.BOOLEAN || subscribeEventAnnotation.alwaysCancelling()))
             error(method, "Monitoring listeners cannot cancel events");
 
         if (paramCount == 2) {
@@ -85,7 +85,7 @@ public final class SubscribeEventValidator extends AbstractValidator {
             if (secondParamType.getKind() != TypeKind.BOOLEAN)
                 error(method, "Second parameter of a cancellation-aware monitoring listener must be a boolean");
 
-            if (subscribeEventAnnotation.priority() != Priority.MONITOR)
+            if (!isMonitoringPriority)
                 error(method, "Cancellation-aware monitoring listeners must have a priority of MONITOR");
         }
 
