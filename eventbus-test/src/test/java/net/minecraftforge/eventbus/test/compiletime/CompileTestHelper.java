@@ -43,13 +43,22 @@ final class CompileTestHelper {
     static {
         try {
             CLASSPATH = List.of(
-                    Path.of(EventBus.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toFile(),
-                    Path.of(EventWithData.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toFile(),
-                    Path.of(NullMarked.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toFile()
+                    getClassPath(EventBus.class).toFile(),
+                    getClassPath(EventWithData.class).toFile(),
+                    getClassPath(NullMarked.class).toFile()
             );
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static Path getClassPath(Class<?> clazz) throws URISyntaxException {
+        return Path.of(clazz
+                .getProtectionDomain()
+                .getCodeSource()
+                .getLocation()
+                .toURI()
+        );
     }
 
     static Compilation compile(@Language(value = "Java", prefix = SOURCE_PREFIX) String sourceCode) {
