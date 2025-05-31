@@ -10,12 +10,15 @@ import net.minecraftforge.eventbus.api.event.RecordEvent;
 import net.minecraftforge.eventbus.api.event.characteristic.Cancellable;
 import net.minecraftforge.eventbus.api.event.characteristic.SelfPosting;
 import net.minecraftforge.eventbus.api.listener.EventListener;
+import net.minecraftforge.eventbus.api.listener.Priority;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 public class IndividualEventListenerTests {
     /**
@@ -103,6 +106,30 @@ public class IndividualEventListenerTests {
         AlwaysCancellingTestEvent.BUS.removeListener(listener);
         wasCancelled = AlwaysCancellingTestEvent.BUS.post(new AlwaysCancellingTestEvent());
         Assertions.assertFalse(wasCancelled, "The event should not have been cancelled without any listeners");
+    }
+
+    @Test
+    public void testAlwaysCancellingListenerOptimisation() throws Exception{
+        record CancellableTestEvent() implements Cancellable, RecordEvent {
+            static final CancellableEventBus<CancellableTestEvent> BUS = CancellableEventBus.create(CancellableTestEvent.class);
+        }
+
+        var cancellingListener = CancellableTestEvent.BUS.addListener(Priority.HIGHEST, true, event -> {});
+        var ordinaryListener = CancellableTestEvent.BUS.addListener(event -> {});
+
+        var listeners = List.of(cancellingListener, ordinaryListener);
+
+        // create a MH to net.minecraftforge.eventbus.internal.InvokerFactoryUtils.unwrapAlwaysCancellingConsumers
+        var invokerFactoryUtilsClass = Class.forName("net.minecraftforge.eventbus.internal.InvokerFactoryUtils");
+        var method = invokerFactoryUtilsClass.getDeclaredMethod("unwrapAlwaysCancellingConsumers", List.class);
+        method.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        var result = (List<Consumer<?>>) method.invoke(null, listeners);
+
+        Assertions.assertEquals(1, result.size(), "The ordinary listener should have been removed from the list");
+
+        CancellableTestEvent.BUS.removeListener(cancellingListener);
+        CancellableTestEvent.BUS.removeListener(ordinaryListener);
     }
 
     /**
