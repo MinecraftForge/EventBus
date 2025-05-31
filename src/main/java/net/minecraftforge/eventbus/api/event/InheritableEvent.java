@@ -17,7 +17,8 @@ import net.minecraftforge.eventbus.internal.Event;
  * as it's not possible for someone else to create and post an event of this type at the wrong time or with invalid
  * data.</p>
  * {@snippet :
- * import module net.minecraftforge.eventbus;
+ * import net.minecraftforge.eventbus.api.bus.EventBus;
+ * import net.minecraftforge.eventbus.api.event.InheritableEvent;
  *
  * // in a publicly exported package (e.g. com.example.events.api)
  * public sealed interface PlayerJumpEvent extends InheritableEvent permits PlayerJumpEventImpl {
@@ -44,7 +45,8 @@ import net.minecraftforge.eventbus.internal.Event;
  * <p>Another example would be replacing an abstract class hierarchy with a sealed interface and records implementing
  * them, like so:</p>
  * {@snippet :
- * import module net.minecraftforge.eventbus;
+ * import net.minecraftforge.eventbus.api.bus.EventBus;
+ * import net.minecraftforge.eventbus.api.event.InheritableEvent;
  *
  * public sealed interface JumpEvent extends InheritableEvent {
  *     EventBus<JumpEvent> BUS = EventBus.create(JumpEvent.class);

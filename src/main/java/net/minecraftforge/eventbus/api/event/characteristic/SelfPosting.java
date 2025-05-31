@@ -14,7 +14,9 @@ import net.minecraftforge.eventbus.internal.EventCharacteristic;
  *
  * <h2>Example</h2>
  * {@snippet :
- * import module net.minecraftforge.eventbus;
+ * import net.minecraftforge.eventbus.api.bus.EventBus;
+ * import net.minecraftforge.eventbus.api.event.RecordEvent;
+ * import net.minecraftforge.eventbus.api.event.characteristic.SelfPosting;
  *
  * // Event declaration
  * public record ExampleEvent() implements SelfPosting<ExampleEvent>, RecordEvent {
