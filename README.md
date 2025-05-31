@@ -32,7 +32,7 @@ import net.minecraftforge.eventbus.api.event.RecordEvent;
 import net.minecraftforge.eventbus.api.bus.EventBus;
 
 // Define an event and a bus for it
-record PlayerLoggedInEvent(String username) implements RecordEvent {
+public record PlayerLoggedInEvent(String username) implements RecordEvent {
     public static final EventBus<PlayerLoggedInEvent> BUS = EventBus.create(PlayerLoggedInEvent.class);
 }
 
