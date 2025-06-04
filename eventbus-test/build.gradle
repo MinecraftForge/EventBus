@@ -34,20 +34,9 @@ extraJavaModuleInfo {
     automaticModule(libs.compile.testing, "compile.testing")
 }
 
-@Field
-static final String MODULE_ARG = 'net.minecraftforge.eventbus/net.minecraftforge.eventbus.internal=net.minecraftforge.eventbus.test'
-
-tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs.addAll(['--add-exports', MODULE_ARG])
-}
-
 tasks.named('test', Test) {
     useJUnitPlatform()
     systemProperties = ['eventbus.api.strictBusCreationChecks': true]
-    jvmArgs = [
-        '--add-opens', MODULE_ARG,
-        '--add-exports', MODULE_ARG
-    ]
 }
 
 tasks.register('testAll', AggregateTest) {
