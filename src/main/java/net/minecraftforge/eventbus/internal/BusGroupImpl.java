@@ -132,8 +132,8 @@ public record BusGroupImpl(
         var computedEventBus = createEventBus(eventType);
 
         synchronized (eventBuses) {
-            eventBuses.putIfAbsent(eventType, computedEventBus);
-            return computedEventBus;
+            var existing = eventBuses.putIfAbsent(eventType, computedEventBus);
+            return existing == null ? computedEventBus : (EventBus<T>) existing;
         }
     }
     //endregion
