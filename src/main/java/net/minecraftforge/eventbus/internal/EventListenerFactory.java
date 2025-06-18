@@ -52,6 +52,9 @@ final class EventListenerFactory {
             if (listenerInstance == null && !Modifier.isStatic(method.getModifiers()))
                 continue;
 
+            if (method.isSynthetic())
+                continue; // EventBus#89
+
             int paramCount = method.getParameterCount();
             if (paramCount == 0 || paramCount > 2)
                 continue;
@@ -99,8 +102,10 @@ final class EventListenerFactory {
                                                            Class<?> listenerClass, @Nullable Object listenerInstance) {
         Class<? extends Event> firstValidListenerEventType = null;
 
-        Method[] declaredMethods = listenerClass.getDeclaredMethods();
-        if (declaredMethods.length == 0) {
+        List<Method> declaredMethods = Arrays.stream(listenerClass.getDeclaredMethods())
+                .filter(Predicate.not(Method::isSynthetic)) // EventBus#89
+                .toList();
+        if (declaredMethods.isEmpty()) {
             var errMsg = "No declared methods found in " + listenerClass.getName();
             var superClass = listenerClass.getSuperclass();
             if (superClass != null && superClass != Record.class && superClass != Enum.class) {
