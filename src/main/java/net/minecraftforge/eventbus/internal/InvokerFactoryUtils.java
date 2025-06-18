@@ -51,6 +51,11 @@ final class InvokerFactoryUtils {
         for (var listener : listeners) {
             if (listener instanceof EventListenerImpl.HasPredicate<?> predicateListener) {
                 unwrappedPredicates.add(uncheckedCast(predicateListener.predicate()));
+            } else if (listener instanceof EventListenerImpl.ConsumerListener consumerListener) {
+                // EventBus#90 hotfix
+                // Todo: Figure out a smarter way to handle this, such as when the listener is added to the EventBus and converted to an EventListener.
+                //       Refer to the GitHub issue for more details.
+                unwrappedPredicates.add(uncheckedCast(EventListenerImpl.WrappedConsumerListener.wrap(false, consumerListener.consumer())));
             } else {
                 throw new IllegalStateException("Unexpected listener type: " + listener.getClass());
             }

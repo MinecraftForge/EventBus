@@ -7,6 +7,7 @@ package net.minecraftforge.eventbus.test;
 import net.minecraftforge.eventbus.api.bus.EventBus;
 import net.minecraftforge.eventbus.api.event.InheritableEvent;
 import net.minecraftforge.eventbus.api.event.MutableEvent;
+import net.minecraftforge.eventbus.api.event.characteristic.Cancellable;
 import net.minecraftforge.eventbus.internal.EventBusImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -206,4 +207,28 @@ public class InheritanceTests {
         SuperEvent.BUS.removeListener(listener);
     }
 
+    /**
+     * Tests that listener inheritance works when a non-{@link Cancellable} parent event implements {@link InheritableEvent}
+     * and a {@link Cancellable} child event inherits from the parent.
+     */
+    @Test
+    public void testListenerCallInheritanceWithCancellable() {
+        class SuperEvent implements InheritableEvent {
+            static final EventBus<SuperEvent> BUS = EventBus.create(SuperEvent.class);
+        }
+        final class SubEvent extends SuperEvent implements Cancellable {
+            static final EventBus<SubEvent> BUS = EventBus.create(SubEvent.class);
+        }
+
+        var handled = new AtomicBoolean();
+        var listener = SuperEvent.BUS.addListener(event -> handled.set(true));
+
+        Assertions.assertFalse(handled.get(), "SuperEvent should not be handled yet");
+
+        Assertions.assertDoesNotThrow(() -> SubEvent.BUS.post(new SubEvent()));
+
+        Assertions.assertTrue(handled.get(), "SuperEvent should be handled, even though SubEvent is cancellable");
+
+        SuperEvent.BUS.removeListener(listener);
+    }
 }
