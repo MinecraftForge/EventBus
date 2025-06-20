@@ -73,7 +73,7 @@ public sealed interface EventListenerImpl extends EventListener {
          * @implNote We avoid capturing the alwaysCancelling field in the lambda so that the bytecode is generated as a
          *           {@code ICONST_1} or {@code ICONST_0} instruction, rather than a field load.
          */
-        private static Predicate<Event> wrap(boolean alwaysCancelling, Consumer<Event> consumer) {
+        public static Predicate<Event> wrap(boolean alwaysCancelling, Consumer<Event> consumer) {
             if (alwaysCancelling) {
                 return event -> {
                     consumer.accept(event);
