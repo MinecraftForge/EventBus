@@ -48,6 +48,7 @@ dependencyResolutionManagement {
         library 'jmh-annotationProcessor', 'org.openjdk.jmh', 'jmh-generator-annprocess' versionRef 'jmh'
 
         library 'compile-testing', 'com.google.testing.compile', 'compile-testing' version '0.21.0'
+        library 'auto-value', 'com.google.auto.value', 'auto-value' version '1.11.0' // Need to bump this because compile-testing uses an old non-module compatible version
         library 'jetbrains-annotations', 'org.jetbrains', 'annotations' version '26.0.2'
     }
     //@formatter:on

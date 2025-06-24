@@ -23,6 +23,7 @@ dependencies {
     testImplementation libs.junit.api
     testImplementation libs.jspecify.annotations
     testImplementation libs.compile.testing
+    testImplementation libs.auto.value
     testImplementation libs.jetbrains.annotations
     testRuntimeOnly libs.bundles.junit.runtime
 }
