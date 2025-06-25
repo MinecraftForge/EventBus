@@ -4,10 +4,6 @@
  */
 package net.minecraftforge.eventbus.validator;
 
-import com.sun.source.tree.VariableTree;
-import com.sun.source.util.TreePathScanner;
-import com.sun.source.util.Trees;
-
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
@@ -17,40 +13,33 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
+
 import java.util.Set;
 
 public final class EventBusValidator extends AbstractValidator {
-    private Trees trees;
     private Types types;
 
     @Override
     public void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
-        trees = Trees.instance(processingEnv);
         types = processingEnv.getTypeUtils();
     }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         for (var root : roundEnv.getRootElements()) {
-            var path = trees.getPath(root);
-            if (path != null) new BusFieldScanner().scan(path, null);
+            process(root);
         }
 
         return false; // allow other processors to run
     }
 
-    private final class BusFieldScanner extends TreePathScanner<Void, Void> {
-        @Override
-        public Void visitVariable(VariableTree varTree, Void ignored) {
-            Element element = trees.getElement(getCurrentPath());
-            if (element.getKind() != ElementKind.FIELD)
-                return super.visitVariable(varTree, ignored); // only interested in fields
-
+    private void process(Element element) {
+        if (element.getKind() == ElementKind.FIELD) {
             TypeMirror erasedFieldType = types.erasure(element.asType());
             var isStandardEventBus = types.isSameType(erasedFieldType, BusTypes.eventBus);
             if (!(isStandardEventBus || types.isSameType(erasedFieldType, BusTypes.cancellableEventBus)))
-                return super.visitVariable(varTree, ignored); // only interested in (Cancellable)EventBus fields
+                return; // only interested in (Cancellable)EventBus fields
 
             // Show a warning if the bus field is not final
             if (!element.getModifiers().contains(Modifier.FINAL)) {
@@ -73,8 +62,11 @@ public final class EventBusValidator extends AbstractValidator {
                     );
                 }
             }
+        }
 
-            return super.visitVariable(varTree, ignored);
+
+        for (var child : element.getEnclosedElements()) {
+            process(child);
         }
     }
 }
