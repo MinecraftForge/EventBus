@@ -73,8 +73,7 @@ public class Event {
      * @param cancel The new canceled value
      */
     public void setCanceled(boolean cancel) {
-        if (!isCancelable())
-        {
+        if (!isCancelable()) {
             throw new UnsupportedOperationException(
                 "Attempted to call Event#setCanceled() on a non-cancelable event of type: "
                 + this.getClass().getCanonicalName()
@@ -85,6 +84,13 @@ public class Event {
             throw new IllegalStateException("Attempted to call Event#setCanceled() after the MONITOR phase");
 
         isCanceled = cancel;
+    }
+
+    /**
+     * Equivalent to calling {@link #setCanceled(boolean)} with {@code true}.
+     */
+    public void cancel() {
+        setCanceled(true);
     }
 
     /**
