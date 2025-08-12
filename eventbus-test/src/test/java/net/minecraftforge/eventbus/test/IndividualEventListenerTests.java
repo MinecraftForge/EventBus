@@ -291,4 +291,29 @@ public class IndividualEventListenerTests {
         new RecursiveTestEvent(false).post();
         Assertions.assertEquals(1, hits.get(), "Listener should have been called once");
     }
+
+    /**
+     * Tests that {@link EventBus#hasListeners()} works as expected.
+     */
+    @Test
+    public void testHasListeners() {
+        record TestEvent() implements RecordEvent {
+            static final EventBus<TestEvent> BUS = EventBus.create(TestEvent.class);
+        }
+        record CancellableTestEvent() implements Cancellable, RecordEvent {
+            static final CancellableEventBus<CancellableTestEvent> BUS = CancellableEventBus.create(CancellableTestEvent.class);
+        }
+
+        Assertions.assertFalse(TestEvent.BUS.hasListeners(), "TestEvent.BUS should not have listeners yet");
+        var listener = TestEvent.BUS.addListener(event -> {});
+        Assertions.assertTrue(TestEvent.BUS.hasListeners(), "TestEvent.BUS should have listeners");
+        TestEvent.BUS.removeListener(listener);
+        Assertions.assertFalse(TestEvent.BUS.hasListeners(), "TestEvent.BUS should no longer have listeners");
+
+        Assertions.assertFalse(CancellableTestEvent.BUS.hasListeners(), "CancellableTestEvent.BUS should not have listeners yet");
+        listener = CancellableTestEvent.BUS.addListener(event -> true);
+        Assertions.assertTrue(CancellableTestEvent.BUS.hasListeners(), "CancellableTestEvent.BUS should have listeners");
+        CancellableTestEvent.BUS.removeListener(listener);
+        Assertions.assertFalse(CancellableTestEvent.BUS.hasListeners(), "CancellableTestEvent.BUS should no longer have listeners");
+    }
 }

@@ -112,7 +112,7 @@ public record CancellableEventBusImpl<T extends Event & Cancellable>(
 
     @Override
     public boolean hasListeners() {
-        return getInvoker() != MH_NO_OP_PREDICATE;
+        return ((Predicate<?>) getInvoker()) != NO_OP_PREDICATE;
     }
 
     //region Invoker
