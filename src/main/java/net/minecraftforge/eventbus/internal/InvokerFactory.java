@@ -194,9 +194,12 @@ final class InvokerFactory {
             // ...so annoyingly, we need to duplicate the code of createInvoker() here, but with a different primitive return type (boolean instead of void)
             // Maybe JEP 402 can save us from this workaround in the future? https://openjdk.java.net/jeps/402
 
-            // Todo: [EB][Invoker] Support alwaysCancelling listeners in cancellation check-free Consumer invokers
-            if (listeners.stream().map(EventListenerImpl.WrappedConsumerListener.class::cast).noneMatch(EventListenerImpl.WrappedConsumerListener::alwaysCancelling))
-                return createCancellableInvokerFromUnwrappedNoChecks((List<Consumer<T>>) (List) InvokerFactoryUtils.unwrapConsumers(listeners));
+            return createCancellableInvokerFromUnwrappedNoChecks(
+                    (List<Consumer<T>>) (List) InvokerFactoryUtils.unwrapAlwaysCancellingConsumers(listeners),
+                    listeners.stream()
+                            .map(EventListenerImpl.WrappedConsumerListener.class::cast)
+                            .anyMatch(EventListenerImpl.WrappedConsumerListener::alwaysCancelling)
+            );
         }
 
         return createCancellableInvokerFromUnwrapped((List<Predicate<T>>) (List) InvokerFactoryUtils.unwrapPredicates(listeners));
@@ -250,68 +253,127 @@ final class InvokerFactory {
     /**
      * Same as {@link #createInvokerFromUnwrapped(List)} but returns a {@link Predicate} instead of a {@link Consumer}.
      * <p>See the code comments inside {@link #createCancellableInvoker(List)} for an explainer as to why this exists.</p>
+     * <p>Also see {@link EventListenerImpl.WrappedConsumerListener#wrap(boolean, Consumer)} for an explainer as to why capturing the return value is avoided.</p>
      */
-    private static <T extends Event & Cancellable> Predicate<T> createCancellableInvokerFromUnwrappedNoChecks(List<Consumer<T>> listeners) {
-        return switch (listeners.size()) {
-            case 0 -> Constants.getNoOpPredicate();
-            case 1 -> {
-                var first = listeners.getFirst();
-                yield event -> {
-                    first.accept(event);
-                    return false;
-                };
-            }
-            case 2 -> {
-                var first = listeners.getFirst();
-                var second = listeners.getLast();
-                yield event -> {
-                    first.accept(event);
-                    second.accept(event);
-                    return false;
-                };
-            }
+    private static <T extends Event & Cancellable> Predicate<T> createCancellableInvokerFromUnwrappedNoChecks(List<Consumer<T>> listeners, boolean alwaysCancelling) {
+        if (alwaysCancelling) {
+            return switch (listeners.size()) {
+                case 0 -> Constants.getNoOpPredicate(true);
+                case 1 -> {
+                    var first = listeners.getFirst();
+                    yield event -> {
+                        first.accept(event);
+                        return true;
+                    };
+                }
+                case 2 -> {
+                    var first = listeners.getFirst();
+                    var second = listeners.getLast();
+                    yield event -> {
+                        first.accept(event);
+                        second.accept(event);
+                        return true;
+                    };
+                }
 
-            case 3 -> {
-                var first = listeners.getFirst(); // 0
-                var second = listeners.get(1);
-                var third = listeners.getLast(); // 2
-                yield event -> {
-                    first.accept(event);
-                    second.accept(event);
-                    third.accept(event);
-                    return false;
-                };
-            }
-            case 4 -> {
-                var first = listeners.getFirst(); // 0
-                var second = listeners.get(1);
-                var third = listeners.get(2);
-                var fourth = listeners.getLast(); // 3
-                yield event -> {
-                    first.accept(event);
-                    second.accept(event);
-                    third.accept(event);
-                    fourth.accept(event);
-                    return false;
-                };
-            }
+                case 3 -> {
+                    var first = listeners.getFirst(); // 0
+                    var second = listeners.get(1);
+                    var third = listeners.getLast(); // 2
+                    yield event -> {
+                        first.accept(event);
+                        second.accept(event);
+                        third.accept(event);
+                        return true;
+                    };
+                }
+                case 4 -> {
+                    var first = listeners.getFirst(); // 0
+                    var second = listeners.get(1);
+                    var third = listeners.get(2);
+                    var fourth = listeners.getLast(); // 3
+                    yield event -> {
+                        first.accept(event);
+                        second.accept(event);
+                        third.accept(event);
+                        fourth.accept(event);
+                        return true;
+                    };
+                }
 
-            default -> {
-                @SuppressWarnings("unchecked")
-                Consumer<T>[] listenersArray = listeners.toArray(new Consumer[0]);
-                yield event -> {
-                    for (Consumer<T> listener : listenersArray) {
-                        listener.accept(event);
-                    }
-                    return false;
-                };
-            }
-        };
+                default -> {
+                    @SuppressWarnings("unchecked")
+                    Consumer<T>[] listenersArray = listeners.toArray(new Consumer[0]);
+                    yield event -> {
+                        for (Consumer<T> listener : listenersArray) {
+                            listener.accept(event);
+                        }
+                        return true;
+                    };
+                }
+            };
+        } else {
+            return switch (listeners.size()) {
+                case 0 -> Constants.getNoOpPredicate(false);
+                case 1 -> {
+                    var first = listeners.getFirst();
+                    yield event -> {
+                        first.accept(event);
+                        return false;
+                    };
+                }
+                case 2 -> {
+                    var first = listeners.getFirst();
+                    var second = listeners.getLast();
+                    yield event -> {
+                        first.accept(event);
+                        second.accept(event);
+                        return false;
+                    };
+                }
+
+                case 3 -> {
+                    var first = listeners.getFirst(); // 0
+                    var second = listeners.get(1);
+                    var third = listeners.getLast(); // 2
+                    yield event -> {
+                        first.accept(event);
+                        second.accept(event);
+                        third.accept(event);
+                        return false;
+                    };
+                }
+                case 4 -> {
+                    var first = listeners.getFirst(); // 0
+                    var second = listeners.get(1);
+                    var third = listeners.get(2);
+                    var fourth = listeners.getLast(); // 3
+                    yield event -> {
+                        first.accept(event);
+                        second.accept(event);
+                        third.accept(event);
+                        fourth.accept(event);
+                        return false;
+                    };
+                }
+
+                default -> {
+                    @SuppressWarnings("unchecked")
+                    Consumer<T>[] listenersArray = listeners.toArray(new Consumer[0]);
+                    yield event -> {
+                        for (Consumer<T> listener : listenersArray) {
+                            listener.accept(event);
+                        }
+                        return false;
+                    };
+                }
+            };
+        }
     }
 
     private static <T extends Event & Cancellable> Predicate<T> createCancellableInvokerFromUnwrapped(List<Predicate<T>> listeners) {
         return switch (listeners.size()) {
-            case 0 -> Constants.getNoOpPredicate();
+            case 0 -> Constants.getNoOpPredicate(false);
             case 1 -> listeners.getFirst(); // Direct call
             case 2 -> {
                 var first = listeners.getFirst();

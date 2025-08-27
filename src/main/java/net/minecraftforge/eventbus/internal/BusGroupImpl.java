@@ -8,10 +8,10 @@ import net.minecraftforge.eventbus.api.bus.BusGroup;
 import net.minecraftforge.eventbus.api.bus.EventBus;
 import net.minecraftforge.eventbus.api.event.*;
 import net.minecraftforge.eventbus.api.event.characteristic.Cancellable;
-import net.minecraftforge.eventbus.api.event.characteristic.MonitorAware;
 import net.minecraftforge.eventbus.api.listener.EventListener;
 
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -92,13 +92,26 @@ public record BusGroupImpl(
 //        if (eventBuses.containsKey(eventType))
 //            throw new IllegalArgumentException("EventBus for " + eventType + " already exists on BusGroup \"" + name + "\"");
 
-        if (RecordEvent.class.isAssignableFrom(eventType) && !eventType.isRecord())
-            throw new IllegalArgumentException("Event type " + eventType + " is not a record class but implements RecordEvent");
-
         int characteristics = AbstractEventBusImpl.computeEventCharacteristics(eventType);
 
-        if (Constants.isMonitorAware(characteristics) && !MutableEvent.class.isAssignableFrom(eventType))
-            throw new IllegalArgumentException("Event type " + eventType + " implements MonitorAware but is not a MutableEvent");
+        if (Constants.STRICT_BUS_CREATION_CHECKS) {
+            boolean isRecord = eventType.isRecord();
+            if (!isRecord && RecordEvent.class.isAssignableFrom(eventType))
+                throw new IllegalArgumentException("Event type " + eventType + " implements RecordEvent but is not a record class");
+
+            if (Constants.isMonitorAware(characteristics) && !MutableEvent.class.isAssignableFrom(eventType))
+                throw new IllegalArgumentException("Event type " + eventType + " implements MonitorAware but is not a MutableEvent");
+
+            if (Constants.isInheritable(characteristics) && (isRecord || Modifier.isFinal(eventType.getModifiers()))
+                    && eventType.getSuperclass() == null) {
+                var interfaces = eventType.getInterfaces();
+                if (interfaces.length == 1 && interfaces[0] == InheritableEvent.class) {
+                    var errorMsg = "Event type " + eventType + " directly implements InheritableEvent but is not inheritable";
+                    var solution = isRecord ? "implement RecordEvent instead" : "extend MutableEvent instead";
+                    throw new IllegalArgumentException(errorMsg + " - " + solution);
+                }
+            }
+        }
 
         var backingList = new ArrayList<EventListener>();
         List<EventBus<?>> parents = Collections.emptyList();
@@ -132,8 +145,8 @@ public record BusGroupImpl(
         var computedEventBus = createEventBus(eventType);
 
         synchronized (eventBuses) {
-            eventBuses.putIfAbsent(eventType, computedEventBus);
-            return computedEventBus;
+            var existing = eventBuses.putIfAbsent(eventType, computedEventBus);
+            return existing == null ? computedEventBus : (EventBus<T>) existing;
         }
     }
     //endregion

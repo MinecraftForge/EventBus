@@ -10,12 +10,15 @@ import net.minecraftforge.eventbus.api.event.RecordEvent;
 import net.minecraftforge.eventbus.api.event.characteristic.Cancellable;
 import net.minecraftforge.eventbus.api.event.characteristic.SelfPosting;
 import net.minecraftforge.eventbus.api.listener.EventListener;
+import net.minecraftforge.eventbus.api.listener.Priority;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 public class IndividualEventListenerTests {
     /**
@@ -103,6 +106,30 @@ public class IndividualEventListenerTests {
         AlwaysCancellingTestEvent.BUS.removeListener(listener);
         wasCancelled = AlwaysCancellingTestEvent.BUS.post(new AlwaysCancellingTestEvent());
         Assertions.assertFalse(wasCancelled, "The event should not have been cancelled without any listeners");
+    }
+
+    @Test
+    public void testAlwaysCancellingListenerOptimisation() throws Exception{
+        record CancellableTestEvent() implements Cancellable, RecordEvent {
+            static final CancellableEventBus<CancellableTestEvent> BUS = CancellableEventBus.create(CancellableTestEvent.class);
+        }
+
+        var cancellingListener = CancellableTestEvent.BUS.addListener(Priority.HIGHEST, true, event -> {});
+        var ordinaryListener = CancellableTestEvent.BUS.addListener(event -> {});
+
+        var listeners = List.of(cancellingListener, ordinaryListener);
+
+        // create a MH to net.minecraftforge.eventbus.internal.InvokerFactoryUtils.unwrapAlwaysCancellingConsumers
+        var invokerFactoryUtilsClass = Class.forName("net.minecraftforge.eventbus.internal.InvokerFactoryUtils");
+        var method = invokerFactoryUtilsClass.getDeclaredMethod("unwrapAlwaysCancellingConsumers", List.class);
+        method.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        var result = (List<Consumer<?>>) method.invoke(null, listeners);
+
+        Assertions.assertEquals(1, result.size(), "The ordinary listener should have been removed from the list");
+
+        CancellableTestEvent.BUS.removeListener(cancellingListener);
+        CancellableTestEvent.BUS.removeListener(ordinaryListener);
     }
 
     /**
@@ -263,5 +290,30 @@ public class IndividualEventListenerTests {
         Assertions.assertEquals(0, hits.get(), "Listener should not have been called yet");
         new RecursiveTestEvent(false).post();
         Assertions.assertEquals(1, hits.get(), "Listener should have been called once");
+    }
+
+    /**
+     * Tests that {@link EventBus#hasListeners()} works as expected.
+     */
+    @Test
+    public void testHasListeners() {
+        record TestEvent() implements RecordEvent {
+            static final EventBus<TestEvent> BUS = EventBus.create(TestEvent.class);
+        }
+        record CancellableTestEvent() implements Cancellable, RecordEvent {
+            static final CancellableEventBus<CancellableTestEvent> BUS = CancellableEventBus.create(CancellableTestEvent.class);
+        }
+
+        Assertions.assertFalse(TestEvent.BUS.hasListeners(), "TestEvent.BUS should not have listeners yet");
+        var listener = TestEvent.BUS.addListener(event -> {});
+        Assertions.assertTrue(TestEvent.BUS.hasListeners(), "TestEvent.BUS should have listeners");
+        TestEvent.BUS.removeListener(listener);
+        Assertions.assertFalse(TestEvent.BUS.hasListeners(), "TestEvent.BUS should no longer have listeners");
+
+        Assertions.assertFalse(CancellableTestEvent.BUS.hasListeners(), "CancellableTestEvent.BUS should not have listeners yet");
+        listener = CancellableTestEvent.BUS.addListener(event -> true);
+        Assertions.assertTrue(CancellableTestEvent.BUS.hasListeners(), "CancellableTestEvent.BUS should have listeners");
+        CancellableTestEvent.BUS.removeListener(listener);
+        Assertions.assertFalse(CancellableTestEvent.BUS.hasListeners(), "CancellableTestEvent.BUS should no longer have listeners");
     }
 }

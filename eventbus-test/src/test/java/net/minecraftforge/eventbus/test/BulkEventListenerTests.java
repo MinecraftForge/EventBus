@@ -288,7 +288,7 @@ public class BulkEventListenerTests {
             monitoringCalled = true;
         }
 
-        @SubscribeEvent
+        @SubscribeEvent(priority = Priority.MONITOR)
         public static void cancellationAwareMonitoringListener(CancellableTestEvent event, boolean wasCancelled) {
             cancellationAwareMonitoringCalled = true;
         }
@@ -653,7 +653,7 @@ public class BulkEventListenerTests {
     }
 
     /**
-     * Tests that strict bulk registeration on a class with a non-monitoring priority on a cancellation-aware monitoring event listener method throws an exception.
+     * Tests that strict bulk registration on a class with a non-monitoring priority on a cancellation-aware monitoring event listener method throws an exception.
      */
     @Test
     public void testStrictBulkRegistrationValidationWrongPriorityMonitoring() {

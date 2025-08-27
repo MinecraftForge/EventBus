@@ -1,0 +1,3 @@
+net.minecraftforge.eventbus.validator.EventBusValidator
+net.minecraftforge.eventbus.validator.EventTypeValidator
+net.minecraftforge.eventbus.validator.SubscribeEventValidator

@@ -73,7 +73,7 @@ public record EventBusImpl<T extends Event>(
 
     @Override
     public boolean hasListeners() {
-        return getInvoker() != MH_NO_OP_CONSUMER;
+        return getInvoker() != NO_OP_CONSUMER;
     }
 
     //region Invoker

@@ -19,6 +19,7 @@ final class Constants {
 
     static final Consumer<Event> NO_OP_CONSUMER = event -> {};
     static final Predicate<Event> NO_OP_PREDICATE = event -> false;
+    static final Predicate<Event> ALWAYS_TRUE_PREDICATE = event -> true;
 
     static final MethodHandle MH_NULL_CONSUMER = MethodHandles.constant(Consumer.class, null);
     static final MethodHandle MH_NO_OP_CONSUMER = MethodHandles.constant(Consumer.class, NO_OP_CONSUMER);
@@ -34,9 +35,16 @@ final class Constants {
     static final int CHARACTERISTIC_INHERITABLE = 8;
 
     /**
+     * If true, performs additional runtime checks to aid debugging.
+     */
+    static final boolean STRICT_RUNTIME_CHECKS = Boolean.getBoolean("eventbus.api.strictRuntimeChecks");
+
+    /**
      * If true, performs exhaustive validation on bulk registration to aid debugging.
      */
-    static final boolean STRICT_REGISTRATION_CHECKS = Boolean.getBoolean("eventbus.api.strictRegistrationChecks");
+    static final boolean STRICT_REGISTRATION_CHECKS = STRICT_RUNTIME_CHECKS || Boolean.getBoolean("eventbus.api.strictRegistrationChecks");
+
+    static final boolean STRICT_BUS_CREATION_CHECKS = STRICT_RUNTIME_CHECKS || Boolean.getBoolean("eventbus.api.strictBusCreationChecks");
 
     /**
      * If true, allows the same listener to be registered multiple times. Intended for use in benchmarks only.
@@ -60,8 +68,8 @@ final class Constants {
     }
 
     @SuppressWarnings("unchecked")
-    static <T> Predicate<T> getNoOpPredicate() {
-        return (Predicate<T>) NO_OP_PREDICATE;
+    static <T> Predicate<T> getNoOpPredicate(boolean alwaysCancelling) {
+        return (Predicate<T>) (alwaysCancelling ? ALWAYS_TRUE_PREDICATE : NO_OP_PREDICATE);
     }
 
     static boolean isSelfDestructing(int characteristics) {

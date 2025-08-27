@@ -38,7 +38,6 @@ final class EventListenerFactory {
 
     private static final Map<Method, MethodHandle> LMF_CACHE = new ConcurrentHashMap<>();
 
-    // Todo: [EB][Bulk registration] make the error messages more descriptive
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static Collection<EventListener> register(BusGroupImpl busGroup, MethodHandles.Lookup callerLookup,
                                                      Class<?> listenerClass, @Nullable Object listenerInstance) {
@@ -52,6 +51,9 @@ final class EventListenerFactory {
         for (var method : declaredMethods) {
             if (listenerInstance == null && !Modifier.isStatic(method.getModifiers()))
                 continue;
+
+            if (method.isSynthetic())
+                continue; // EventBus#89
 
             int paramCount = method.getParameterCount();
             if (paramCount == 0 || paramCount > 2)
@@ -91,6 +93,8 @@ final class EventListenerFactory {
     /**
      * Same as {@link #register(BusGroupImpl, MethodHandles.Lookup, Class, Object)}, but with strict validation.
      * <p>Useful for debugging and dev environments, but slower than the normal method intended for production use.</p>
+     * <p>See also the "eventbus-validator" subproject, which uses an annotation processor to mirror these runtime
+     * checks at compile-time.</p>
      * @see Constants#STRICT_REGISTRATION_CHECKS
      */
     @SuppressWarnings({"unchecked"})
@@ -98,8 +102,10 @@ final class EventListenerFactory {
                                                            Class<?> listenerClass, @Nullable Object listenerInstance) {
         Class<? extends Event> firstValidListenerEventType = null;
 
-        Method[] declaredMethods = listenerClass.getDeclaredMethods();
-        if (declaredMethods.length == 0) {
+        List<Method> declaredMethods = Arrays.stream(listenerClass.getDeclaredMethods())
+                .filter(Predicate.not(Method::isSynthetic)) // EventBus#89
+                .toList();
+        if (declaredMethods.isEmpty()) {
             var errMsg = "No declared methods found in " + listenerClass.getName();
             var superClass = listenerClass.getSuperclass();
             if (superClass != null && superClass != Record.class && superClass != Enum.class) {
@@ -130,7 +136,7 @@ final class EventListenerFactory {
             if (hasSubscribeEvent) {
                 var firstParamExtendsCancellable = Cancellable.class.isAssignableFrom(parameterTypes[0]);
                 var subscribeEventAnnotation = method.getAnnotation(SubscribeEvent.class);
-                var isMonitoringListener = subscribeEventAnnotation.priority() == Priority.MONITOR;
+                var isMonitoringPriority = subscribeEventAnnotation.priority() == Priority.MONITOR;
 
                 if (!firstParamExtendsEvent)
                     throw fail(method, "First parameter of a @SubscribeEvent method must be an event");
@@ -143,7 +149,7 @@ final class EventListenerFactory {
                 if (listenerInstance == null && !Modifier.isStatic(method.getModifiers()))
                     throw fail(method, "Listener instance is null and method is not static");
 
-                if (isMonitoringListener && (returnType == boolean.class || subscribeEventAnnotation.alwaysCancelling()))
+                if (isMonitoringPriority && (returnType == boolean.class || subscribeEventAnnotation.alwaysCancelling()))
                     throw fail(method, "Monitoring listeners cannot cancel events");
 
                 if (paramCount == 2) {
@@ -153,7 +159,7 @@ final class EventListenerFactory {
                     if (!boolean.class.isAssignableFrom(parameterTypes[1]))
                         throw fail(method, "Second parameter of a cancellation-aware monitoring listener must be a boolean");
 
-                    if (subscribeEventAnnotation.priority() != Priority.MONITOR)
+                    if (!isMonitoringPriority)
                         throw fail(method, "Cancellation-aware monitoring listeners must have a priority of MONITOR");
                 }
 
