@@ -20,8 +20,8 @@ import net.minecraftforge.eventbus.internal.Event;
  *     listeners.</li>
  *     <li>An event where listeners are notified of a player joining the server and can optionally cancel it to kick them
  *     (when combined with the {@link Cancellable} characteristic), but can't set the player to someone else.</li>
- *     <li>Stateless events which do not carry any data inside but are still useful for notifying listeners when a
- *     specific action occurs, such as some types of lifecycle events.</li>
+ *     <li>Stateless events which do not carry any data inside but are still useful for notifying listeners <i>when</i>
+ *     a specific action occurs, such as some types of lifecycle events.</li>
  * </ul>
  *
  * <p>Note that while records are final and cannot extend other classes, inheritance is still possible through other

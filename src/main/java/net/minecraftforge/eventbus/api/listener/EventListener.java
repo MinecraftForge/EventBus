@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 
 /**
  * Users can retain instances of this interface to remove listeners that were previously added to the same
- * {@link EventBus}.You can obtain instances of this interface by calling any of the {@code addListener} methods
+ * {@link EventBus}. You can obtain instances of this interface by calling any of the {@code addListener} methods
  * on an EventBus, such as {@link EventBus#addListener(Consumer)}.
  *
  * @implNote Internally, this acts as a wrapper over lambdas to give them identity, enrich debug info and to allow
