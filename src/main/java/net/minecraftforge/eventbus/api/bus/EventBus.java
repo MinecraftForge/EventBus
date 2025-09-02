@@ -14,6 +14,10 @@ import net.minecraftforge.eventbus.internal.EventBusImpl;
 
 import java.util.function.Consumer;
 
+/**
+ * @see CancellableEventBus if your event type implements {@link Cancellable}
+ * @param <T> The type of event this EventBus handles
+ */
 public sealed interface EventBus<T extends Event> permits CancellableEventBus, AbstractEventBusImpl, EventBusImpl {
     /**
      * Adds a listener to this EventBus with the default priority of {@link Priority#NORMAL}.

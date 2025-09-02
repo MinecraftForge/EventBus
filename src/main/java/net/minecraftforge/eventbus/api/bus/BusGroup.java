@@ -9,25 +9,47 @@ import net.minecraftforge.eventbus.api.listener.EventListener;
 import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.eventbus.internal.BusGroupImpl;
 
+import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
 import java.util.Collection;
 
 /**
- * A collection of {@link EventBus} instances that are grouped together for easier management.
+ * A collection of {@link EventBus} instances that are grouped together for easier management, allowing for bulk
+ * operations.
  */
 public sealed interface BusGroup permits BusGroupImpl {
+    /**
+     * The default BusGroup, which is used when an {@link EventBus} is created without specifying a BusGroup.
+     */
     BusGroup DEFAULT = create("default");
 
+    /**
+     * Creates a new BusGroup with the given name.
+     *
+     * @param name The unique name of the BusGroup
+     * @return A new BusGroup with the given name
+     * @throws IllegalArgumentException if the name is already in use by another BusGroup
+     * @apiNote To enforce a base type for all events in this BusGroup, use {@link #create(String, Class)}.
+     */
     static BusGroup create(String name) {
         return new BusGroupImpl(name, Event.class);
     }
 
+    /**
+     * Creates a new BusGroup with the given name and base type.
+     *
+     * @param name The unique name of the BusGroup
+     * @param baseType The base type that all events in this BusGroup must extend or implement
+     * @return A new BusGroup with the given name and base type
+     * @throws IllegalArgumentException if the name is already in use by another BusGroup
+     */
     static BusGroup create(String name, Class<?> baseType) {
         return new BusGroupImpl(name, baseType);
     }
 
     /**
      * The unique name of this BusGroup.
+     * <p>The uniqueness of this name is enforced when the bus group is {@linkplain #create(String) created}.</p>
      */
     String name();
 
@@ -40,21 +62,30 @@ public sealed interface BusGroup permits BusGroupImpl {
     /**
      * Shuts down all EventBus instances associated with this BusGroup, preventing any further events from being posted
      * until {@link #startup()} is called.
+     *
+     * @apiNote If you don't intend on using this BusGroup again, prefer {@link #dispose()} instead as that will also
+     *          free up resources.
      */
     void shutdown();
 
     /**
-     * Shuts down all EventBus instances associated with this BusGroup, unregisters all listeners and frees resources
-     * no longer needed.
-     * <p>Warning: This is a destructive operation - this BusGroup should not be used again after calling this method.</p>
+     * {@linkplain #shutdown() Shuts down} all EventBus instances associated with this BusGroup,
+     * {@linkplain #unregister(Collection) unregisters} all listeners and frees no longer needed resources.
+     *
+     * <p>Warning: This is a destructive operation - this BusGroup should not be used again after calling this method -
+     * attempting to do so may throw exceptions or act as a no-op.</p>
+     *
+     * @apiNote If you plan on using this BusGroup again, prefer {@link #shutdown()} instead.
      */
     void dispose();
 
     /**
-     * Experimental feature - may be removed, renamed or otherwise changed without notice.
-     * <p>Trims the backing lists of all EventBus instances associated with this BusGroup to free up resources.</p>
+     * Trims the backing lists of all EventBus instances associated with this BusGroup to free up resources.
+     *
      * <p>Warning: This is only intended to be called <b>once</b> after all listeners are registered - calling this
      * repeatedly may hurt performance.</p>
+     *
+     * @apiNote This is an experimental feature that may be removed, renamed or otherwise changed without notice.
      */
     void trim();
 
@@ -68,6 +99,11 @@ public sealed interface BusGroup permits BusGroupImpl {
      * @apiNote This method only registers static listeners.
      *          <p>If you want to register both instance and static methods, use
      *          {@link BusGroup#register(MethodHandles.Lookup, Object)} instead.</p>
+     * @implNote Internally, bulk registration uses {@link LambdaMetafactory} to create method references to the
+     *           annotated methods using the provided {@code callerLookup} - said lookup must have
+     *           {@linkplain MethodHandles.Lookup#hasFullPrivilegeAccess() full privilege access} as
+     *           {@linkplain LambdaMetafactory LMF} may need to spin an inner class for implementing the lambda, which
+     *           inherently allows access to private fields and methods.
      */
     Collection<EventListener> register(MethodHandles.Lookup callerLookup, Class<?> utilityClassWithStaticListeners);
 
@@ -80,6 +116,11 @@ public sealed interface BusGroup permits BusGroupImpl {
      *
      * @apiNote If you know all the listeners are static methods, use
      *          {@link BusGroup#register(MethodHandles.Lookup, Class)} instead for better registration performance.
+     * @implNote Internally, bulk registration uses {@link LambdaMetafactory} to create method references to the
+     *           annotated methods using the provided {@code callerLookup} - said lookup must have
+     *           {@linkplain MethodHandles.Lookup#hasFullPrivilegeAccess() full privilege access} as
+     *           {@linkplain LambdaMetafactory LMF} may need to spin an inner class for implementing the lambda, which
+     *           inherently allows access to private fields and methods.
      */
     Collection<EventListener> register(MethodHandles.Lookup callerLookup, Object listener);
 
