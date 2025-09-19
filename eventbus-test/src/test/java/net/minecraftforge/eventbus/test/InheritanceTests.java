@@ -9,6 +9,7 @@ import net.minecraftforge.eventbus.api.event.InheritableEvent;
 import net.minecraftforge.eventbus.api.event.MutableEvent;
 import net.minecraftforge.eventbus.api.event.characteristic.Cancellable;
 import net.minecraftforge.eventbus.internal.EventBusImpl;
+import net.minecraftforge.eventbus.testjar.events.PassthroughEvent;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -230,5 +231,32 @@ public class InheritanceTests {
         Assertions.assertTrue(handled.get(), "SuperEvent should be handled, even though SubEvent is cancellable");
 
         SuperEvent.BUS.removeListener(listener);
+    }
+
+    /**
+     * Tests that listener inheritance works when posting in a passthrough context.
+     * @see PassthroughEvent
+     */
+    @Test
+    public void testListenerCallInheritanceWithPassthrough() {
+        var handled = new AtomicBoolean();
+        var listener = PassthroughEvent.BUS.addListener(event -> handled.set(true));
+
+        Assertions.assertFalse(handled.get(), "PassthroughEvent should not be handled yet");
+
+        Assertions.assertDoesNotThrow(() -> PassthroughEvent.Impl.BUS.post(new PassthroughEvent.Impl()));
+
+        Assertions.assertTrue(handled.get(), "PassthroughEvent should be handled");
+
+        PassthroughEvent.BUS.removeListener(listener);
+        handled.set(false);
+
+        listener = PassthroughEvent.Impl.BUS.addListener(event -> handled.set(true));
+
+        Assertions.assertDoesNotThrow(() -> PassthroughEvent.Impl.BUS.post(new PassthroughEvent.Impl()));
+
+        Assertions.assertTrue(handled.get(), "PassthroughEvent should be handled");
+
+        PassthroughEvent.BUS.removeListener(listener);
     }
 }

@@ -94,8 +94,8 @@ public record BusGroupImpl(
 
         int characteristics = AbstractEventBusImpl.computeEventCharacteristics(eventType);
 
+        boolean isRecord = (Constants.STRICT_BUS_CREATION_CHECKS || Constants.isInheritable(characteristics)) && eventType.isRecord();
         if (Constants.STRICT_BUS_CREATION_CHECKS) {
-            boolean isRecord = eventType.isRecord();
             if (!isRecord && RecordEvent.class.isAssignableFrom(eventType))
                 throw new IllegalArgumentException("Event type " + eventType + " implements RecordEvent but is not a record class");
 
@@ -113,13 +113,29 @@ public record BusGroupImpl(
             }
         }
 
-        var backingList = new ArrayList<EventListener>();
+        ArrayList<EventListener> backingList;
         List<EventBus<?>> parents = Collections.emptyList();
         if (Constants.isInheritable(characteristics)) {
             parents = getParentEvents(eventType);
+
+            // Direct pass-through of sealed inheritable events that only have one subclass to save memory
+            if ((isRecord || Modifier.isFinal(eventType.getModifiers())) // if this event is effectively final
+                    && parents.size() == 1 // only has one parent EventBus
+                    && parents.getFirst() instanceof AbstractEventBusImpl<?, ?> parent) {
+                var permittedSubclasses = parent.eventType().getPermittedSubclasses(); // that parent is sealed
+                if (permittedSubclasses != null && permittedSubclasses.length == 1 // only permits this event
+                        && characteristics == parent.eventCharacteristics()) { // has the same characteristics
+                    assert permittedSubclasses[0] == eventType;
+                    return (EventBus<T>) parents.getFirst(); // then we can reuse the parent directly
+                }
+            }
+
+            backingList = new ArrayList<>();
             for (var parent : parents) {
                 backingList.addAll(((AbstractEventBusImpl<?, ?>) parent).backingList());
             }
+        } else {
+            backingList = new ArrayList<>();
         }
 
         @SuppressWarnings("rawtypes")

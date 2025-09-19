@@ -12,6 +12,7 @@ import net.minecraftforge.eventbus.api.event.MutableEvent;
 import net.minecraftforge.eventbus.api.event.RecordEvent;
 import net.minecraftforge.eventbus.api.event.characteristic.Cancellable;
 import net.minecraftforge.eventbus.api.event.characteristic.MonitorAware;
+import net.minecraftforge.eventbus.testjar.events.PassthroughEvent;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -89,6 +90,17 @@ public class EventBusCreationTests {
                 () -> EventBus.create(Child.class),
                 "EventBus creation should consider the whole inheritance tree when determining if the class/interface/record is some kind of Event"
         );
+    }
+
+    /**
+     * Tests that the references of the {@code BUS} fields of {@link PassthroughEvent} and its child refer to
+     * the same instance.
+     * @see PassthroughEvent
+     */
+    @Test
+    public void testPassthroughEventCreation() {
+        Assertions.assertSame(PassthroughEvent.BUS, PassthroughEvent.Impl.BUS);
+        Assertions.assertEquals(PassthroughEvent.BUS.hashCode(), PassthroughEvent.Impl.BUS.hashCode());
     }
 
     /**

@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public sealed interface AbstractEventBusImpl<T extends Event, I> extends EventBus<T>
         permits CancellableEventBusImpl, EventBusImpl {
     //region Record component accessors
+    Class<T> eventType();
     ArrayList<EventListener> backingList();
     ArrayList<EventListener> monitorBackingList();
     List<AbstractEventBusImpl<?, ?>> children();
