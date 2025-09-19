@@ -118,7 +118,7 @@ public record BusGroupImpl(
         if (Constants.isInheritable(characteristics)) {
             parents = getParentEvents(eventType);
 
-            // Direct pass-through of sealed inheritable events that only have one subclass to save memory
+            // Direct pass-through of sealed inheritable events that only have one subclass to save memory (EventBus#97)
             if ((isRecord || Modifier.isFinal(eventType.getModifiers())) // if this event is effectively final
                     && parents.size() == 1 // only has one parent EventBus
                     && parents.getFirst() instanceof AbstractEventBusImpl<?, ?> parent) {
