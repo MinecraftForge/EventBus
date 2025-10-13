@@ -287,8 +287,8 @@ public class ListenerList {
         			continue;
         		for (int x = 0; x < priority.size(); x++) {
         			IEventListener old = priority.get(x);
-        			if (old instanceof ASMEventHandler) {
-        				IEventListener cancelable = ((ASMEventHandler)old).toCancelable();
+        			if (old instanceof IReactiveEventListener) {
+        				IEventListener cancelable = ((IReactiveEventListener)old).toCancelable();
         				if (old == cancelable)
         					continue;
 

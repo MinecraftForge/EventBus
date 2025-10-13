@@ -71,19 +71,12 @@ public class ASMEventHandler implements IEventListener {
         return subInfo.priority();
     }
 
+    @Override
     public String toString() {
         return readable;
     }
 
     /**
-     * Convert this handler to one that respects canceled states.
-     * This is called when we eagerly do the optimization, and then a unknown child adds the ability to be canceled.
-     */
-    ASMEventHandler toCancelable() {
-    	return this;
-    }
-
-    /**
      * Creates a new ASMEventHandler instance, factoring in a time-shifting optimisation.
      *
      * <p>In the case that no post-time checks are needed, an subclass instance will be returned that calls
@@ -92,112 +85,60 @@ public class ASMEventHandler implements IEventListener {
      * @implNote The 'all or nothing' nature of the post-time checks is to reduce the likelihood of megamorphic method
      *           invocation, which isn't as performant as monomorphic or bimorphic calls in Java 16
      *           (what EventBus 6.2.x targets).
+     *
+     *
+     * @deprecated Use {@link #of(IEventListenerFactory, Object, Method, boolean, boolean)} instead to prevent wrapping in ASMEventHandler type, for better performance
      */
+    @Deprecated
     public static ASMEventHandler of(IEventListenerFactory factory, Object target, Method method, boolean isGeneric) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException {
-    	return of(factory, target, method, isGeneric, false);
-    }
-
-
-    /**
-     * Creates a new ASMEventHandler instance, factoring in a time-shifting optimisation.
-     *
-     * <p>In the case that no post-time checks are needed, an subclass instance will be returned that calls
-     * the listener without additional redundant checks.</p>
-     *
-     * @implNote The 'all or nothing' nature of the post-time checks is to reduce the likelihood of megamorphic method
-     *           invocation, which isn't as performant as monomorphic or bimorphic calls in Java 16
-     *           (what EventBus 6.2.x targets).
-     */
-    public static ASMEventHandler of(IEventListenerFactory factory, Object target, Method method, boolean isGeneric, boolean forceCancelable) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException {
         var subInfo = method.getAnnotation(SubscribeEvent.class);
         assert subInfo != null;
         var eventType = method.getParameterTypes()[0];
         var filter = getFilter(isGeneric, method);
         var readable = makeReadable(target, method);
-        var handler = factory.create(method, target);
+        var cancelable = EventListenerHelper.isCancelable(eventType);
+
+        var handler = ReactiveEventListener.of(factory.create(method, target), readable, filter, subInfo.receiveCanceled(), cancelable);
+        if (handler instanceof IReactiveEventListener)
+        	return new Reactive(handler, subInfo, readable, filter);
+        return new ASMEventHandler(handler, subInfo, readable, filter);
+    }
+
+
+    /**
+     * Creates a new ASMEventHandler instance, factoring in a time-shifting optimisation.
+     *
+     * <p>In the case that no post-time checks are needed, an subclass instance will be returned that calls
+     * the listener without additional redundant checks.</p>
+     *
+     * @implNote The 'all or nothing' nature of the post-time checks is to reduce the likelihood of megamorphic method
+     *           invocation, which isn't as performant as monomorphic or bimorphic calls in Java 16
+     *           (what EventBus 6.2.x targets).
+     */
+    public static IEventListener of(IEventListenerFactory factory, Object target, Method method, boolean isGeneric, boolean forceCancelable) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException {
+        var subInfo = method.getAnnotation(SubscribeEvent.class);
+        assert subInfo != null;
+        var eventType = method.getParameterTypes()[0];
+        var filter = getFilter(isGeneric, method);
+        var readable = makeReadable(target, method);
         var cancelable = forceCancelable || EventListenerHelper.isCancelable(eventType);
 
-        if (filter != null) {
-        	if (cancelable && !subInfo.receiveCanceled())
-        		return new GenericCancelable(handler, subInfo, readable, filter);
-            return new Generic(handler, subInfo, readable, filter);
-        } else {
-        	if (cancelable && !subInfo.receiveCanceled())
-        		return new Cancelable(handler, subInfo, readable, filter);
-        	return new Unchecked(handler, subInfo, readable, filter);
-        }
+        return ReactiveEventListener.of(factory.create(method, target), readable, filter, subInfo.receiveCanceled(), cancelable);
     }
 
-    private static class Generic extends ASMEventHandler {
-        private Generic(IEventListener handler, SubscribeEvent subInfo, String readable, Type filter) {
+    private static class Reactive extends ASMEventHandler implements IReactiveEventListener {
+        private Reactive(IEventListener handler, SubscribeEvent subInfo, String readable, Type filter) {
 			super(handler, subInfo, readable, filter); //Filter can never be null in any paths we call it. But actually don't want to add a null check here because i don't want to re-do the if.
 		}
 
-		@SuppressWarnings("rawtypes")
 		@Override
     	public void invoke(Event event) {
-            if (this.filter == ((IGenericEvent)event).getGenericType())
-            	handler.invoke(event);
+			handler.invoke(event);
     	}
 
 		@Override
-	    ASMEventHandler toCancelable() {
-			if (subInfo.receiveCanceled())
-				return this;
-	    	return new GenericCancelable(handler, subInfo, readable, filter);
-	    }
-    }
-
-    private static class GenericCancelable extends ASMEventHandler {
-        private GenericCancelable(IEventListener handler, SubscribeEvent subInfo, String readable, Type filter) {
-			super(handler, subInfo, readable, filter); //Filter can never be null in any paths we call it. But actually don't want to add a null check here because i don't want to re-do the if.
-		}
-
-		@SuppressWarnings("rawtypes")
-		@Override
-    	public void invoke(Event event) {
-            if (!event.isCanceled() && this.filter == ((IGenericEvent)event).getGenericType())
-            	handler.invoke(event);
-    	}
-
-		@Override
-	    ASMEventHandler toCancelable() {
-	    	return this;
-	    }
-    }
-
-    private static class Unchecked extends ASMEventHandler {
-        private Unchecked(IEventListener handler, SubscribeEvent subInfo, String readable, Type filter) {
-			super(handler, subInfo, readable, filter);
-		}
-
-		@Override
-    	public void invoke(Event event) {
-        	handler.invoke(event);
-    	}
-
-		@Override
-	    ASMEventHandler toCancelable() {
-			if (subInfo.receiveCanceled())
-				return this;
-	    	return new Cancelable(handler, subInfo, readable, filter);
-	    }
-    }
-
-    private static class Cancelable extends ASMEventHandler {
-        private Cancelable(IEventListener handler, SubscribeEvent subInfo, String readable, Type filter) {
-			super(handler, subInfo, readable, filter);
-		}
-
-		@Override
-    	public void invoke(Event event) {
-			if (!event.isCanceled())
-				handler.invoke(event);
-    	}
-
-		@Override
-	    ASMEventHandler toCancelable() {
-			return this;
+	    public IEventListener toCancelable() {
+			return ((IReactiveEventListener)handler).toCancelable();
 	    }
     }
 }
