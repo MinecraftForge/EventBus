@@ -25,7 +25,7 @@ public final class InternalUtils {
                         .findVirtual(Class.class, "getPermittedSubclasses", methodType)
                         .asType(methodType.insertParameterTypes(0, Class.class));
             } catch (Exception e) {
-                throw new ExceptionInInitializerError(e);
+                throw new ExceptionInInitializerError("Failed to find Class#getPermittedSubclasses(Class): " + e);
             }
         } else {
             GET_PERMITTED_SUBCLASSES = MethodHandles.empty(methodType.insertParameterTypes(0, Class.class));
