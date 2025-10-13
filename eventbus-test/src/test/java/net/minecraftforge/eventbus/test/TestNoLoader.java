@@ -17,6 +17,7 @@ import net.minecraftforge.eventbus.test.general.NonPublicEventHandler;
 import net.minecraftforge.eventbus.test.general.ParallelEventTest;
 import net.minecraftforge.eventbus.test.general.ParentHandlersGetInvokedTest;
 import net.minecraftforge.eventbus.test.general.ParentHandlersGetInvokedTestDummy;
+import net.minecraftforge.eventbus.test.general.ParentInheritsCancelableTest;
 import net.minecraftforge.eventbus.test.general.ThreadedListenerExceptionTest;
 
 import org.junit.jupiter.api.Disabled;
@@ -87,6 +88,11 @@ public class TestNoLoader extends TestNoLoaderBase {
     @Test
     public void parentHandlerGetsInvokedDummy() {
         doTest(new ParentHandlersGetInvokedTestDummy() {});
+    }
+
+    @Test
+    public void parentInheritsCanceableTest() {
+    	doTest(new ParentInheritsCancelableTest() {} );
     }
 
     @RepeatedTest(100)

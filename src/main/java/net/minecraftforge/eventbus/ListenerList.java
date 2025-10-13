@@ -21,6 +21,7 @@ public class ListenerList {
     @Nullable
     private final ListenerList parent;
     private ListenerListInst[] lists = new ListenerListInst[0];
+    private volatile boolean cancelable = false;
 
     public ListenerList() {
         this(null);
@@ -46,6 +47,23 @@ public class ListenerList {
                 }
             }
         }
+    }
+
+    boolean isCancelable() {
+    	return this.cancelable;
+    }
+
+    synchronized void setCancelable() {
+    	if (this.cancelable)
+    		return;
+
+    	this.cancelable = true;
+
+    	if (parent != null)
+    		parent.setCancelable();
+
+    	for (ListenerListInst inst : lists)
+    		inst.setCancelable();
     }
 
     private synchronized void resizeLists(int max) {
@@ -259,6 +277,28 @@ public class ListenerList {
                 listenersForPriority = priorities[priority.ordinal()] = new ArrayList<>();
 
             return listenersForPriority;
+        }
+
+        private void setCancelable() {
+        	writeLock.acquireUninterruptibly();
+        	boolean needsRebuild = false;
+        	for (ArrayList<IEventListener> priority : priorities) {
+        		if (priority == null)
+        			continue;
+        		for (int x = 0; x < priority.size(); x++) {
+        			IEventListener old = priority.get(x);
+        			if (old instanceof ASMEventHandler) {
+        				IEventListener cancelable = ((ASMEventHandler)old).toCancelable();
+        				if (old == cancelable)
+        					continue;
+
+        				needsRebuild = true;
+        				priority.set(x, cancelable);
+        			}
+        		}
+        	}
+        	if (needsRebuild) this.forceRebuild();
+        	writeLock.release();
         }
     }
 }

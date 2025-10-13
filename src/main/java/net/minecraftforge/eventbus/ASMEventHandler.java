@@ -11,23 +11,35 @@ import static org.objectweb.asm.Type.getMethodDescriptor;
 
 public class ASMEventHandler implements IEventListener {
     protected final IEventListener handler;
-    private final SubscribeEvent subInfo;
-    private final String readable;
-    private final Type filter;
+    protected final SubscribeEvent subInfo;
+    protected final String readable;
+    protected final Type filter;
 
     /**
      * @deprecated Use {@link #of(IEventListenerFactory, Object, Method, boolean)} instead for better performance.
      */
     @Deprecated
     public ASMEventHandler(IEventListenerFactory factory, Object target, Method method, boolean isGeneric) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException {
-        this(factory, target, method, isGeneric, method.getAnnotation(SubscribeEvent.class));
+        this(
+    		factory.create(method, target),
+    		method.getAnnotation(SubscribeEvent.class),
+    		makeReadable(target, method),
+    		getFilter(isGeneric, method)
+		);
     }
 
-    private ASMEventHandler(IEventListenerFactory factory, Object target, Method method, boolean isGeneric, SubscribeEvent subInfo) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException {
-        handler = factory.create(method, target);
+    private ASMEventHandler(IEventListener handler, SubscribeEvent subInfo, String readable, Type filter) {
+    	this.handler = handler;
+    	this.subInfo = subInfo;
+    	this.readable = readable;
+    	this.filter = filter;
+    }
 
-        this.subInfo = subInfo;
-        readable = "ASM: " + target + " " + method.getName() + getMethodDescriptor(method);
+    private static String makeReadable(Object target, Method method) {
+    	return "ASM: " + target + " " + method.getName() + getMethodDescriptor(method);
+    }
+
+    private static Type getFilter(boolean isGeneric, Method method) {
         Type filter = null;
         if (isGeneric) {
             Type type = method.getGenericParameterTypes()[0];
@@ -43,7 +55,7 @@ public class ASMEventHandler implements IEventListener {
                 }
             }
         }
-        this.filter = filter;
+        return filter;
     }
 
     @SuppressWarnings("rawtypes")
@@ -64,6 +76,14 @@ public class ASMEventHandler implements IEventListener {
     }
 
     /**
+     * Convert this handler to one that respects canceled states.
+     * This is called when we eagerly do the optimization, and then a unknown child adds the ability to be canceled.
+     */
+    ASMEventHandler toCancelable() {
+    	return this;
+    }
+
+    /**
      * Creates a new ASMEventHandler instance, factoring in a time-shifting optimisation.
      *
      * <p>In the case that no post-time checks are needed, an anonymous subclass instance will be returned that calls
@@ -77,15 +97,92 @@ public class ASMEventHandler implements IEventListener {
         var subInfo = method.getAnnotation(SubscribeEvent.class);
         assert subInfo != null;
         var eventType = method.getParameterTypes()[0];
-        if (isGeneric || !Modifier.isFinal(eventType.getModifiers()) || EventListenerHelper.isCancelable(eventType))
-            return new ASMEventHandler(factory, target, method, isGeneric, subInfo);
+        var filter = getFilter(isGeneric, method);
+        var readable = makeReadable(target, method);
+        var handler = factory.create(method, target);
+        var canceable = EventListenerHelper.isCancelable(eventType);
 
-        // If we get to this point, no post-time checks are needed, so strip them out
-        return new ASMEventHandler(factory, target, method, false, subInfo) {
-            @Override
-            public void invoke(Event event) {
-                handler.invoke(event);
-            }
-        };
+        if (filter != null) {
+        	if (canceable && !subInfo.receiveCanceled())
+        		return new GenericCancelable(handler, subInfo, readable, filter);
+            return new Generic(handler, subInfo, readable, filter);
+        } else {
+        	if (canceable && !subInfo.receiveCanceled())
+        		return new Cancelable(handler, subInfo, readable, filter);
+        	return new Unchecked(handler, subInfo, readable, filter);
+        }
+    }
+
+    private static class Generic extends ASMEventHandler {
+        private Generic(IEventListener handler, SubscribeEvent subInfo, String readable, Type filter) {
+			super(handler, subInfo, readable, filter); //Filter can never be null in any paths we call it. But actually don't want to add a null check here because i don't want to re-do the if.
+		}
+
+		@SuppressWarnings("rawtypes")
+		@Override
+    	public void invoke(Event event) {
+            if (this.filter == ((IGenericEvent)event).getGenericType())
+            	handler.invoke(event);
+    	}
+
+		@Override
+	    ASMEventHandler toCancelable() {
+			if (subInfo.receiveCanceled())
+				return this;
+	    	return new GenericCancelable(handler, subInfo, readable, filter);
+	    }
+    }
+
+    private static class GenericCancelable extends ASMEventHandler {
+        private GenericCancelable(IEventListener handler, SubscribeEvent subInfo, String readable, Type filter) {
+			super(handler, subInfo, readable, filter); //Filter can never be null in any paths we call it. But actually don't want to add a null check here because i don't want to re-do the if.
+		}
+
+		@SuppressWarnings("rawtypes")
+		@Override
+    	public void invoke(Event event) {
+            if (!event.isCanceled() && this.filter == ((IGenericEvent)event).getGenericType())
+            	handler.invoke(event);
+    	}
+
+		@Override
+	    ASMEventHandler toCancelable() {
+	    	return this;
+	    }
+    }
+
+    private static class Unchecked extends ASMEventHandler {
+        private Unchecked(IEventListener handler, SubscribeEvent subInfo, String readable, Type filter) {
+			super(handler, subInfo, readable, filter);
+		}
+
+		@Override
+    	public void invoke(Event event) {
+        	handler.invoke(event);
+    	}
+
+		@Override
+	    ASMEventHandler toCancelable() {
+			if (subInfo.receiveCanceled())
+				return this;
+	    	return new Cancelable(handler, subInfo, readable, filter);
+	    }
+    }
+
+    private static class Cancelable extends ASMEventHandler {
+        private Cancelable(IEventListener handler, SubscribeEvent subInfo, String readable, Type filter) {
+			super(handler, subInfo, readable, filter);
+		}
+
+		@Override
+    	public void invoke(Event event) {
+			if (!event.isCanceled())
+				handler.invoke(event);
+    	}
+
+		@Override
+	    ASMEventHandler toCancelable() {
+			return this;
+	    }
     }
 }

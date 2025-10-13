@@ -256,7 +256,8 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
                 ? e -> consumer.accept((T) e)
                 : e -> doCastFilter(filter, eventClass, consumer, e);
 
-        addToListeners(consumer, eventClass, NamedEventListener.namedWrapper(listener, consumer.getClass()::getName), priority);
+        ListenerList listenerList = getListenerList(eventClass);
+        addToListeners(listenerList, consumer, NamedEventListener.namedWrapper(listener, consumer.getClass()::getName), priority);
     }
 
     @SuppressWarnings("unchecked")
@@ -268,15 +269,25 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
     private void register(Class<?> eventType, Object target, Method method) {
         try {
+            ListenerList listenerList = getListenerList(eventType);
             ASMEventHandler asm = ASMEventHandler.of(this.factory, target, method, IGenericEvent.class.isAssignableFrom(eventType));
-            addToListeners(target, eventType, asm, asm.getPriority());
+            if (listenerList.isCancelable())
+            	asm = asm.toCancelable();
+            addToListeners(listenerList, target, asm, asm.getPriority());
         } catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException | ClassNotFoundException e) {
             LOGGER.error(EVENTBUS,"Error registering event handler: {} {}", eventType, method, e);
         }
     }
 
-    private void addToListeners(final Object target, final Class<?> eventType, final IEventListener listener, final EventPriority priority) {
+    private ListenerList getListenerList(Class<?> eventType) {
         ListenerList listenerList = EventListenerHelper.getListenerList(eventType);
+        if (EventListenerHelper.isCancelable(eventType))
+        	listenerList.setCancelable();
+
+        return listenerList;
+    }
+
+    private void addToListeners(final ListenerList listenerList, final Object target, final IEventListener listener, final EventPriority priority) {
         listenerList.register(busID, this, priority, listener);
         List<IEventListener> others = listeners.computeIfAbsent(target, k -> Collections.synchronizedList(new ArrayList<>()));
         others.add(listener);
