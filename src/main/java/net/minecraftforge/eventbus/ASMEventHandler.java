@@ -11,9 +11,9 @@ import static org.objectweb.asm.Type.getMethodDescriptor;
 
 public class ASMEventHandler implements IEventListener {
     protected final IEventListener handler;
-    protected final SubscribeEvent subInfo;
-    protected final String readable;
-    protected final Type filter;
+    private final SubscribeEvent subInfo;
+    private final String readable;
+    private final Type filter;
 
     /**
      * @deprecated Use {@link #of(IEventListenerFactory, Object, Method, boolean)} instead for better performance.

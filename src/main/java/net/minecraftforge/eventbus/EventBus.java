@@ -260,8 +260,6 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     private void register(Class<?> eventType, Object target, Method method) {
         try {
         	EventPriority priority = method.getAnnotation(SubscribeEvent.class).priority();
-
-
             ListenerList listenerList = getListenerList(eventType);
             IEventListener asm = ASMEventHandler.of(this.factory, target, method, IGenericEvent.class.isAssignableFrom(eventType), listenerList.isCancelable());
             addToListeners(listenerList, target, asm, priority);
