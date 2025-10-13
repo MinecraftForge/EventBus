@@ -86,7 +86,7 @@ public class ASMEventHandler implements IEventListener {
     /**
      * Creates a new ASMEventHandler instance, factoring in a time-shifting optimisation.
      *
-     * <p>In the case that no post-time checks are needed, an anonymous subclass instance will be returned that calls
+     * <p>In the case that no post-time checks are needed, an subclass instance will be returned that calls
      * the listener without additional redundant checks.</p>
      *
      * @implNote The 'all or nothing' nature of the post-time checks is to reduce the likelihood of megamorphic method
@@ -94,20 +94,35 @@ public class ASMEventHandler implements IEventListener {
      *           (what EventBus 6.2.x targets).
      */
     public static ASMEventHandler of(IEventListenerFactory factory, Object target, Method method, boolean isGeneric) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException {
+    	return of(factory, target, method, isGeneric, false);
+    }
+
+
+    /**
+     * Creates a new ASMEventHandler instance, factoring in a time-shifting optimisation.
+     *
+     * <p>In the case that no post-time checks are needed, an subclass instance will be returned that calls
+     * the listener without additional redundant checks.</p>
+     *
+     * @implNote The 'all or nothing' nature of the post-time checks is to reduce the likelihood of megamorphic method
+     *           invocation, which isn't as performant as monomorphic or bimorphic calls in Java 16
+     *           (what EventBus 6.2.x targets).
+     */
+    public static ASMEventHandler of(IEventListenerFactory factory, Object target, Method method, boolean isGeneric, boolean forceCancelable) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException {
         var subInfo = method.getAnnotation(SubscribeEvent.class);
         assert subInfo != null;
         var eventType = method.getParameterTypes()[0];
         var filter = getFilter(isGeneric, method);
         var readable = makeReadable(target, method);
         var handler = factory.create(method, target);
-        var canceable = EventListenerHelper.isCancelable(eventType);
+        var cancelable = forceCancelable || EventListenerHelper.isCancelable(eventType);
 
         if (filter != null) {
-        	if (canceable && !subInfo.receiveCanceled())
+        	if (cancelable && !subInfo.receiveCanceled())
         		return new GenericCancelable(handler, subInfo, readable, filter);
             return new Generic(handler, subInfo, readable, filter);
         } else {
-        	if (canceable && !subInfo.receiveCanceled())
+        	if (cancelable && !subInfo.receiveCanceled())
         		return new Cancelable(handler, subInfo, readable, filter);
         	return new Unchecked(handler, subInfo, readable, filter);
         }

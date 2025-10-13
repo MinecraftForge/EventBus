@@ -270,9 +270,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
     private void register(Class<?> eventType, Object target, Method method) {
         try {
             ListenerList listenerList = getListenerList(eventType);
-            ASMEventHandler asm = ASMEventHandler.of(this.factory, target, method, IGenericEvent.class.isAssignableFrom(eventType));
-            if (listenerList.isCancelable())
-            	asm = asm.toCancelable();
+            ASMEventHandler asm = ASMEventHandler.of(this.factory, target, method, IGenericEvent.class.isAssignableFrom(eventType), listenerList.isCancelable());
             addToListeners(listenerList, target, asm, asm.getPriority());
         } catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException | ClassNotFoundException e) {
             LOGGER.error(EVENTBUS,"Error registering event handler: {} {}", eventType, method, e);
