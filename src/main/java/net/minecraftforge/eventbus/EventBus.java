@@ -239,15 +239,15 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
         @SuppressWarnings("unchecked")
         IEventListener listener = new IEventListener() {
-			@Override
-			public void invoke(Event event) {
-				consumer.accept((T)event);
-			}
+            @Override
+            public void invoke(Event event) {
+                consumer.accept((T)event);
+            }
 
-			@Override
-		    public String toString() {
-		        return "Lambda Handler: " + consumer.toString();
-		    }
+            @Override
+            public String toString() {
+                return "Lambda Handler: " + consumer.toString();
+            }
         };
 
         ListenerList listenerList = getListenerList(eventClass);
@@ -259,7 +259,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
     private void register(Class<?> eventType, Object target, Method method) {
         try {
-        	EventPriority priority = method.getAnnotation(SubscribeEvent.class).priority();
+            EventPriority priority = method.getAnnotation(SubscribeEvent.class).priority();
             ListenerList listenerList = getListenerList(eventType);
             IEventListener asm = ASMEventHandler.of(this.factory, target, method, IGenericEvent.class.isAssignableFrom(eventType), listenerList.isCancelable());
             addToListeners(listenerList, target, asm, priority);
@@ -270,8 +270,8 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
     private ListenerList getListenerList(Class<?> eventType) {
         ListenerList listenerList = EventListenerHelper.getListenerList(eventType);
-        if (EventListenerHelper.isCancelable(eventType))
-        	listenerList.setCancelable();
+        if (!listenerList.isCancelable() && EventListenerHelper.isCancelable(eventType))
+            listenerList.setCancelable();
 
         return listenerList;
     }

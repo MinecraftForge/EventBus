@@ -21,22 +21,22 @@ public class ASMEventHandler implements IEventListener {
     @Deprecated
     public ASMEventHandler(IEventListenerFactory factory, Object target, Method method, boolean isGeneric) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException {
         this(
-    		factory.create(method, target),
-    		method.getAnnotation(SubscribeEvent.class),
-    		makeReadable(target, method),
-    		getFilter(isGeneric, method)
-		);
+            factory.create(method, target),
+            method.getAnnotation(SubscribeEvent.class),
+            makeReadable(target, method),
+            getFilter(isGeneric, method)
+        );
     }
 
     private ASMEventHandler(IEventListener handler, SubscribeEvent subInfo, String readable, Type filter) {
-    	this.handler = handler;
-    	this.subInfo = subInfo;
-    	this.readable = readable;
-    	this.filter = filter;
+        this.handler = handler;
+        this.subInfo = subInfo;
+        this.readable = readable;
+        this.filter = filter;
     }
 
     private static String makeReadable(Object target, Method method) {
-    	return "ASM: " + target + " " + method.getName() + getMethodDescriptor(method);
+        return "ASM: " + target + " " + method.getName() + getMethodDescriptor(method);
     }
 
     private static Type getFilter(boolean isGeneric, Method method) {
@@ -80,12 +80,7 @@ public class ASMEventHandler implements IEventListener {
      * Creates a new ASMEventHandler instance, factoring in a time-shifting optimisation.
      *
      * <p>In the case that no post-time checks are needed, an subclass instance will be returned that calls
-     * the listener without additional redundant checks.</p>
-     *
-     * @implNote The 'all or nothing' nature of the post-time checks is to reduce the likelihood of megamorphic method
-     *           invocation, which isn't as performant as monomorphic or bimorphic calls in Java 16
-     *           (what EventBus 6.2.x targets).
-     *
+     * the listener without additional redundant checks.</p>     *
      *
      * @deprecated Use {@link #of(IEventListenerFactory, Object, Method, boolean, boolean)} instead to prevent wrapping in ASMEventHandler type, for better performance
      */
@@ -100,7 +95,7 @@ public class ASMEventHandler implements IEventListener {
 
         var handler = ReactiveEventListener.of(factory.create(method, target), readable, filter, subInfo.receiveCanceled(), cancelable);
         if (handler instanceof IReactiveEventListener)
-        	return new Reactive(handler, subInfo, readable, filter);
+            return new Reactive(handler, subInfo, readable, filter);
         return new ASMEventHandler(handler, subInfo, readable, filter);
     }
 
@@ -110,10 +105,6 @@ public class ASMEventHandler implements IEventListener {
      *
      * <p>In the case that no post-time checks are needed, an subclass instance will be returned that calls
      * the listener without additional redundant checks.</p>
-     *
-     * @implNote The 'all or nothing' nature of the post-time checks is to reduce the likelihood of megamorphic method
-     *           invocation, which isn't as performant as monomorphic or bimorphic calls in Java 16
-     *           (what EventBus 6.2.x targets).
      */
     public static IEventListener of(IEventListenerFactory factory, Object target, Method method, boolean isGeneric, boolean forceCancelable) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException {
         var subInfo = method.getAnnotation(SubscribeEvent.class);
@@ -128,17 +119,17 @@ public class ASMEventHandler implements IEventListener {
 
     private static class Reactive extends ASMEventHandler implements IReactiveEventListener {
         private Reactive(IEventListener handler, SubscribeEvent subInfo, String readable, Type filter) {
-			super(handler, subInfo, readable, filter); //Filter can never be null in any paths we call it. But actually don't want to add a null check here because i don't want to re-do the if.
-		}
+            super(handler, subInfo, readable, filter); //Filter can never be null in any paths we call it. But actually don't want to add a null check here because i don't want to re-do the if.
+        }
 
-		@Override
-    	public void invoke(Event event) {
-			handler.invoke(event);
-    	}
+        @Override
+        public void invoke(Event event) {
+            handler.invoke(event);
+        }
 
-		@Override
-	    public IEventListener toCancelable() {
-			return ((IReactiveEventListener)handler).toCancelable();
-	    }
+        @Override
+        public IEventListener toCancelable() {
+            return ((IReactiveEventListener)handler).toCancelable();
+        }
     }
 }
