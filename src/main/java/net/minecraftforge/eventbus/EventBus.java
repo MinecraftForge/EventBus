@@ -6,6 +6,7 @@ package net.minecraftforge.eventbus;
 
 import net.jodah.typetools.TypeResolver;
 import net.minecraftforge.eventbus.api.*;
+import net.minecraftforge.eventbus.internal.InternalUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.Type;
@@ -252,7 +253,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
         }
 
         @SuppressWarnings("unchecked")
-        IEventListener listener = Modifier.isFinal(eventClass.getModifiers()) && (filter == checkCancelled || filter == null) && !EventListenerHelper.isCancelable(eventClass)
+        IEventListener listener = (filter == checkCancelled || filter == null) && !InternalUtils.couldBeCancelled(eventClass)
                 ? e -> consumer.accept((T) e)
                 : e -> doCastFilter(filter, eventClass, consumer, e);
 

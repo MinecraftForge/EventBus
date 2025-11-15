@@ -5,6 +5,7 @@
 package net.minecraftforge.eventbus;
 
 import net.minecraftforge.eventbus.api.*;
+import net.minecraftforge.eventbus.internal.InternalUtils;
 
 import java.lang.reflect.*;
 import static org.objectweb.asm.Type.getMethodDescriptor;
@@ -77,7 +78,7 @@ public class ASMEventHandler implements IEventListener {
         var subInfo = method.getAnnotation(SubscribeEvent.class);
         assert subInfo != null;
         var eventType = method.getParameterTypes()[0];
-        if (isGeneric || !Modifier.isFinal(eventType.getModifiers()) || EventListenerHelper.isCancelable(eventType))
+        if (InternalUtils.couldBeCancelled(eventType, isGeneric))
             return new ASMEventHandler(factory, target, method, isGeneric, subInfo);
 
         // If we get to this point, no post-time checks are needed, so strip them out
