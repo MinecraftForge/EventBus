@@ -44,18 +44,16 @@ public record EventBusImpl<T extends Event>(
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"}) // T extends Event, so this is safe.
     public EventListener addListener(Consumer<T> listener) {
-        return addListener(new EventListenerImpl.ConsumerListener(eventType, Priority.NORMAL, (Consumer<Event>) (Consumer) listener));
+        return addListener(new EventListenerImpl.ConsumerListener<>(eventType, Priority.NORMAL, listener));
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"}) // T extends Event, so this is safe.
     public EventListener addListener(byte priority, Consumer<T> listener) {
         return addListener(
                 priority == Priority.MONITOR
-                        ? new EventListenerImpl.MonitoringListener(eventType, (Consumer<Event>) (Consumer) listener)
-                        : new EventListenerImpl.ConsumerListener(eventType, priority, (Consumer<Event>) (Consumer) listener)
+                        ? new EventListenerImpl.MonitoringListener<>(eventType, listener)
+                        : new EventListenerImpl.ConsumerListener<>(eventType, priority, listener)
         );
     }
 

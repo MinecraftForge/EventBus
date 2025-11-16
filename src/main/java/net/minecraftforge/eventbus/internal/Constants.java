@@ -63,12 +63,12 @@ final class Constants {
     }
 
     @SuppressWarnings("unchecked")
-    static <T> Consumer<T> getNoOpConsumer() {
+    static <T extends Event> Consumer<T> getNoOpConsumer() {
         return (Consumer<T>) NO_OP_CONSUMER;
     }
 
     @SuppressWarnings("unchecked")
-    static <T> Predicate<T> getNoOpPredicate(boolean alwaysCancelling) {
+    static <T extends Event> Predicate<T> getNoOpPredicate(boolean alwaysCancelling) {
         return (Predicate<T>) (alwaysCancelling ? ALWAYS_TRUE_PREDICATE : NO_OP_PREDICATE);
     }
 
