@@ -38,7 +38,6 @@ final class EventListenerFactory {
 
     private static final Map<Method, MethodHandle> LMF_CACHE = new ConcurrentHashMap<>();
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public static Collection<EventListener> register(BusGroupImpl busGroup, MethodHandles.Lookup callerLookup,
                                                      Class<?> listenerClass, @Nullable Object listenerInstance) {
         Method[] declaredMethods = listenerClass.getDeclaredMethods();
@@ -70,6 +69,7 @@ final class EventListenerFactory {
             if (!Event.class.isAssignableFrom(parameterTypes[0]))
                 throw new IllegalArgumentException("First parameter of a @SubscribeEvent method must be an event");
 
+            @SuppressWarnings({"unchecked"})
             Class<? extends Event> eventType = (Class<? extends Event>) parameterTypes[0];
             var subscribeEventAnnotation = method.getAnnotation(SubscribeEvent.class);
 
@@ -97,7 +97,6 @@ final class EventListenerFactory {
      * checks at compile-time.</p>
      * @see Constants#STRICT_REGISTRATION_CHECKS
      */
-    @SuppressWarnings({"unchecked"})
     public static Collection<EventListener> registerStrict(BusGroupImpl busGroup, MethodHandles.Lookup callerLookup,
                                                            Class<?> listenerClass, @Nullable Object listenerInstance) {
         Class<? extends Event> firstValidListenerEventType = null;
@@ -141,6 +140,7 @@ final class EventListenerFactory {
                 if (!firstParamExtendsEvent)
                     throw fail(method, "First parameter of a @SubscribeEvent method must be an event");
 
+                @SuppressWarnings({"unchecked"})
                 var eventType = (Class<? extends Event>) parameterTypes[0];
 
                 if (returnType != void.class && returnType != boolean.class)

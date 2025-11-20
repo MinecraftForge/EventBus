@@ -124,7 +124,7 @@ final class InvokerFactory {
                 throw new UnsupportedOperationException("This version of EventBus only supports " +
                         "EventCharacteristics.MonitorAware on MutableEvent");
 
-            // If there's only one monitoring listener, invoke it directly without setting up an iterator/loop
+            // If there's only one monitoring listener, invoke it directly without setting up a loop on a mutable array
             if (monitoringListeners.size() == 1) {
                 var firstMonitor = unwrappedMonitors.getFirst();
                 return event -> {
@@ -172,12 +172,10 @@ final class InvokerFactory {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private static <T extends Event> Consumer<T> createInvoker(List<EventListener> listeners) {
-        return createInvokerFromUnwrapped((List<Consumer<T>>) (List) InvokerFactoryUtils.unwrapConsumers(listeners));
+        return createInvokerFromUnwrapped(InvokerFactoryUtils.unwrapConsumers(listeners));
     }
 
-    @SuppressWarnings("unchecked")
     private static <T extends Event & Cancellable> Predicate<T> createCancellableInvoker(List<EventListener> listeners) {
         // If none of the listeners are able to cancel the event, we can remove the overhead of checking for cancellation entirely
         // by treating it like a non-cancellable event.
@@ -195,14 +193,14 @@ final class InvokerFactory {
             // Maybe JEP 402 can save us from this workaround in the future? https://openjdk.java.net/jeps/402
 
             return createCancellableInvokerFromUnwrappedNoChecks(
-                    (List<Consumer<T>>) (List) InvokerFactoryUtils.unwrapAlwaysCancellingConsumers(listeners),
+                    InvokerFactoryUtils.unwrapAlwaysCancellingConsumers(listeners),
                     listeners.stream()
                             .map(EventListenerImpl.WrappedConsumerListener.class::cast)
                             .anyMatch(EventListenerImpl.WrappedConsumerListener::alwaysCancelling)
             );
         }
 
-        return createCancellableInvokerFromUnwrapped((List<Predicate<T>>) (List) InvokerFactoryUtils.unwrapPredicates(listeners));
+        return createCancellableInvokerFromUnwrapped(InvokerFactoryUtils.unwrapPredicates(listeners));
     }
 
     private static <T extends Event> Consumer<T> createInvokerFromUnwrapped(List<Consumer<T>> listeners) {

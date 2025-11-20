@@ -47,23 +47,20 @@ public record CancellableEventBusImpl<T extends Event & Cancellable>(
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"}) // T extends Event, so this is safe.
     public EventListener addListener(Consumer<T> listener) {
-        return addListener(new EventListenerImpl.WrappedConsumerListener(eventType, Priority.NORMAL, (Consumer<Event>) (Consumer) listener));
+        return addListener(new EventListenerImpl.WrappedConsumerListener<>(eventType, Priority.NORMAL, listener));
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"}) // T extends Event, so this is safe.
     public EventListener addListener(byte priority, Consumer<T> listener) {
         return addListener(
                 priority == Priority.MONITOR
-                        ? new EventListenerImpl.MonitoringListener(eventType, (Consumer<Event>) (Consumer) listener)
-                        : new EventListenerImpl.WrappedConsumerListener(eventType, priority, (Consumer<Event>) (Consumer) listener)
+                        ? new EventListenerImpl.MonitoringListener<>(eventType, listener)
+                        : new EventListenerImpl.WrappedConsumerListener<>(eventType, priority, listener)
         );
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"}) // T extends Event, so this is safe
     public EventListener addListener(byte priority, boolean alwaysCancelling, Consumer<T> listener) {
         if (!alwaysCancelling) {
             throw new IllegalArgumentException("If you never cancel the event, call addListener(byte, Consumer<T>)" +
@@ -75,28 +72,25 @@ public record CancellableEventBusImpl<T extends Event & Cancellable>(
         if (priority == Priority.MONITOR)
             throw new IllegalArgumentException("Monitoring listeners cannot cancel events");
 
-        return addListener(new EventListenerImpl.WrappedConsumerListener(eventType, priority, true, (Consumer<Event>) (Consumer) listener));
+        return addListener(new EventListenerImpl.WrappedConsumerListener<>(eventType, priority, true, listener));
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"}) // T extends Event, so this is safe
     public EventListener addListener(Predicate<T> listener) {
-        return addListener(new EventListenerImpl.PredicateListener(eventType, Priority.NORMAL, (Predicate<Event>) (Predicate) listener));
+        return addListener(new EventListenerImpl.PredicateListener<>(eventType, Priority.NORMAL, listener));
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"}) // T extends Event, so this is safe
     public EventListener addListener(byte priority, Predicate<T> listener) {
         if (priority == Priority.MONITOR)
             throw new IllegalArgumentException("Monitoring listeners cannot cancel events");
 
-        return addListener(new EventListenerImpl.PredicateListener(eventType, priority, (Predicate<Event>) (Predicate) listener));
+        return addListener(new EventListenerImpl.PredicateListener<>(eventType, priority, listener));
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"}) // T extends Event, so this is safe
     public EventListener addListener(ObjBooleanBiConsumer<T> monitoringListener) {
-        return addListener(new EventListenerImpl.MonitoringListener(eventType, (ObjBooleanBiConsumer<Event>) (ObjBooleanBiConsumer) monitoringListener));
+        return addListener(new EventListenerImpl.MonitoringListener<>(eventType, monitoringListener));
     }
 
     @Override
@@ -112,7 +106,7 @@ public record CancellableEventBusImpl<T extends Event & Cancellable>(
 
     @Override
     public boolean hasListeners() {
-        return ((Predicate<?>) getInvoker()) != NO_OP_PREDICATE;
+        return ((Predicate<? extends Event>) getInvoker()) != NO_OP_PREDICATE;
     }
 
     //region Invoker
@@ -137,7 +131,7 @@ public record CancellableEventBusImpl<T extends Event & Cancellable>(
             backingList.sort(PRIORITY_COMPARATOR);
 
             if (Constants.isSelfDestructing(eventCharacteristics()))
-                monitorBackingList.add(new EventListenerImpl.MonitoringListener(eventType, (event, wasCancelled) -> dispose()));
+                monitorBackingList.add(new EventListenerImpl.MonitoringListener<>(eventType, (event, wasCancelled) -> dispose()));
 
             Predicate<T> invoker = setInvoker(InvokerFactory.createCancellableMonitoringInvoker(
                     eventType, eventCharacteristics, backingList, monitorBackingList

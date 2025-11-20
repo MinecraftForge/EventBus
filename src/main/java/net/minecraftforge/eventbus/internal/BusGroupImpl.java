@@ -79,7 +79,7 @@ public record BusGroupImpl(
                     "the BusGroup#register method.");
 
         for (var listener : listeners) {
-            getOrCreateEventBus((Class<? extends Event>) listener.eventType()).removeListener(listener);
+            getOrCreateEventBus(listener.eventType()).removeListener(listener);
         }
     }
 
