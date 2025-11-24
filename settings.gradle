@@ -1,5 +1,5 @@
 plugins {
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.10.0'
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
 
 dependencyResolutionManagement {
@@ -11,21 +11,21 @@ dependencyResolutionManagement {
 
     //@formatter:off
     versionCatalogs.register('libs') {
-        plugin 'modules',     'org.gradlex.extra-java-module-info' version '1.11'
+        plugin 'modules',     'org.gradlex.extra-java-module-info' version '1.13.1'
         plugin 'gradleutils', 'net.minecraftforge.gradleutils'     version '2.5.1'
         plugin 'licenser',    'net.minecraftforge.licenser'        version '1.2.0'
 
-        plugin 'errorprone', 'net.ltgt.errorprone' version '4.1.0'
-        plugin 'nullaway',   'net.ltgt.nullaway'   version '2.2.0'
+        plugin 'errorprone', 'net.ltgt.errorprone' version '4.3.0'
+        plugin 'nullaway',   'net.ltgt.nullaway'   version '2.3.0'
 
         // https://mvnrepository.com/artifact/org.jspecify/jspecify
         library 'jspecify-annotations', 'org.jspecify', 'jspecify' version '1.0.0'
 
         // https://mvnrepository.com/artifact/com.google.errorprone/error_prone_core
-        library 'errorprone-core', 'com.google.errorprone', 'error_prone_core' version '2.36.0'
+        library 'errorprone-core', 'com.google.errorprone', 'error_prone_core' version '2.44.0'
 
         // https://mvnrepository.com/artifact/com.uber.nullaway/nullaway
-        library 'nullaway', 'com.uber.nullaway', 'nullaway' version '0.12.4'
+        library 'nullaway', 'com.uber.nullaway', 'nullaway' version '0.12.12'
 
 
         /* The rest is for testing */
@@ -37,7 +37,7 @@ dependencyResolutionManagement {
         library 'junit-platform-launcher', 'org.junit.platform', 'junit-platform-launcher' version '1.10.1'
         bundle 'junit-runtime', ['junit-engine', 'junit-platform-launcher']
 
-        version 'asm', '9.7.1'
+        version 'asm', '9.9'
         library 'asm',         'org.ow2.asm', 'asm'         versionRef 'asm'
         library 'asm-tree',    'org.ow2.asm', 'asm-tree'    versionRef 'asm'
         library 'asm-commons', 'org.ow2.asm', 'asm-commons' versionRef 'asm'

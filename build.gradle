@@ -56,6 +56,10 @@ tasks.withType(JavaCompile).configureEach {
         // Enforce the ErrorProne checks we care about
         errorProne.error 'FieldCanBeFinal', 'MethodCanBeStatic', 'LambdaFunctionalInterface'
     }
+
+    // Needed for Java 21, not needed on Java 22+. This flag requires javac 21.0.8+ to work.
+    // See https://github.com/uber/NullAway/wiki/JSpecify-Support#supported-jdk-versions
+    options.compilerArgs += '-XDaddTypeAnnotationsToSymbol=true'
 }
 
 tasks.named('jar', Jar) {
