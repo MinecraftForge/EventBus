@@ -139,7 +139,9 @@ public sealed interface AbstractEventBusImpl<T extends Event, I> extends EventBu
 
         synchronized (backingList()) {
             // Force invalidate the invoker to remove the no-op invoker that might've been set by shutdown()
-            alreadyInvalidated().set(false);
+            // Note: Opaque suffices here as this write immediately precedes the read made in invalidateInvoker() inside
+            //       the same synchronised block
+            alreadyInvalidated().setOpaque(false);
             invalidateInvoker();
 
             children().forEach(AbstractEventBusImpl::startup);

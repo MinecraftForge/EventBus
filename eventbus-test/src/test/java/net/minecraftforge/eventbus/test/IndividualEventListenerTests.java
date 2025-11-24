@@ -4,6 +4,7 @@
  */
 package net.minecraftforge.eventbus.test;
 
+import net.minecraftforge.eventbus.api.bus.BusGroup;
 import net.minecraftforge.eventbus.api.bus.CancellableEventBus;
 import net.minecraftforge.eventbus.api.bus.EventBus;
 import net.minecraftforge.eventbus.api.event.RecordEvent;
@@ -315,5 +316,44 @@ public class IndividualEventListenerTests {
         Assertions.assertTrue(CancellableTestEvent.BUS.hasListeners(), "CancellableTestEvent.BUS should have listeners");
         CancellableTestEvent.BUS.removeListener(listener);
         Assertions.assertFalse(CancellableTestEvent.BUS.hasListeners(), "CancellableTestEvent.BUS should no longer have listeners");
+    }
+
+    /**
+     * Tests that {@link BusGroup#shutdown()} and {@link BusGroup#startup()} work as expected.
+     */
+    @Test
+    public void testShutdownAndStartup() {
+        record TestEvent() implements RecordEvent {
+            static final BusGroup TEST_GROUP = BusGroup.create(TestEvent.class.getName() + "testShutdown");
+            static final EventBus<TestEvent> BUS = EventBus.create(TEST_GROUP, TestEvent.class);
+        }
+
+        var called = new AtomicBoolean();
+        Assertions.assertFalse(called.get(), "Listeners should not have been called yet");
+        var listener1 = TestEvent.BUS.addListener(event -> called.set(true));
+        var listener2 = TestEvent.BUS.addListener(event -> called.set(true));
+        Assertions.assertFalse(called.get(), "Listeners should not have been called yet");
+        TestEvent.BUS.post(new TestEvent());
+        Assertions.assertTrue(called.get(), "Listeners should have been called");
+
+        called.set(false);
+        TestEvent.TEST_GROUP.shutdown();
+        TestEvent.BUS.post(new TestEvent());
+        Assertions.assertFalse(called.get(), "Listeners should not have been called after shutdown");
+
+        TestEvent.BUS.removeListener(listener1);
+        TestEvent.BUS.post(new TestEvent());
+        Assertions.assertFalse(called.get(), "Listener2 should not have been called after removal of Listener1");
+
+        TestEvent.BUS.removeListener(listener2);
+        TestEvent.BUS.addListener(listener1);
+        TestEvent.BUS.post(new TestEvent());
+        Assertions.assertFalse(called.get(), "Listener1 should not have been called after adding Listener2 back when the bus is shutdown");
+
+        TestEvent.TEST_GROUP.startup();
+        TestEvent.BUS.post(new TestEvent());
+        Assertions.assertTrue(called.get(), "Listener1 should have been called after startup");
+
+        TestEvent.TEST_GROUP.dispose();
     }
 }
