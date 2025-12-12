@@ -22,10 +22,10 @@ dependencyResolutionManagement {
         library 'jspecify-annotations', 'org.jspecify', 'jspecify' version '1.0.0'
 
         // https://mvnrepository.com/artifact/com.google.errorprone/error_prone_core
-        library 'errorprone-core', 'com.google.errorprone', 'error_prone_core' version '2.44.0'
+        library 'errorprone-core', 'com.google.errorprone', 'error_prone_core' version '2.45.0'
 
         // https://mvnrepository.com/artifact/com.uber.nullaway/nullaway
-        library 'nullaway', 'com.uber.nullaway', 'nullaway' version '0.12.12'
+        library 'nullaway', 'com.uber.nullaway', 'nullaway' version '0.12.14'
 
 
         /* The rest is for testing */
@@ -45,8 +45,7 @@ dependencyResolutionManagement {
         library 'jmh-core',                'org.openjdk.jmh', 'jmh-core'                 versionRef 'jmh'
         library 'jmh-annotationProcessor', 'org.openjdk.jmh', 'jmh-generator-annprocess' versionRef 'jmh'
 
-        library 'compile-testing', 'com.google.testing.compile', 'compile-testing' version '0.21.0'
-        library 'auto-value', 'com.google.auto.value', 'auto-value' version '1.11.0' // Need to bump this because compile-testing uses an old non-module compatible version
+        library 'compile-testing', 'com.google.testing.compile', 'compile-testing' version '0.23.0'
         library 'jetbrains-annotations', 'org.jetbrains', 'annotations' version '26.0.2'
     }
     //@formatter:on
