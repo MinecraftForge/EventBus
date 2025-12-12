@@ -6,6 +6,8 @@ plugins {
     id 'maven-publish'
     alias libs.plugins.modules
     alias libs.plugins.gradleutils
+    alias libs.plugins.gitversion
+    alias libs.plugins.changelog
     alias libs.plugins.licenser
 
     // Enforce jSpecify annotations at compile-time
@@ -73,9 +75,6 @@ tasks.named('jar', Jar) {
             'Implementation-Vendor' : projectVendor
         ])
     }
-
-    reproducibleFileOrder = true
-    preserveFileTimestamps = false
 }
 
 license {
@@ -91,7 +90,7 @@ publishing {
             name = projectDisplayName
             description = project.description
 
-            gradleutils.pom.gitHubDetails = pom
+            gradleutils.pom.addRemoteDetails(pom)
 
             licenses {
                 license gradleutils.pom.licenses.LGPLv2_1
