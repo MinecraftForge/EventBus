@@ -48,7 +48,7 @@ public final class EventBusValidator extends AbstractValidator {
         if (element.getKind() == ElementKind.FIELD) {
             TypeMirror erasedFieldType = types.erasure(element.asType());
             var isStandardEventBus = types.isSameType(erasedFieldType, BusTypes.eventBus);
-            boolean isCancellableEventBus = false;
+            var isCancellableEventBus = false;
             if (!(isStandardEventBus || (isCancellableEventBus = types.isSameType(erasedFieldType, BusTypes.cancellableEventBus))))
                 return; // only interested in (Cancellable)EventBus fields
 
