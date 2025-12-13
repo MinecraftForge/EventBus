@@ -35,4 +35,26 @@ public class EventBusValidatorTests {
         """);
         assertThat(compilation).hadWarningContaining("should be CancellableEventBus");
     }
+
+    /**
+     * Tests that the compile-time validation emits a warning when calling EventBus#create(Class) and casting the result
+     * to CancellableEventBus, as this relies on internal implementation details that aren't guaranteed to hold true in
+     * future patch updates. The correct approach is to call CancellableEventBus#create(Class) directly.
+     */
+    @Test
+    public void testBusFieldNotCasted() {
+        var compilation = compile("""
+            record CancellableEvent() implements Cancellable, RecordEvent {
+                static final CancellableEventBus<CancellableEvent> BUS = (CancellableEventBus<CancellableEvent>) EventBus.create(CancellableEvent.class);
+            }
+        """);
+        assertThat(compilation).hadWarningContaining("should call CancellableEventBus#create(Class) directly");
+
+        compilation = compile("""
+            record CancellableEvent() implements Cancellable, RecordEvent {
+                static final CancellableEventBus<CancellableEvent> BUS = CancellableEventBus.create(CancellableEvent.class);
+            }
+        """);
+        assertThat(compilation).succeeded();
+    }
 }
