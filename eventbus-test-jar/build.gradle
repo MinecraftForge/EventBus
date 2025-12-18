@@ -13,7 +13,6 @@ java {
 dependencies {
     implementation rootProject
     implementation libs.bundles.asm
-    implementation libs.unsafe
 
     implementation libs.jmh.core
 }
