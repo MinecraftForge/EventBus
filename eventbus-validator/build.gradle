@@ -20,10 +20,13 @@ license {
 
 publishing {
     publications.register('validatorMavenJava', MavenPublication) {
+        gradleutils.promote(it)
         from components.java
+        
         artifactId = 'eventbus-validator'
         groupId = 'net.minecraftforge'
         version = rootProject.version.toString()
+        
         pom {
             name = 'EventBus Validator'
             description = 'A compile-time validator for EventBus API usages'

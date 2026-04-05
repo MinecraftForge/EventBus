@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   build:
-    uses: MinecraftForge/SharedActions/.github/workflows/gradle.yml@v0
+    uses: MinecraftForge/SharedActions/.github/workflows/gradle.yml@main
     with:
       java: 21
       gradle_tasks: "check publish"
@@ -21,4 +21,3 @@ jobs:
       PROMOTE_ARTIFACT_PASSWORD: ${{ secrets.PROMOTE_ARTIFACT_PASSWORD }}
       MAVEN_USER: ${{ secrets.MAVEN_USER }}
       MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-      GRADLE_CACHE_KEY: ${{ secrets.GRADLE_CACHE_KEY }}

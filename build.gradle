@@ -84,8 +84,12 @@ license {
 
 publishing {
     publications.register('mavenJava', MavenPublication) {
+        changelog.publish(it)
+        gradleutils.promote(it)
+        
         from components.java
         artifactId = 'eventbus'
+        
         pom {
             name = projectDisplayName
             description = project.description
