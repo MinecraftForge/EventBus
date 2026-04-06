@@ -71,7 +71,11 @@ abstract sealed class AbstractValidator implements Processor
         this.processingEnv = processingEnv;
         var elements = processingEnv.getElementUtils();
         var types = processingEnv.getTypeUtils();
-        EventTypes.inheritableEvent = elements.getTypeElement(InheritableEvent.class.getCanonicalName()).asType();
+        try {
+            EventTypes.inheritableEvent = elements.getTypeElement(InheritableEvent.class.getCanonicalName()).asType();
+        } catch (NullPointerException|NoClassDefFoundError e) {
+            initError(e);
+        }
         EventTypes.recordEvent = elements.getTypeElement(RecordEvent.class.getCanonicalName()).asType();
         EventTypes.mutableEvent = elements.getTypeElement(MutableEvent.class.getCanonicalName()).asType();
         EventCharacteristics.cancellable = elements.getTypeElement(Cancellable.class.getCanonicalName()).asType();
@@ -83,5 +87,15 @@ abstract sealed class AbstractValidator implements Processor
     @Override
     public Iterable<? extends Completion> getCompletions(Element element, AnnotationMirror annotation, ExecutableElement member, String userText) {
         return List.of();
+    }
+
+    private static void initError(Throwable e) {
+        throw new IllegalStateException("""
+                Failed to setup the EventBus validator annotation processor as unable to get the compiler type elements required for validating EventBus API usages.
+                Possible solutions:
+                - Ensure that EventBus is on the compile classpath/modulepath and that its version matches the validator version
+                - Remove the EventBus validator annotation processor if you are not using EventBus in your project
+                - Add `requires net.minecraftforge.eventbus` to your module-info.java if you are using Java modules
+                """, e);
     }
 }
