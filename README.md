@@ -85,5 +85,5 @@ to help ensure that there are no unintended performance regressions. If you are 
 to discuss your ideas before submitting a PR, feel free to reach out to us on the [Forge Discord].
 
 [Versions]: https://files.minecraftforge.net/net/minecraftforge/eventbus/
-[Forge usages]: https://github.com/MinecraftForge/MinecraftForge/tree/1.21.x/src/main/java/net/minecraftforge/event
+[Forge usages]: https://github.com/MinecraftForge/MinecraftForge/tree/1.21.11/src/main/java/net/minecraftforge/event
 [Forge Discord]: https://discord.minecraftforge.net/
