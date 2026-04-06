@@ -75,6 +75,13 @@ public class SubscribeEventValidatorTests {
         assertThat(compilation).hadWarningContaining("consider using a void return type");
 
         compilation = compile("""
+            @SubscribeEvent
+            boolean alwaysCancellingEvent(CancelableEvent event) { return true; }
+        """);
+        assertThat(compilation).hadWarningContaining("consider using a void return type");
+        assertThat(compilation).hadWarningContaining("alwaysCancelling = true");
+
+        compilation = compile("""
             @SubscribeEvent(alwaysCancelling = true)
             void alwaysCancellingEvent(CancelableEvent event) {}
         """);
