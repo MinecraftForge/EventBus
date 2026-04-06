@@ -104,12 +104,20 @@ public final class SubscribeEventValidator extends AbstractValidator {
             var scanner = new ReturnScanner();
             scanner.scan(methodPath, null);
 
-            if (scanner.sawReturn && !scanner.sawNonLiteralReturn && scanner.sawLiteralFalse && !scanner.sawLiteralTrue) {
-                // if we get here, all returns in this method are literal `return false;` statements
-                processingEnv.getMessager().printWarning(
-                        "Listener always returns false, consider using a void return type instead",
-                        method
-                );
+            if (scanner.sawReturn && !scanner.sawNonLiteralReturn) {
+                if (scanner.sawLiteralFalse && !scanner.sawLiteralTrue) {
+                    // if we get here, all returns in this method are literal `return false;` statements
+                    processingEnv.getMessager().printWarning(
+                            "Listener always returns false, consider using a void return type instead",
+                            method
+                    );
+                } else if (scanner.sawLiteralTrue && !scanner.sawLiteralFalse) {
+                    // if we get here, all returns in this method are literal `return true;` statements
+                    processingEnv.getMessager().printWarning(
+                            "Listener always returns true, consider using a void return type combined with @SubscribeEvent(alwaysCancelling = true) or CancellableEventBus#addListener(true, ...) instead",
+                            method
+                    );
+                }
             }
         }
     }
