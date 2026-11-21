@@ -110,7 +110,7 @@ public class IndividualEventListenerTests {
     }
 
     @Test
-    public void testAlwaysCancellingListenerOptimisation() throws Exception{
+    public void testAlwaysCancellingListenerOptimisation() throws Exception {
         record CancellableTestEvent() implements Cancellable, RecordEvent {
             static final CancellableEventBus<CancellableTestEvent> BUS = CancellableEventBus.create(CancellableTestEvent.class);
         }
@@ -131,6 +131,44 @@ public class IndividualEventListenerTests {
 
         CancellableTestEvent.BUS.removeListener(cancellingListener);
         CancellableTestEvent.BUS.removeListener(ordinaryListener);
+    }
+
+    /**
+     * Tests that a monitoring listener is called when the event only has monitoring listeners registered.
+     */
+    @Test
+    public void testMonitoringListener() {
+        record TestEvent() implements RecordEvent {
+            static final EventBus<TestEvent> BUS = EventBus.create(TestEvent.class);
+        }
+
+        var called = new Object() {
+            boolean monitor = false;
+            boolean normal = false;
+        };
+        var monitoringListener = TestEvent.BUS.addListener(Priority.MONITOR, event -> called.monitor = true);
+        Assertions.assertFalse(called.monitor, "Monitoring listener should not have been called yet");
+
+        Assertions.assertTrue(TestEvent.BUS.hasListeners(), "The event should have a listener");
+
+        TestEvent.BUS.post(new TestEvent());
+        Assertions.assertTrue(called.monitor, "Monitoring listener should have been called");
+
+        // Ensure that the monitoring listener is still called after a normal listener is removed
+        called.monitor = false;
+        var normalListener = TestEvent.BUS.addListener(event -> called.normal = true);
+        TestEvent.BUS.post(new TestEvent());
+        Assertions.assertTrue(called.normal, "Normal listener should have been called");
+        Assertions.assertTrue(called.monitor, "Monitoring listener should have been called");
+
+        TestEvent.BUS.removeListener(normalListener);
+        called.monitor = false;
+
+        Assertions.assertTrue(TestEvent.BUS.hasListeners(), "The event should still have a listener");
+        TestEvent.BUS.post(new TestEvent());
+        Assertions.assertTrue(called.monitor, "Monitoring listener should still be called after normal listener was removed");
+
+        TestEvent.BUS.removeListener(monitoringListener);
     }
 
     /**

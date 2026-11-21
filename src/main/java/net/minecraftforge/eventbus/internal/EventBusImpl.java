@@ -88,7 +88,7 @@ public record EventBusImpl<T extends Event>(
     @Override // overrides from AbstractEventBusImpl
     public void invalidateInvoker() {
         if (alreadyInvalidated.getAcquire()) return;
-        invokerCallSite.setTarget(backingList.isEmpty() ? MH_NO_OP_CONSUMER : MH_NULL_CONSUMER);
+        invokerCallSite.setTarget(backingList.isEmpty() && monitorBackingList.isEmpty() ? MH_NO_OP_CONSUMER : MH_NULL_CONSUMER);
     }
 
     @Override // overrides from AbstractEventBusImpl

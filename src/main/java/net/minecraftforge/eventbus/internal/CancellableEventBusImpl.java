@@ -123,7 +123,7 @@ public record CancellableEventBusImpl<T extends Event & Cancellable>(
     @Override // overrides from AbstractEventBusImpl
     public void invalidateInvoker() {
         if (alreadyInvalidated.getAcquire()) return;
-        invokerCallSite.setTarget(backingList.isEmpty() ? MH_NO_OP_PREDICATE : MH_NULL_PREDICATE);
+        invokerCallSite.setTarget(backingList.isEmpty() && monitorBackingList.isEmpty() ? MH_NO_OP_PREDICATE : MH_NULL_PREDICATE);
     }
 
     @Override // overrides from AbstractEventBusImpl
